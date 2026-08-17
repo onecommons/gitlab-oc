@@ -64,12 +64,6 @@ webpack's manifest name and fails with `Could not load manifest`:
 ENABLE_RSPACK=true bundle exec rspec oc/spec/requests
 ```
 
-Editing files while the GDK's `rails-web` is running leaves the development
-process broken after its code reload (`undefined method 'correlation_id' for
-module Tags`, then a stack overflow on every request). That is upstream's
-reloader, not the fork: it happens with `GITLAB_ONLY=1` too. Run
-`gdk restart rails-web` after a batch of edits.
-
 In CI, `oc/spec` runs in the `rspec-oc unit pg17` and `rspec-oc integration
 pg17` jobs.
 
