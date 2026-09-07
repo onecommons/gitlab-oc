@@ -14,6 +14,7 @@ import DesignDropzone from '~/vue_shared/components/upload_dropzone/upload_dropz
 import DetailLayout from '~/vue_shared/components/detail_layout.vue';
 import PanelActionsPortal from '~/vue_shared/components/panel_actions_portal.vue';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
+import OcReplicaBanner from 'oc/work_items/components/replica_banner.vue'; // OC Change
 import { s__, __ } from '~/locale';
 import { InternalEvents } from '~/tracking';
 import { getParameterByName, updateHistory, removeParams } from '~/lib/utils/url_utility';
@@ -122,6 +123,7 @@ export default {
     DesignWidget,
     DesignUploadButton,
     DetailLayout,
+    OcReplicaBanner, // OC Change
     GlAlert,
     GlButton,
     GlEmptyState,
@@ -976,6 +978,10 @@ export default {
       <!-- Do not remove the element below, it allows for scrolling to top on click of sticky header -->
       <div id="top"></div>
       <detail-layout :loading="workItemLoading" :show-sidebar="showSidebar">
+        <!-- OC Change -->
+        <template v-if="workItemPresent" #before>
+          <oc-replica-banner :work-item-id="workItem.id" />
+        </template>
         <template #loading>
           <work-item-loading />
         </template>

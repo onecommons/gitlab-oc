@@ -12,6 +12,7 @@ if (IS_JH && fs.existsSync('./jh/jest.config.js')) {
     roots: ['<rootDir>/spec/frontend/'],
     rootsEE: ['<rootDir>/ee/spec/frontend/'],
     rootsJH: ['<rootDir>/jh/spec/frontend/'],
+    rootsOC: ['<rootDir>/oc/spec/frontend/'], // OC Change
   });
   module.exports = {
     ...config,

@@ -1,0 +1,10 @@
+# @feature_category: source_code_management
+query ocWorkItemReplica($id: WorkItemID!) {
+  workItem(id: $id) {
+    id
+    ocReplica {
+      surrendered
+      sourceWebUrl
+    }
+  }
+}

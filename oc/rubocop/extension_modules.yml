@@ -7,6 +7,7 @@ Gitlab/BoundedContexts:
     - 'oc/app/models/oc/merge_request.rb'
     - 'oc/app/models/oc/project.rb'
     - 'oc/app/models/oc/repository.rb'
+    - 'oc/app/graphql/oc/types/work_item_type.rb'
     - 'oc/app/policies/oc/issuable_policy.rb'
     - 'oc/app/services/oc/award_emojis/add_service.rb'
     - 'oc/app/services/oc/award_emojis/destroy_service.rb'
