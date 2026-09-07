@@ -115,8 +115,8 @@ module Gitlab
     def self.preload_sli_modules!
       sli_paths = [
         Rails.root.join('lib/gitlab/metrics/*_slis.rb'),
-        Rails.root.join('ee/lib/gitlab/metrics/*_slis.rb')
-      ]
+        (Rails.root.join('ee/lib/gitlab/metrics/*_slis.rb') if Gitlab.ee?) # OC Change: ee/ is present but never loads
+      ].compact
       Gitlab::AppLogger.info "#{self}: preloading path(s) #{sli_paths.join(', ')}"
 
       sli_paths.flat_map { |path| Dir.glob(path) }.each do |file|
