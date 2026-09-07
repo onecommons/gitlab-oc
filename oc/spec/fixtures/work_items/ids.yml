@@ -1,0 +1,14 @@
+---
+_schema: ids@1
+projects:
+  %{project_id}: snapshot-group/snapshot-project  # e.g. 42
+groups:
+  %{group_id}: snapshot-group  # e.g. 8
+users:
+  %{author_id}:  # e.g. 12
+    username: snapshot-author
+    name: Snapshot Author
+    public_email: snapshot-author@example.com
+  %{commenter_id}:  # e.g. 34
+    username: snapshot-commenter
+    name: Snapshot Commenter

@@ -57,6 +57,32 @@ groups separately.
 In CI, `oc/spec` runs in the `rspec-oc unit pg17` and `rspec-oc integration
 pg17` jobs.
 
+## Regenerating the work item snapshots
+
+`oc/spec/fixtures/work_items/*.yml` record, byte for byte, what the work items
+sync commits to the `gitlab-work-items` branch, one file per relation. They
+double as documentation of the format: the placeholders carry inline `# e.g.`
+comments, which `WorkItemSnapshots#strip_example_comments` removes before the
+comparison. `oc/spec/services/oc/work_items/record_serializer_snapshot_spec.rb`
+verifies them and doubles as their generator.
+
+A failure there means the serializer's output changed. If that was deliberate
+(a GitLab upgrade touching `lib/gitlab/import_export/project/import_export.yml`,
+or an intentional change to `OC::WorkItems::RecordSerializer`) regenerate them
+and review the diff. A change to the file layout itself also needs
+`RecordSerializer::SCHEMA_VERSION` bumped, which the `_schema` header at the
+top of every snapshot will show:
+
+```bash
+REGENERATE_WORK_ITEM_SNAPSHOTS=1 \
+  bin/rspec oc/spec/services/oc/work_items/record_serializer_snapshot_spec.rb
+```
+
+The run writes the snapshots and then verifies what it wrote. The setup shared
+by both modes lives in `oc/spec/support/helpers/work_item_snapshots.rb`; edit
+the Markdown or the records there rather than the YAML by hand. The snapshots
+are interpolated with `format()`, so a literal `%` must be written `%%`.
+
 ## Jest
 
 Jest discovers `oc/spec/frontend/**/*_spec.js` automatically

@@ -1,0 +1,26 @@
+---
+_schema: milestones@1
+milestones:
+- title: '15.11'
+  description: Work items sync rollout
+  due_date: '2026-02-01'
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  state: active
+  iid: 1
+  start_date: '2026-01-01'
+  group_id: %{group_id}  # e.g. 8
+- title: backlog
+  project_id: %{project_id}  # e.g. 42
+  description: Not scheduled yet
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  state: active
+  iid: 1
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{author_id}  # e.g. 12
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: created
+    target_type: Milestone

@@ -117,13 +117,17 @@ To make a development instance talk to a local Unfurl Server, add this to the
   RAILS_ENV=test bin/rake gitlab:sidekiq:all_queues_yml:generate
   ```
 
-  Leave `config/sidekiq_queues.yml` alone: upstream generates it in EE mode
-  and checks it only there (`EEOnlyTask` in `scripts/static-analysis`), and
-  regenerating it as `oc` strips every EE queue. A worker's `feature_category`
-  must be one of the values in `config/feature_categories.yml`, and a worker
-  that sets a non-default `sidekiq_options retry:` needs an entry in the
-  `retry_exceptions` hash in `spec/workers/every_sidekiq_worker_spec.rb`.
-  Cron schedules go in `oc/config/schedule.yml`, loaded beside
+  Do not regenerate `config/sidekiq_queues.yml`: upstream generates it in EE
+  mode and checks it only there (`EEOnlyTask` in `scripts/static-analysis`),
+  and regenerating it as `oc` strips every EE queue. Add the new worker's
+  queue by hand under its `# OC Change` marker instead, since
+  `spec/workers/every_sidekiq_worker_spec.rb` wants every queue listed. A
+  worker's `feature_category` must be one of the values in
+  `config/feature_categories.yml`; a non-default `sidekiq_options retry:`
+  goes in `OC::EverySidekiqWorkerTestHelper#extra_retry_exceptions`
+  (`oc/spec/support/helpers/oc/`); `urgency :low` needs
+  `defer_on_database_health_signal`; `data_consistency :always` is refused,
+  use `:sticky`. Cron schedules go in `oc/config/schedule.yml`, loaded beside
   `config/schedule.yml`.
 - **`oc/rubocop/rubocop-oc.yml` is generated.** It gives every `ee/` and `jh/`
   Include/Exclude entry in `.rubocop.yml` and `rubocop/*.yml` an `oc/` twin.
@@ -201,6 +205,10 @@ assuming an offense is yours.
 
 Where tests belong:
 
+- `oc/spec/support/**` — helpers and shared examples, loaded by
+  `oc/spec/spec_helper.rb` before upstream's own, so an
+  `OC::SomeHelper` module is in place when upstream's `SomeHelper.prepend_mod`
+  runs.
 - `oc/spec/**` — RSpec for `oc/` code, mirroring the source layout. Runs in
   the `rspec-oc unit pg17` / `rspec-oc integration pg17` CI jobs, which select
   the folder from the `-oc` suffix in the job name (`scripts/rspec_helpers.sh`).

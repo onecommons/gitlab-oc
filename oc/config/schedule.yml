@@ -1,0 +1,13 @@
+# Sidekiq Cron Jobs default schedules for the oc edition, loaded beside
+# config/schedule.yml by Gitlab::SidekiqConfig::CronJobs
+---
+
+# Nightly reconcile of work items sync branches, and a weekly unfiltered
+# sweep behind it (Sunday 03:15, after the nightly has run).
+oc_work_items_reconcile_worker:
+  class: OC::WorkItems::ReconcileWorker
+  cron: "15 2 * * *"
+
+oc_work_items_sweep_worker:
+  class: OC::WorkItems::SweepWorker
+  cron: "15 3 * * 0"

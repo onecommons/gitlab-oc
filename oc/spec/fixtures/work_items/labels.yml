@@ -1,0 +1,26 @@
+---
+_schema: labels@1
+labels:
+- title: bug
+  color: "#ff0000"
+  project_id: %{project_id}  # e.g. 42
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  template: false
+  description: It is broken
+  type: ProjectLabel
+  priorities:
+  - project_id: %{project_id}  # e.g. 42
+    priority: 1
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+  textColor: "#FFFFFF"
+- title: inherited
+  color: "#0000ff"
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  template: false
+  description: Owned by an ancestor group, usable from every project under it
+  group_id: %{group_id}  # e.g. 8
+  type: GroupLabel
+  textColor: "#FFFFFF"

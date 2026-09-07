@@ -11,7 +11,8 @@ RSpec.describe Gitlab::SidekiqConfig::CliMethods do
     end
 
     def stub_exists(exists: true)
-      ['app/workers/all_queues.yml', 'ee/app/workers/all_queues.yml', 'jh/app/workers/all_queues.yml'].each do |path|
+      ['app/workers/all_queues.yml', 'ee/app/workers/all_queues.yml', 'jh/app/workers/all_queues.yml',
+        'oc/app/workers/all_queues.yml'].each do |path| # OC Change
         allow(File).to receive(:exist?).with(expand_path(path)).and_return(exists)
       end
     end
@@ -28,6 +29,11 @@ RSpec.describe Gitlab::SidekiqConfig::CliMethods do
       allow(YAML).to receive(:load_file)
                        .with(expand_path('jh/app/workers/all_queues.yml'))
                        .and_return(jh_queues)
+
+      # OC Change
+      allow(YAML).to receive(:load_file)
+                       .with(expand_path('oc/app/workers/all_queues.yml'))
+                       .and_return([])
     end
 
     before do

@@ -99,6 +99,7 @@ RSpec.describe Gitlab::SidekiqConfig::CronJobs, feature_category: :build do
       before do
         allow(Gitlab).to receive_messages(ee?: false, com?: false, jh?: false)
         stub_const("#{described_class}::SCHEDULE_PATH", '/nonexistent/path/schedule.yml')
+        stub_const("#{described_class}::OC_SCHEDULE_PATH", '/nonexistent/path/schedule.yml') # OC Change
       end
 
       it 'returns an empty hash' do

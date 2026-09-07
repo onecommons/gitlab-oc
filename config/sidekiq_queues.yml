@@ -833,6 +833,17 @@
   - 1
 - - observability_create_group_o11y_setting
   - 2
+# OC Change: the oc edition's queues; the generator only runs in EE mode
+- - oc_work_items_commit_notes_sync
+  - 1
+- - oc_work_items_full_sync
+  - 1
+- - oc_work_items_import
+  - 1
+- - oc_work_items_import_refresh
+  - 1
+- - oc_work_items_sync
+  - 1
 - - onboarding_add_on_seat_assignment_iterable_trigger
   - 1
 - - onboarding_create_iterable_trigger

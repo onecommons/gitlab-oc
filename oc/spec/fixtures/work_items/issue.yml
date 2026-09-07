@@ -1,0 +1,143 @@
+---
+_schema: issues@1
+title: Snapshot issue
+author_id: %{author_id}  # e.g. 12
+project_id: %{project_id}  # e.g. 42
+created_at: '2026-01-02T03:04:05.000Z'
+updated_at: '2026-01-02T03:04:05.000Z'
+description: |
+  ## Summary
+
+  The deploy step fails **100%% of the time** when `unfurl_type` is set to
+  `blueprint` _and_ the project is public. Quick actions are documented at
+  <https://docs.gitlab.com/user/project/quick_actions/>.
+
+  ### Steps to reproduce
+
+  1. Create a blueprint project
+  2. Run the deploy with a literal percent in a variable:
+
+     ```bash
+     unfurl deploy --dryrun --var 'env=prod%%' 2>&1 | tee out.log
+     ```
+
+  3. Observe `ENOENT` in `out.log`
+
+  - [x] Reproduced locally
+  - [ ] Reproduced on staging
+  - [ ] Root caused
+
+  | Environment | Result | Notes                    |
+  |-------------|--------|--------------------------|
+  | local       | fails  | `ENOENT`                 |
+  | staging     | passes | needs a 2nd confirmation |
+
+  > **Note:** this blocks the 15.11 rollout.
+  > Tracking in ~"needs investigation".
+
+  <!-- internal: linked to the work-items sync spike -->
+
+  Edge cases the serializer must survive: a trailing backslash \
+  a tab escape `\t`, "double" and 'single' quotes, a colon: in prose,
+  and a line that looks like YAML --- but is not.
+iid: 1
+updated_by_id: %{author_id}  # e.g. 12
+confidential: false
+lock_version: 0
+time_estimate: 0
+relative_position: 0
+state: opened
+events:
+- project_id: %{project_id}  # e.g. 42
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  action: created
+  target_type: Issue
+notes:
+- note: |
+    Still reproducing after the latest deploy. Setting this up per the
+    [quick actions reference](https://docs.gitlab.com/user/project/quick_actions/):
+
+    /label ~bug
+    /assign @snapshot-commenter
+    /estimate 2h
+    /due 2026-02-01
+  noteable_type: Issue
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T03:00:00.000Z'
+  updated_at: '2026-01-02T03:00:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{author_id}  # e.g. 12
+  discussion_id: aa11000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:00:00.000Z'
+  author:
+    name: Snapshot Author
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{author_id}  # e.g. 12
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+- note: |
+    Confirmed on staging. See `out.log` line 42 -- same `ENOENT`.
+
+    ![deploy failure](/uploads/aa11bb22cc33dd44ee55ff6600112233/deploy-failure.png)
+  noteable_type: Issue
+  author_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T03:02:00.000Z'
+  updated_at: '2026-01-02T03:02:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{commenter_id}  # e.g. 34
+  discussion_id: bb22000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:02:00.000Z'
+  author:
+    name: Snapshot Commenter
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{commenter_id}  # e.g. 34
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+label_links:
+- target_type: Issue
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  label:
+    title: bug
+    color: "#ff0000"
+    project_id: %{project_id}  # e.g. 42
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    template: false
+    description: It is broken
+    type: ProjectLabel
+- target_type: Issue
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  label:
+    title: inherited
+    color: "#0000ff"
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    template: false
+    description: Owned by an ancestor group, usable from every project under it
+    group_id: %{group_id}  # e.g. 8
+    type: GroupLabel
+award_emoji:
+- name: thumbsup
+  user_id: %{commenter_id}  # e.g. 34
+  awardable_type: Issue
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+work_item_type:
+  name: Issue
+uploads:
+- url: %{upload_url}  # e.g. https://unfurl.cloud/my-group/my-project/uploads/aa11bb22cc33dd44ee55ff6600112233/deploy-failure.png
+  size: 184320
+  checksum: 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08
+web_url: %{web_url}  # e.g. https://unfurl.cloud/my-group/my-project/-/work_items/1

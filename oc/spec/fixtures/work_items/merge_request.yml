@@ -1,0 +1,170 @@
+---
+_schema: merge_requests@1
+target_branch: feature
+source_branch: master
+source_project_id: %{project_id}  # e.g. 42
+author_id: %{author_id}  # e.g. 12
+title: Snapshot merge request
+created_at: '2026-01-02T03:04:05.000Z'
+updated_at: '2026-01-02T03:04:05.000Z'
+merge_status: can_be_merged
+target_project_id: %{project_id}  # e.g. 42
+iid: 1
+description: Fixes the snapshot issue
+lock_version: 0
+time_estimate: 0
+squash: false
+allow_maintainer_to_push: true
+draft: false
+diff_head_sha: b83d6e391c22777fca1ed3012fce84f633d7fed0
+source_branch_sha: b83d6e391c22777fca1ed3012fce84f633d7fed0
+target_branch_sha: 0b4bc9a49b562e85de7cc9e834518ea6828729b9
+state: opened
+approvals:
+- user_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+metrics:
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  target_project_id: %{project_id}  # e.g. 42
+award_emoji:
+- name: thumbsup
+  user_id: %{commenter_id}  # e.g. 34
+  awardable_type: MergeRequest
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+notes:
+- note: Ready for review.
+  noteable_type: MergeRequest
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T03:00:00.000Z'
+  updated_at: '2026-01-02T03:00:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{author_id}  # e.g. 12
+  discussion_id: aa11000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:00:00.000Z'
+  author:
+    name: Snapshot Author
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{author_id}  # e.g. 12
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+- note: Does this cover the literal `%%` case from the issue description?
+  noteable_type: MergeRequest
+  author_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T03:01:00.000Z'
+  updated_at: '2026-01-02T03:01:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{commenter_id}  # e.g. 34
+  type: DiscussionNote
+  discussion_id: cc33000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:01:00.000Z'
+  author:
+    name: Snapshot Commenter
+- note: Looks good to me.
+  noteable_type: MergeRequest
+  author_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T03:02:00.000Z'
+  updated_at: '2026-01-02T03:02:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{commenter_id}  # e.g. 34
+  discussion_id: bb22000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:02:00.000Z'
+  author:
+    name: Snapshot Commenter
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{commenter_id}  # e.g. 34
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+- note: Yes -- covered by the round-trip spec. Reply in the same thread as the question.
+  noteable_type: MergeRequest
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T03:03:00.000Z'
+  updated_at: '2026-01-02T03:03:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  system: false
+  updated_by_id: %{author_id}  # e.g. 12
+  type: DiscussionNote
+  discussion_id: cc33000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:03:00.000Z'
+  author:
+    name: Snapshot Author
+merge_request_diff:
+  created_at: '2026-01-02T03:04:05.000Z'
+  base_commit_sha: ae73cb07c9eeaf35924a10f713b364d32b2dd34f
+  real_size: '20'
+  head_commit_sha: b83d6e391c22777fca1ed3012fce84f633d7fed0
+  start_commit_sha: 0b4bc9a49b562e85de7cc9e834518ea6828729b9
+  commits_count: 29
+  files_count: 20
+  sorted: true
+  diff_type: regular
+events:
+- project_id: %{project_id}  # e.g. 42
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T02:58:00.000Z'
+  updated_at: '2026-01-02T02:58:00.000Z'
+  action: created
+  target_type: MergeRequest
+- project_id: %{project_id}  # e.g. 42
+  author_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T02:59:00.000Z'
+  updated_at: '2026-01-02T02:59:00.000Z'
+  action: approved
+  target_type: MergeRequest
+label_links:
+- target_type: MergeRequest
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  label:
+    title: bug
+    color: "#ff0000"
+    project_id: %{project_id}  # e.g. 42
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    template: false
+    description: It is broken
+    type: ProjectLabel
+milestone:
+  title: '15.11'
+  project_id: %{project_id}  # e.g. 42
+  description: Work items sync rollout
+  due_date: '2026-02-01'
+  created_at: '2026-01-02T03:04:05.000Z'
+  updated_at: '2026-01-02T03:04:05.000Z'
+  state: active
+  iid: 1
+  start_date: '2026-01-01'
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{author_id}  # e.g. 12
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: created
+    target_type: Milestone
+resource_milestone_events:
+- user_id: %{author_id}  # e.g. 12
+  action: add
+  state: opened
+  created_at: '2026-01-02T03:04:05.000Z'
+  milestone:
+    title: '15.11'
+    project_id: %{project_id}  # e.g. 42
+    description: Work items sync rollout
+    due_date: '2026-02-01'
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    state: active
+    iid: 1
+    start_date: '2026-01-01'
+web_url: %{web_url}  # e.g. https://unfurl.cloud/my-group/my-project/-/merge_requests/1

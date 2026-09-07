@@ -1,0 +1,10 @@
+---
+_schema: issue_reference@1
+source_path: 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/issues/42.yml
+source_web_url: https://other.unfurl.cloud/snapshot-group/snapshot-project/-/issues/42
+web_url: %{web_url}  # e.g. https://unfurl.cloud/my-group/my-project/-/work_items/1
+ids:
+  projects:
+    %{project_id}: 9001  # e.g. 42
+  users:
+    %{author_id}: 9002  # e.g. 12

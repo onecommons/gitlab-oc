@@ -47,6 +47,7 @@ Rainbow.enabled = false
 RSpec.configure(&:disable_monkey_patching!)
 
 require_relative('../ee/spec/spec_helper') if Gitlab.ee?
+require_relative('../oc/spec/spec_helper') if Gitlab.oc? # OC Change
 require_relative('../jh/spec/spec_helper') if Gitlab.jh?
 
 # Requires supporting ruby files with custom matchers and macros, etc,

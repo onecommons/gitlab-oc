@@ -2,4 +2,74 @@
 #   bin/rake gitlab:sidekiq:all_queues_yml:generate
 #
 # Do not edit it manually!
---- []
+---
+- :name: cronjob:oc_work_items_reconcile
+  :worker_name: OC::WorkItems::ReconcileWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace: :cronjob
+- :name: cronjob:oc_work_items_sweep
+  :worker_name: OC::WorkItems::SweepWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :throttled
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace: :cronjob
+- :name: oc_work_items_commit_notes_sync
+  :worker_name: OC::WorkItems::CommitNotesSyncWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
+- :name: oc_work_items_full_sync
+  :worker_name: OC::WorkItems::FullSyncWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
+- :name: oc_work_items_import
+  :worker_name: OC::WorkItems::ImportWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
+- :name: oc_work_items_import_refresh
+  :worker_name: OC::WorkItems::ImportRefreshWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
+- :name: oc_work_items_sync
+  :worker_name: OC::WorkItems::SyncWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:

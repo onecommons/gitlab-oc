@@ -34,7 +34,7 @@ FactoryBot.define do
     # Ours, frozen, on its way to the instance named by source_instance_uuid.
     # source_path is our own old path rather than a path in their directory,
     # which is the one place these columns do not mean what they usually do --
-    # see OC::ReplicatedWorkItem.
+    # see OC::WorkItems::ReplicatedWorkItem.
     trait :surrendered do
       state { :surrendered }
       source_web_url { nil }

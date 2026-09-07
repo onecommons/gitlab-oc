@@ -1,0 +1,49 @@
+---
+_schema: commit_notes@1
+commit_id: f0c7d1a94e3b6528d0b1f4a27c9e83b5d6a10f42
+notes:
+- note: This is the commit that introduced the `ENOENT`.
+  noteable_type: Commit
+  author_id: %{author_id}  # e.g. 12
+  created_at: '2026-01-02T03:00:00.000Z'
+  updated_at: '2026-01-02T03:00:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  commit_id: f0c7d1a94e3b6528d0b1f4a27c9e83b5d6a10f42
+  system: false
+  updated_by_id: %{author_id}  # e.g. 12
+  discussion_id: dd44000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:00:00.000Z'
+  internal: false
+  imported_from: none
+  author:
+    name: Snapshot Author
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{author_id}  # e.g. 12
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+- note: Agreed -- reverting it locally makes the deploy pass.
+  noteable_type: Commit
+  author_id: %{commenter_id}  # e.g. 34
+  created_at: '2026-01-02T03:02:00.000Z'
+  updated_at: '2026-01-02T03:02:00.000Z'
+  project_id: %{project_id}  # e.g. 42
+  commit_id: f0c7d1a94e3b6528d0b1f4a27c9e83b5d6a10f42
+  system: false
+  updated_by_id: %{commenter_id}  # e.g. 34
+  discussion_id: ee55000000000000000000000000000000000000
+  last_edited_at: '2026-01-02T03:02:00.000Z'
+  internal: false
+  imported_from: none
+  author:
+    name: Snapshot Commenter
+  events:
+  - project_id: %{project_id}  # e.g. 42
+    author_id: %{commenter_id}  # e.g. 34
+    created_at: '2026-01-02T03:04:05.000Z'
+    updated_at: '2026-01-02T03:04:05.000Z'
+    action: commented
+    target_type: Note
+web_url: %{web_url}  # e.g. https://unfurl.cloud/my-group/my-project/-/commit/f0c7d1a94e3b6528d0b1f4a27c9e83b5d6a10f42
