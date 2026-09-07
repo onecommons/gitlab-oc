@@ -1,0 +1,14 @@
+---
+table_name: oc_replicated_work_items
+classes:
+- OC::WorkItems::ReplicatedWorkItem
+feature_categories:
+- source_code_management
+description: Read-only copies of issues and merge requests imported from a peer
+  instance's work items sync branch, and the source file each was built from
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_org
+sharding_key:
+  project_id: projects
+table_size: small

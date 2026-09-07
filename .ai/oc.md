@@ -28,7 +28,9 @@ the bundle, so `git commit` fails without it.
 
 Gitaly's `go.mod` requires Go 1.25 or later; the GDK pins 1.26 in its
 `.tool-versions`. A Homebrew Go 1.24 earlier on `PATH` makes the RSpec
-suite's Gitaly build fail — see `oc/spec/README.md`.
+suite's Gitaly build fail — see `oc/spec/README.md`. The same applies to
+`pg_dump`, which `db:migrate` runs and which must match the server's major
+version (mise's `postgres` install has one).
 
 ### Unfurl server integration
 
@@ -166,11 +168,17 @@ upstream adds later. What is not obvious about them:
   nothing queries inside these values anyway. For the same reason prefer real
   foreign keys over a polymorphic pair: every column ending in `_id` needs one
   or an entry in that file's `ignored_fk_columns_map`.
-- **Check `git status` after `bin/rake db:migrate`.** It can rewrap
-  `description:` lines in unrelated `db/docs/*.yml` files, and its
-  `structure.sql` dump can differ from the committed one for reasons that have
-  nothing to do with your migration. Revert those, and keep only your own
-  table's lines in `structure.sql`.
+- **Run migrations with a matching `pg_dump` on `PATH`.**
+  `RAILS_ENV=test bin/rake db:migrate` applies the migration to the `main`,
+  `ci` and `sec` test databases, writes `db/schema_migrations/<version>`, then
+  dumps `db/structure.sql`; a `pg_dump` of another major version (Homebrew's,
+  say) aborts that last step after the migration has run. Reverting is per
+  database: `db:migrate:down:main VERSION=<version>`, then `ci` and `sec`.
+- **Take only your own statements from the dump.** Postgres 17's `pg_dump`
+  orders partitioned tables differently from the version upstream dumps with,
+  so the dump moves hundreds of unrelated lines. Keep the committed file and
+  insert your table's statements where the dump puts them relative to their
+  neighbours; commit the `db/schema_migrations/<version>` marker as written.
 
 ### Linting
 

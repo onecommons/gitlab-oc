@@ -1,0 +1,7 @@
+# Modules that extend an upstream top-level class through prepend_mod_with are
+# named after that class, so they cannot sit in a bounded context. Upstream
+# lists its own in .rubocop_todo/gitlab/bounded_contexts.yml.
+Gitlab/BoundedContexts:
+  Exclude:
+    - 'oc/app/models/oc/issue.rb'
+    - 'oc/app/models/oc/merge_request.rb'

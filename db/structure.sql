@@ -25638,6 +25638,41 @@ CREATE SEQUENCE observability_traces_issues_connections_id_seq
 
 ALTER SEQUENCE observability_traces_issues_connections_id_seq OWNED BY observability_traces_issues_connections.id;
 
+CREATE TABLE oc_replicated_work_items (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    issue_id bigint,
+    merge_request_id bigint,
+    source_kind smallint NOT NULL,
+    state smallint DEFAULT 0 NOT NULL,
+    source_iid integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    source_instance_uuid text NOT NULL,
+    source_path text NOT NULL,
+    source_blob_oid text NOT NULL,
+    source_web_url text,
+    reason text,
+    identity_map text,
+    unresolved_refs text,
+    CONSTRAINT check_2b938c224c CHECK ((char_length(identity_map) <= 65536)),
+    CONSTRAINT check_30bb7c25b6 CHECK ((char_length(source_instance_uuid) <= 255)),
+    CONSTRAINT check_44dfdc7132 CHECK ((char_length(reason) <= 255)),
+    CONSTRAINT check_482cc4e276 CHECK ((char_length(source_web_url) <= 2048)),
+    CONSTRAINT check_485409d61e CHECK ((char_length(unresolved_refs) <= 8192)),
+    CONSTRAINT check_a0a33051ea CHECK ((char_length(source_blob_oid) <= 64)),
+    CONSTRAINT check_bf7f2bbaf0 CHECK ((char_length(source_path) <= 1024))
+);
+
+CREATE SEQUENCE oc_replicated_work_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_replicated_work_items_id_seq OWNED BY oc_replicated_work_items.id;
+
 CREATE TABLE onboarding_progresses (
     id bigint NOT NULL,
     namespace_id bigint NOT NULL,
@@ -37262,6 +37297,8 @@ ALTER TABLE ONLY observability_metrics_issues_connections ALTER COLUMN id SET DE
 
 ALTER TABLE ONLY observability_traces_issues_connections ALTER COLUMN id SET DEFAULT nextval('observability_traces_issues_connections_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
+
 ALTER TABLE ONLY onboarding_progresses ALTER COLUMN id SET DEFAULT nextval('onboarding_progresses_id_seq'::regclass);
 
 ALTER TABLE ONLY operations_feature_flags ALTER COLUMN id SET DEFAULT nextval('operations_feature_flags_id_seq'::regclass);
@@ -41021,6 +41058,9 @@ ALTER TABLE ONLY observability_metrics_issues_connections
 
 ALTER TABLE ONLY observability_traces_issues_connections
     ADD CONSTRAINT observability_traces_issues_connections_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_replicated_work_items
+    ADD CONSTRAINT oc_replicated_work_items_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY onboarding_progresses
     ADD CONSTRAINT onboarding_progresses_pkey PRIMARY KEY (id);
@@ -49224,6 +49264,12 @@ CREATE INDEX index_observability_metrics_issues_connections_on_namespace_id ON o
 CREATE INDEX index_observability_metrics_issues_connections_on_project_id ON observability_metrics_issues_connections USING btree (project_id);
 
 CREATE INDEX index_observability_traces_issues_connections_on_project_id ON observability_traces_issues_connections USING btree (project_id);
+
+CREATE UNIQUE INDEX index_oc_replicated_work_items_on_issue_id ON oc_replicated_work_items USING btree (issue_id) WHERE (issue_id IS NOT NULL);
+
+CREATE UNIQUE INDEX index_oc_replicated_work_items_on_merge_request_id ON oc_replicated_work_items USING btree (merge_request_id) WHERE (merge_request_id IS NOT NULL);
+
+CREATE UNIQUE INDEX index_oc_replicated_work_items_on_source ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_path);
 
 CREATE UNIQUE INDEX index_ofas_organization_id_on_reference ON organization_foundational_agent_statuses USING btree (organization_id, reference);
 
@@ -61099,6 +61145,9 @@ ALTER TABLE ONLY packages_conan_metadata
 ALTER TABLE ONLY excluded_merge_requests
     ADD CONSTRAINT fk_rails_8c973feffa FOREIGN KEY (merge_request_id) REFERENCES merge_requests(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_replicated_work_items
+    ADD CONSTRAINT fk_rails_8ca42544f7 FOREIGN KEY (merge_request_id) REFERENCES merge_requests(id) ON DELETE SET NULL;
+
 ALTER TABLE ONLY import_placeholder_memberships
     ADD CONSTRAINT fk_rails_8cdeffd260 FOREIGN KEY (source_user_id) REFERENCES import_source_users(id) ON DELETE CASCADE;
 
@@ -61909,6 +61958,9 @@ ALTER TABLE ONLY security_orchestration_policy_rule_schedules
 ALTER TABLE ONLY dast_pre_scan_verifications
     ADD CONSTRAINT fk_rails_f08d9312a8 FOREIGN KEY (dast_profile_id) REFERENCES dast_profiles(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_replicated_work_items
+    ADD CONSTRAINT fk_rails_f0bfd1e1c0 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY analytics_dashboards_pointers
     ADD CONSTRAINT fk_rails_f0e7c640c3 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
@@ -62010,6 +62062,9 @@ ALTER TABLE ONLY external_approval_rules
 
 ALTER TABLE ONLY cluster_groups
     ADD CONSTRAINT fk_rails_fdb8648a96 FOREIGN KEY (cluster_id) REFERENCES clusters(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY oc_replicated_work_items
+    ADD CONSTRAINT fk_rails_fdcfbc397e FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY project_control_compliance_statuses
     ADD CONSTRAINT fk_rails_fe05913910 FOREIGN KEY (compliance_requirements_control_id) REFERENCES compliance_requirements_controls(id) ON DELETE CASCADE;
