@@ -16,7 +16,7 @@ module OC
       #
       # That only pays off because a human is present when it is written. The
       # push-time check runs this and reports what it says, so an error here
-      # reaches the person who just made it -- see OC::Checks::SyncFileCheck.
+      # reaches the person who just made it -- see OC::Gitlab::Checks::SyncFileCheck.
       #
       # Parsed through Psych's AST rather than safe_load for two things the
       # loaded hash cannot give: the line each key sits on, and duplicate keys.

@@ -80,3 +80,5 @@ class RepositoryForkWorker # rubocop:disable Scalability/IdempotentWorker
     raise "Unable to fork project #{target_project.id} for repository #{source_project.disk_path} -> #{target_project.disk_path}: #{reason}"
   end
 end
+
+RepositoryForkWorker.prepend_mod # OC Change

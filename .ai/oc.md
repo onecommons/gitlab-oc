@@ -106,10 +106,12 @@ To make a development instance talk to a local Unfurl Server, add this to the
 - **The first namespace after `OC::` must be a bounded context.** The
   `Gitlab/BoundedContexts` cop strips a leading `OC::` and requires the next
   module to be listed in `config/bounded_contexts.yml`, an upstream file. Put
-  new code under an existing context where one fits; a fork-only namespace
-  needs an entry there, and that entry is a rebase conflict every release.
-  Extension modules named after an upstream class (`OC::Project`) cannot
-  comply; list them in `oc/rubocop/extension_modules.yml`.
+  new code under an existing context where one fits (`Gitlab` is the
+  platform context, so a pre-receive check goes under `OC::Gitlab::Checks`
+  like upstream's); a fork-only namespace needs an entry there, and that
+  entry is a rebase conflict every release. Extension modules named after an
+  upstream class (`OC::Project`, `OC::Notes::UpdateService`) cannot comply;
+  every new one needs a line in `oc/rubocop/extension_modules.yml`.
 - **New or renamed Sidekiq workers** require regenerating
   `oc/app/workers/all_queues.yml`, or CI fails:
 

@@ -193,3 +193,5 @@ module Git
     end
   end
 end
+
+Git::BaseHooksService.prepend_mod # OC Change
