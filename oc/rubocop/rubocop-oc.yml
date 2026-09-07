@@ -73,6 +73,7 @@ CodeReuse/ActiveRecord:
   - oc/app/models/**/*.rb
   - oc/db/fixtures/**/*.rb
   - oc/lib/gitlab/usage/metrics/instrumentations/**/*.rb
+  - oc/lib/oc/gitlab/background_migration/**/*.rb
   - oc/lib/tasks/**/*.rake
   - oc/spec/**/*.rb
 Cop/ActiveRecordAssociationReload:
@@ -121,6 +122,7 @@ Database/AvoidUsingPluckWithoutLimit:
 Database/MultipleDatabases:
   Exclude:
   - oc/db/**/*.rb
+  - oc/lib/oc/gitlab/background_migration/**/*.rb
 Gitlab/Authz/AvoidHighestRoleUsage:
   Include:
   - oc/app/policies/**/*.rb
@@ -168,6 +170,8 @@ Gitlab/AvoidUserOrganization:
   - oc/db/fixtures/development/**/*
   - oc/spec/**/*
 Gitlab/BoundedContexts:
+  Exclude:
+  - oc/lib/oc/api/**/*
   Include:
   - oc/app/**/*
   - oc/lib/**/*
@@ -279,6 +283,9 @@ Graphql/OldTypes:
 Graphql/ResolverType:
   Include:
   - oc/app/graphql/resolvers/**/*
+Mcp/UseGraphqlQueryFile:
+  Include:
+  - oc/app/services/oc/mcp/tools/**/*
 Naming/FileName:
   Exclude:
   - oc/config/**/*
@@ -299,6 +306,7 @@ Performance/ActiveRecordSubtransactions:
 Performance/ChainArrayAllocation:
   Include:
   - oc/lib/gitlab/import_export/**/*
+  - oc/lib/oc/gitlab/import_export/**/*
 QA/SelectorUsage:
   Include:
   - oc/spec/**/*.rb
@@ -308,6 +316,7 @@ RSpec/AvoidConditionalStatements:
 RSpec/AvoidTestProf:
   Include:
   - oc/spec/lib/gitlab/background_migration/**/*.rb
+  - oc/spec/lib/oc/gitlab/background_migration/**/*.rb
   - oc/spec/migrations/**/*.rb
   - oc/spec/tasks/**/*.rb
 RSpec/AvoidWaitForRequests:
@@ -321,6 +330,7 @@ RSpec/BeSuccessMatcher:
 RSpec/BeforeAll:
   Exclude:
   - oc/spec/lib/gitlab/background_migration/**/*.rb
+  - oc/spec/lib/oc/gitlab/background_migration/**/*.rb
   - oc/spec/migrations/**/*.rb
   - oc/spec/tasks/**/*.rb
   Include:
@@ -339,6 +349,7 @@ RSpec/EnvMocking:
   - oc/spec/**/*.rb
 RSpec/FactoriesInMigrationSpecs:
   Include:
+  - oc/spec/lib/oc/gitlab/background_migration/**/*.rb
   - oc/spec/migrations/**/*.rb
 RSpec/FactoryBot/AvoidCreate:
   Include:
@@ -392,6 +403,7 @@ Rails/ActiveRecordCallbacksOrder:
 Rails/ApplicationRecord:
   Exclude:
   - oc/db/**/*.rb
+  - oc/lib/oc/gitlab/background_migration/**/*.rb
   - oc/spec/**/*.rb
 Rails/EnumSyntax:
   Include:

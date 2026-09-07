@@ -22,7 +22,10 @@ module GenerateRubocopConfig
   HEADER
 
   # EE-specific by nature, or not applicable to code that never loads EE.
+  # EeOnlyClass keeps classes out of ee/**/ee, but oc/**/oc is where all of
+  # the fork's code lives, classes included.
   SKIPPED_COPS = %w[
+    Gitlab/EeOnlyClass
     Gitlab/RSpec/AvoidSetup
     Gitlab/RSpec/MisplacedEeSpecFile
     Gitlab/SaasFeatureAvailableOutsideEe
@@ -41,9 +44,10 @@ module GenerateRubocopConfig
     return unless match
 
     rest = match[1]
-    return if rest.match?(%r{\b(?:ee|jh)/})
+    return if rest.match?(%r{\bjh/}) || rest.include?('(')
 
-    "oc/#{rest}"
+    # An inner ee/ is the extension-module tree (ee/lib/ee/api); ours is oc/lib/oc/api.
+    "oc/#{rest.gsub(%r{\bee/}, 'oc/')}"
   end
 
   def self.collect

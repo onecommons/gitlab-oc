@@ -132,8 +132,8 @@ To make a development instance talk to a local Unfurl Server, add this to the
   use `:sticky`. Cron schedules go in `oc/config/schedule.yml`, loaded beside
   `config/schedule.yml`.
 - **`oc/rubocop/rubocop-oc.yml` is generated.** It gives every `ee/` and `jh/`
-  Include/Exclude entry in `.rubocop.yml` and `rubocop/*.yml` an `oc/` twin.
-  Rerun `ruby oc/support/generate_rubocop_config.rb` after an upstream bump;
+  Include/Exclude entry in `.rubocop.yml` and `rubocop/*.yml` an `oc/` twin
+  (`ee/lib/ee/api/**` becomes `oc/lib/oc/api/**`). Rerun `ruby oc/support/generate_rubocop_config.rb` after an upstream bump;
   never edit the file by hand. `.rubocop.yml` inherits every YAML file under
   `oc/rubocop/`, so hand-written oc-only config belongs in a separate file
   there.
