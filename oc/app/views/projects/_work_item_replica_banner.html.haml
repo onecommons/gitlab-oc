@@ -1,0 +1,30 @@
+-# OC Change -- read-only copies imported from another Unfurl Cloud instance
+-#
+-# Without this an imported item just looks like one that mysteriously cannot
+-# be edited: the policy prevents every write, and nothing on the page says why
+-# or where the real item lives.
+-#
+-# Rendered on the merge request page, which is still server-side. The work
+-# item page is a Vue app and gets the same banner from
+-# oc/app/assets/javascripts/work_items/components/replica_banner.vue; keep
+-# the two in step.
+-#
+-# A surrendered item needs its own words. It is read-only for a different
+-# reason -- it is ours, being given away, and frozen so that nothing is edited
+-# here while the other instance takes it over -- and it has no original to
+-# link to yet, because the instance receiving it has not published its copy.
+-# Shown the imported wording, it would read as a copy of an item that does not
+-# exist anywhere.
+
+- replica = issuable.oc_replica
+- if replica&.read_only?
+  .gl-alert.gl-alert-info.gl-p-4.gl-mb-5
+    .gl-alert-body
+      - if replica.state_surrendered?
+        = _('Being transferred to another Unfurl Cloud instance, and read-only until it arrives there.')
+      - else
+        = _('Read-only copy of an item on another Unfurl Cloud instance.')
+        - if replica.source_web_url.present?
+          = succeed '.' do
+            = link_to _('View the original'), replica.source_web_url,
+              target: '_blank', rel: 'noopener noreferrer'

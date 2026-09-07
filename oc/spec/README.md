@@ -54,6 +54,22 @@ Specs that `require 'fast_spec_helper'` (such as
 but cannot share an rspec invocation with `spec_helper` specs — run the two
 groups separately.
 
+Request specs that render a full page (the settings section in
+`oc/spec/requests/projects/`) need the asset manifest, which the GDK's
+`config/gitlab.yml` fetches from the rspack dev server. Have `gdk start
+rspack` running and set `ENABLE_RSPACK=true`, or Rails asks the server for
+webpack's manifest name and fails with `Could not load manifest`:
+
+```bash
+ENABLE_RSPACK=true bundle exec rspec oc/spec/requests
+```
+
+Editing files while the GDK's `rails-web` is running leaves the development
+process broken after its code reload (`undefined method 'correlation_id' for
+module Tags`, then a stack overflow on every request). That is upstream's
+reloader, not the fork: it happens with `GITLAB_ONLY=1` too. Run
+`gdk restart rails-web` after a batch of edits.
+
 In CI, `oc/spec` runs in the `rspec-oc unit pg17` and `rspec-oc integration
 pg17` jobs.
 

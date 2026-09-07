@@ -1,0 +1,44 @@
+-# OC Change -- work items sync settings section (Settings > Repository)
+- enabled = @project.work_items_sync_enabled?
+- confidential_locked = !@project.private?
+- sync_confidential = @project.sync_confidential_work_items?
+
+= render ::Layouts::SettingsBlockComponent.new(_('Work items sync'),
+  id: 'js-work-items-sync-settings',
+  testid: 'work-items-sync-settings-content',
+  expanded: expanded_by_default?) do |c|
+  - c.with_description do
+    = _('Mirror this project\'s issues and merge requests as YAML files committed to a')
+    %code= OC::WorkItems::SYNC_BRANCH
+    = _('branch of this repository.')
+    -# Served from oc/doc/user/project/work_items_sync.md
+    = link_to _('How does work items sync work?'), help_page_path('user/project/work_items_sync.md'), target: '_blank', rel: 'noopener noreferrer'
+  - c.with_body do
+    = form_tag project_work_items_sync_path(@project), method: :put do
+      %p
+        - if enabled
+          = _('Work items sync is enabled for this project.')
+        - else
+          = _('Work items sync is disabled for this project.')
+        - if @project.work_items_sync_on_by_default?
+          = _('It is on by default for Unfurl projects.')
+      .form-check.gl-mb-2
+        = check_box_tag :sync_confidential, '1', sync_confidential,
+          class: 'form-check-input', disabled: confidential_locked
+        = label_tag :sync_confidential, _('Also sync confidential content'), class: 'form-check-label'
+      %p.form-text.text-muted.gl-mb-3
+        - if confidential_locked
+          = _('Confidential issues and internal notes are never synced on public and internal projects.')
+        - else
+          = _('Includes confidential issues and internal notes, which are left out by default. Anything committed stays readable in the branch history even after it is deleted, so only turn this on if the repository is meant to hold it.')
+      -# Every button carries the `enabled` value it means, so no hidden field is
+      -# needed and the submitted state never depends on parameter ordering.
+      = button_tag _('Save changes'), type: 'submit', name: 'enabled', value: enabled.to_s,
+        class: 'gl-button btn btn-confirm'
+      - if enabled
+        = button_tag _('Disable work items sync'), type: 'submit', name: 'enabled', value: 'false',
+          class: 'gl-button btn btn-danger gl-ml-3'
+      - else
+        = button_tag _('Enable work items sync'), type: 'submit', name: 'enabled', value: 'true',
+          class: 'gl-button btn btn-confirm gl-ml-3',
+          data: { confirm: _('All existing issues and merge requests will be committed to the sync branch. Continue?') }

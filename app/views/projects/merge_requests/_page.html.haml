@@ -20,6 +20,8 @@
     - add_page_startup_api_call @endpoint_diff_batch_url
 
 .merge-request{ data: { mr_action: mr_action, url: merge_request_path(@merge_request, format: :json), project_path: @merge_request.project.full_path, lock_version: @merge_request.lock_version, diffs_batch_cache_key: @diffs_batch_cache_key } }
+  -# OC Change
+  = render_if_exists 'projects/work_item_replica_banner', issuable: @merge_request
   = render "projects/merge_requests/mr_title"
   #js-review-drawer{ data: review_bar_data(@merge_request, current_user) }
   #js-merge-sticky-header{ data: { data: sticky_header_data(@project, @merge_request).to_json } }

@@ -14,6 +14,8 @@
 
 - if can?(current_user, :admin_project, @project)
   = render "projects/mirrors/mirror_repos"
+  -# OC Change
+  = render_if_exists 'projects/work_items_sync/settings'
 
   -# Protected branches & tags use a lot of nested partials.
   -# The shared parts of the views can be found in the `shared` directory.
