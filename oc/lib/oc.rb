@@ -1,0 +1,30 @@
+# frozen_string_literal: true
+
+module OC
+  CACHE_KEY = 'unfurl'
+  DEPLOY_META_FILE_NAME = 'unfurl.json'
+
+  UNFURL_DASHBOARD_NAME = 'dashboard'
+  # project's enum
+  UNFURL_DASHBOARD = 'Home'
+  UNFURL_BLUEPRINT = 'ApplicationBluePrint'
+  REGULAR_PROJECT = 'Regular'
+
+  DASHBOARD_PROJECT_ON_SIGNUP = {
+    template_name: 'unfurl_dashboard', name: 'Dashboard', path: 'dashboard',
+    import_url: 'https://gitlab.com/onecommons/project-templates/dashboard.git',
+    import_data: { credentials: {} },
+    description: 'This is your "home" repository for your environment and deployments'
+  }.freeze
+
+  BLUEPRINTS_GROUP = 'onecommons/blueprints'
+  UNFURL_STD_PROJECT = 'onecommons/std'
+  UNFURL_CLOUDMAP_PROJECT = 'onecommons/cloudmap'
+
+  GIT_TOKEN_NAME = 'UNFURL_GIT_ACCESS'
+
+  STAGING_URL = 'https://staging.unfurl.cloud'
+  def self.staging?
+    ::Gitlab.config.gitlab.url == STAGING_URL
+  end
+end

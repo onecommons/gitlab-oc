@@ -57,7 +57,8 @@ class Repository
     branch_names tag_names branch_count
     tag_count avatar exists? root_ref merged_branch_names
     has_visible_content? issue_template_names_hash merge_request_template_names_hash
-    xcode_project? has_ambiguous_refs?].freeze
+    xcode_project? has_ambiguous_refs?
+    unfurl_yaml ensemble_template_yaml].freeze # OC Change
 
   # Certain method caches should be refreshed when certain types of files are
   # changed. This Hash maps file types (as returned by Gitlab::FileDetector) to
@@ -71,7 +72,9 @@ class Repository
     avatar: :avatar,
     issue_template: :issue_template_names_hash,
     merge_request_template: :merge_request_template_names_hash,
-    xcode_config: :xcode_project?
+    xcode_config: :xcode_project?,
+    unfurl_yaml: :unfurl_yaml, # OC Change
+    ensemble_template_yaml: :ensemble_template_yaml # OC Change
   }.freeze
 
   def initialize(full_path, container, shard:, disk_path: nil, repo_type: Gitlab::GlRepository::PROJECT)

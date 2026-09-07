@@ -5,3 +5,5 @@ Gitlab/BoundedContexts:
   Exclude:
     - 'oc/app/models/oc/issue.rb'
     - 'oc/app/models/oc/merge_request.rb'
+    - 'oc/app/models/oc/project.rb'
+    - 'oc/app/models/oc/repository.rb'

@@ -39,7 +39,17 @@ module Gitlab
       podspec_json: %r{\A[^/]*\.podspec\.json\z},
       podspec: %r{\A[^/]*\.podspec\z},
       requirements_txt: %r{\A[^/]*requirements\.txt\z},
-      yarn_lock: 'yarn.lock'
+      yarn_lock: 'yarn.lock',
+
+      # OC Change
+      unfurl_json: 'unfurl.json',
+      ensemble_json: %r{\A*ensemble\.json\z},
+      ensemble_yaml: %r{\A*ensemble\.yaml\z},
+      ensemble_template_yaml: %r{\Aensemble-template\.yaml\z},
+      environments_json: 'environments.json',
+      deployment_json: %r{\A*deployment\.json\z},
+      unfurl_types_json: 'unfurl-types.json',
+      unfurl_yaml: %r{\Aunfurl\.yaml\z}
     }.freeze
 
     # Returns an Array of file types based on the given paths.

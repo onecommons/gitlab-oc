@@ -3301,7 +3301,9 @@ RSpec.describe Repository, feature_category: :source_code_management do
           :issue_template_names_hash,
           :merge_request_template_names_hash,
           :xcode_project?,
-          :has_ambiguous_refs?
+          :has_ambiguous_refs?,
+          :unfurl_yaml, # OC Change
+          :ensemble_template_yaml # OC Change
         ]
       )
 

@@ -108,6 +108,8 @@ To make a development instance talk to a local Unfurl Server, add this to the
   module to be listed in `config/bounded_contexts.yml`, an upstream file. Put
   new code under an existing context where one fits; a fork-only namespace
   needs an entry there, and that entry is a rebase conflict every release.
+  Extension modules named after an upstream class (`OC::Project`) cannot
+  comply; list them in `oc/rubocop/extension_modules.yml`.
 - **New or renamed Sidekiq workers** require regenerating
   `oc/app/workers/all_queues.yml`, or CI fails:
 
