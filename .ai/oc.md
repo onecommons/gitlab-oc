@@ -224,5 +224,12 @@ Where tests belong:
   *untagged* upstream example (for instance adding an `# OC Change` entry to
   an existing expectation) need no list entry — the normal FOSS RSpec shards
   already run that file.
-- `qa/qa/specs/features/oc/**` — end-to-end, separate `qa/` bundle. Not yet
-  ported.
+- `qa/qa/specs/features/oc/**` — end-to-end, separate `qa/` bundle. Written
+  with the `create(:project)` factories (`QA/FabricateUsage`) and a
+  `feature_category`, not `product_group`. No CI job runs them yet.
+- **User docs live in `oc/doc/`**, mirroring `doc/`. `OC::HelpController`
+  serves a page from there before `doc/`, so `help_page_path('user/x.md')`
+  resolves; the `Gitlab/DocumentationLinks/Link` cop looks there too
+  (`# OC Change` in `rubocop/cop/gitlab/documentation_links/link.rb`).
+  markdownlint applies as to `doc/`: labelled fences, `Git` not `git`,
+  headings one level at a time.

@@ -5,10 +5,11 @@ Unfurl Cloud specific tests fall into these groups:
 - `oc/spec/`: RSpec tests, run with the root GitLab bundle.
 - `oc/spec/frontend/`: JavaScript unit tests, run by Jest with the root
   GitLab JavaScript dependencies.
+- `qa/qa/specs/features/oc/`: end-to-end tests against a running instance,
+  run with the separate `qa/` bundle.
 
-The end-to-end suite (`qa/qa/specs/features/oc/`) and the `:onecommons`-tagged
-examples under the root `spec/` tree return with the features they cover;
-this port does not have them yet.
+The `:onecommons`-tagged examples under the root `spec/` tree return with the
+features they cover; this port does not have them yet.
 
 ## RSpec
 
@@ -92,6 +93,71 @@ The run writes the snapshots and then verifies what it wrote. The setup shared
 by both modes lives in `oc/spec/support/helpers/work_item_snapshots.rb`; edit
 the Markdown or the records there rather than the YAML by hand. The snapshots
 are interpolated with `format()`, so a literal `%` must be written `%%`.
+
+## QA tests
+
+The end-to-end tests under `qa/qa/specs/features/oc/` use the separate `qa/`
+bundle against a running GitLab instance. This port has one so far, for work
+items sync. It drives a real `git push` and reads back what Git printed, which
+is the only place three things can be checked at all: that a rejected
+`sync.yml` reaches the pusher with Gitaly's `GitLab:` prefix on it, that an
+accepted one prints its summary, and that the worker chain (push →
+`PostReceive` → `ImportWorker` → `SyncWorker`) runs through on its own.
+
+1. Start GDK, with Sidekiq: every step in the suite is asynchronous.
+
+1. Install the QA bundle once (from the GitLab checkout):
+
+   ```bash
+   (cd qa && bundle install)
+   ```
+
+1. Give the suite an admin API token; it creates the QA sandbox group and
+   user. A GDK needs nothing here: its seed data gives `root` a token named
+   `seeded-api-token` whose value is the framework's built-in default, and
+   the suite uses it when `GITLAB_QA_ADMIN_ACCESS_TOKEN` is unset. Against
+   any other instance, set that variable to a temporary admin personal
+   access token with the `api` scope, created while signed in as an
+   administrator at `/-/user_settings/personal_access_tokens` (**Add new
+   token**). Do not put it in a file, shell history, or committed
+   configuration, and revoke it there when finished. Without either, the
+   suite falls back to creating a token through a browser, which needs
+   ChromeDriver.
+
+Then:
+
+```bash
+cd qa
+QA_GITLAB_URL=http://gdk.test:3000 \
+bundle exec rspec qa/specs/features/oc/api/3_create/work_items_sync_spec.rb
+```
+
+The peer installation is synthetic: its directory is a handful of files
+committed by the test. That is what a peer is — an instance directory is
+exactly the files somebody committed under it, and reading one never involves
+the installation that wrote it. The writing side is covered from this end by
+the first example, which asserts that this project's own issues reach the
+branch.
+
+Most of the wait is one thing: a sync is enqueued ten seconds out, so that
+somebody editing an issue three times in a row produces one commit rather than
+three, and that delay lands on the critical path eight times in the suite. It
+can be shortened with `OC_WORK_ITEMS_SYNC_DELAY`, in seconds. The delay is
+applied by whichever process *enqueues* the sync, and that is both Rails and
+Sidekiq, so set it for the whole GDK by adding a line to `env.runit` at the
+GDK root (every service sources it) and restarting the two that matter:
+
+```bash
+echo 'export OC_WORK_ITEMS_SYNC_DELAY=1' >> ../env.runit
+gdk restart rails-web rails-background-jobs
+```
+
+Anything that is not a number of seconds at least zero is ignored in favour
+of the ten-second default, so a typo makes the suite slow rather than
+silently turning the coalescing off. Put it back when you are done: with no
+delay at all, nothing about the coalescing behaviour is being exercised.
+
+There is no CI job for the QA suite in this port yet.
 
 ## Jest
 

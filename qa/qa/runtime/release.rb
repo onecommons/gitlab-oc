@@ -14,7 +14,8 @@ module QA
     #
     class Release
       def version
-        @version ||= ::File.directory?("#{__dir__}/../ee") ? :EE : :CE
+        # OC Change: the oc edition never loads EE, so its EE-only setup must not run
+        @version ||= ::File.directory?("#{__dir__}/../ee") && !GitlabEdition.oc? ? :EE : :CE
       end
 
       def strategy
