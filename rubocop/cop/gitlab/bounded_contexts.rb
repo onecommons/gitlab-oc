@@ -12,8 +12,10 @@ module RuboCop
         # the Enterprise Edition code.
         # We ignore GraphQL top-level namespaces because it's the way organize GraphQL code.
         # These are ignored after the EE module because GraphQL code can be namespaced under EE too.
+        # OC Change: OC extends CE the way EE does.
         IGNORED_TOP_LEVEL_NAMESPACES = %w[
           EE
+          OC
           Mutations
           Types::PermissionTypes
           Types

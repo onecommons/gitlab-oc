@@ -1,5 +1,6 @@
 const IS_EE = require('../../config/helpers/is_ee_env');
 const IS_JH = require('../../config/helpers/is_jh_env');
+const IS_OC = require('../../config/helpers/is_oc_env'); // OC Change
 
 const allPatterns = [
   {
@@ -9,6 +10,11 @@ const allPatterns = [
   {
     ignore: !IS_JH,
     pattern: 'jh/**/*.*',
+  },
+  // OC Change
+  {
+    ignore: !IS_OC,
+    pattern: 'oc/**/*.*',
   },
 ];
 

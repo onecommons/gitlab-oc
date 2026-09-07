@@ -12,6 +12,7 @@ RSpec.describe GitlabEdition do
     # Make sure the ENV is clean
     stub_env('FOSS_ONLY', nil)
     stub_env('EE_ONLY', nil)
+    allow(described_class).to receive(:oc?).and_return(false) # OC Change: oc/spec covers the oc edition
 
     remove_instance_variable(:@is_ee)
     remove_instance_variable(:@is_jh)

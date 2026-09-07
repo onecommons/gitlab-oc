@@ -1107,6 +1107,20 @@ rspec-ee background_migration pg17 praefect:
     - .rspec-background-migration-parallel
     - .rails:rules:praefect-with-db
 
+# OC Change: oc/ specs use the FOSS RSpec environment; the folder is selected
+# from the `-oc` suffix in the job name (scripts/rspec_helpers.sh).
+rspec-oc unit pg17:
+  extends:
+    - .rspec-base-pg17
+    - .rspec-oc-unit-parallel
+    - .rails:rules:oc-unit
+
+rspec-oc integration pg17:
+  extends:
+    - .rspec-base-pg17
+    - .rspec-oc-integration-parallel
+    - .rails:rules:oc-integration
+
 rspec-ee unit pg17:
   extends:
     - .rspec-ee-base-pg17

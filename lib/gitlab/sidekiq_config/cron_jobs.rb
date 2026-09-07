@@ -7,6 +7,7 @@ module Gitlab
       EE_SCHEDULE_PATH = Rails.root.join('ee/config/schedule.yml')
       SAAS_SCHEDULE_PATH = Rails.root.join('ee/config/schedule_saas.yml')
       JH_SCHEDULE_PATH = Rails.root.join('jh/config/schedule.yml')
+      OC_SCHEDULE_PATH = Rails.root.join('oc/config/schedule.yml') # OC Change
       # Keys a user may override via `gitlab.yml` (via `cron_jobs` config key)
       USER_OVERRIDABLE_CONFIG_KEYS = %w[cron args].freeze
 
@@ -71,6 +72,7 @@ module Gitlab
         paths << EE_SCHEDULE_PATH if Gitlab.ee?
         paths << SAAS_SCHEDULE_PATH if Gitlab.com? # rubocop:disable Gitlab/AvoidGitlabInstanceChecks -- SaaS schedule file gating
         paths << JH_SCHEDULE_PATH if Gitlab.jh?
+        paths << OC_SCHEDULE_PATH if Gitlab.oc? # OC Change
         paths
       end
 

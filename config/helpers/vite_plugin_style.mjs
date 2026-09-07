@@ -26,6 +26,7 @@ export function StylePlugin({ shouldWatch = false } = {}) {
   const imagesPath = path.resolve(ROOT_PATH, 'app/assets/images');
   const eeImagesPath = path.resolve(ROOT_PATH, 'ee/app/assets/images');
   const jhImagesPath = path.resolve(ROOT_PATH, 'jh/app/assets/images');
+  const ocImagesPath = path.resolve(ROOT_PATH, 'oc/app/assets/images'); // OC Change
 
   const entrypoints = {
     'styles/tailwind.css': path.join(ROOT_PATH, 'app/assets/builds/tailwind.css'),
@@ -47,7 +48,7 @@ export function StylePlugin({ shouldWatch = false } = {}) {
               sourceMap: shouldWatch,
               sourceMapEmbed: shouldWatch,
               sourceMapContents: shouldWatch,
-              loadPaths: [...resolveLoadPaths(), imagesPath, eeImagesPath, jhImagesPath],
+              loadPaths: [...resolveLoadPaths(), imagesPath, eeImagesPath, jhImagesPath, ocImagesPath],
             },
           },
         },

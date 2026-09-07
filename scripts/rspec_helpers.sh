@@ -185,8 +185,13 @@ function rspec_parallelized_job() {
     spec_folder_prefixes="'jh/'"
   fi
 
+  # OC Change
+  if [[ "${test_tool}" =~ "-oc" ]]; then
+    spec_folder_prefixes="'oc/'"
+  fi
+
   if [[ "${test_tool}" =~ "-all" ]]; then
-    spec_folder_prefixes="['', 'ee/', 'jh/']"
+    spec_folder_prefixes="['', 'ee/', 'jh/', 'oc/']"
   fi
 
   export KNAPSACK_LOG_LEVEL="debug"
@@ -336,7 +341,7 @@ function retry_failed_rspec_examples() {
   # Disable simplecov so retried tests don't override test coverage report
   export SIMPLECOV=0
 
-  local default_knapsack_pattern="{,ee/,jh/}spec/{,**/}*_spec.rb"
+  local default_knapsack_pattern="{,ee/,jh/,oc/}spec/{,**/}*_spec.rb" # OC Change
   local knapsack_test_file_pattern="${KNAPSACK_TEST_FILE_PATTERN:-$default_knapsack_pattern}"
   local json_retry_file="rspec/rspec-retry-${CI_JOB_ID}.json"
   local junit_retry_file="rspec/rspec-retry-${CI_JOB_ID}.xml"

@@ -10,6 +10,7 @@ import webpackConfig from './config/webpack.config';
 import {
   IS_EE,
   IS_JH,
+  IS_OC,
   SOURCEGRAPH_PUBLIC_PATH,
   GITLAB_WEB_IDE_PUBLIC_PATH,
   copyFilesPatterns,
@@ -89,6 +90,14 @@ const JH_ALIAS_FALLBACK = [
   },
 ];
 
+// OC Change
+const OC_ALIAS_FALLBACK = [
+  {
+    find: /^oc_component\/(.*)\.vue/,
+    replacement: emptyComponent,
+  },
+];
+
 const JH_ELSE_EE_ALIAS_FALLBACK = [
   {
     find: /^jh_else_ee\/(.*)\.vue/,
@@ -106,6 +115,7 @@ export default defineConfig({
       ...aliasArr,
       ...(IS_EE ? [] : EE_ALIAS_FALLBACK),
       ...(IS_JH ? [] : JH_ALIAS_FALLBACK),
+      ...(IS_OC ? [] : OC_ALIAS_FALLBACK), // OC Change
       ...(!IS_EE && !IS_JH ? JH_ELSE_EE_ALIAS_FALLBACK : []),
       {
         find: '~katex',
@@ -160,6 +170,10 @@ export default defineConfig({
       : JSON.stringify(false),
     IS_JH: IS_JH
       ? JSON.stringify('typeof window !== "undefined" && window.gon && window.gon.jh')
+      : JSON.stringify(false),
+    // OC Change
+    IS_OC: IS_OC
+      ? JSON.stringify('typeof window !== "undefined" && window.gon && window.gon.oc')
       : JSON.stringify(false),
     'process.platform': JSON.stringify(''),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),

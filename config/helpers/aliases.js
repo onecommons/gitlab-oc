@@ -1,6 +1,6 @@
 const path = require('path');
 
-const { IS_EE, IS_JH, ROOT_PATH } = require('../webpack.constants');
+const { IS_EE, IS_JH, IS_OC, ROOT_PATH } = require('../webpack.constants');
 const { CONTEXT_ALIASES } = require('./context_aliases_shared');
 const { USE_VUE3 } = require('./vue_version');
 
@@ -26,6 +26,9 @@ const aliases = {
 
   // the following resolves files which are different between CE and JH
   jh_else_ce: path.join(ROOT_PATH, 'app/assets/javascripts'),
+
+  // OC Change: the following resolves files which are different between CE and OC
+  oc_else_ce: path.join(ROOT_PATH, 'app/assets/javascripts'),
 
   // the following resolves files which are different between CE/EE/JH
   any_else_ce: path.join(ROOT_PATH, 'app/assets/javascripts'),
@@ -94,6 +97,25 @@ if (IS_JH) {
 
     // test-environment-only aliases duplicated from Jest config
     jh_jest: path.join(ROOT_PATH, 'jh/spec/frontend'),
+  });
+}
+
+// OC Change
+if (IS_OC) {
+  Object.assign(aliases, {
+    oc: path.join(ROOT_PATH, 'oc/app/assets/javascripts'),
+    oc_component: path.join(ROOT_PATH, 'oc/app/assets/javascripts'),
+    oc_images: path.join(ROOT_PATH, 'oc/app/assets/images'),
+    oc_else_ce: path.join(ROOT_PATH, 'oc/app/assets/javascripts'),
+    oc_empty_states: path.join(ROOT_PATH, 'oc/app/views/shared/empty_states'),
+    oc_icons: path.join(ROOT_PATH, 'oc/app/views/shared/icons'),
+    // shared with the oc-pages package, which imports these names
+    oc_pages: path.join(ROOT_PATH, 'oc/app/assets/javascripts'),
+    oc_dashboard: path.join(ROOT_PATH, 'oc/app/assets/javascripts/dashboard'),
+    oc_vue_shared: path.join(ROOT_PATH, 'oc/app/assets/javascripts/vue_shared'),
+
+    // test-environment-only aliases duplicated from Jest config
+    oc_jest: path.join(ROOT_PATH, 'oc/spec/frontend'),
   });
 }
 

@@ -2,6 +2,7 @@ const { PDF_JS_WORKER_PUBLIC_PATH, PDF_JS_CMAPS_PUBLIC_PATH } = require('../pdfj
 const {
   IS_EE,
   IS_JH,
+  IS_OC,
   SOURCEGRAPH_PUBLIC_PATH,
   GITLAB_WEB_IDE_PUBLIC_PATH,
 } = require('../webpack.constants');
@@ -12,6 +13,9 @@ const define = {
   'process.env.IS_JH': JSON.stringify(IS_JH),
   IS_EE: IS_EE ? 'window.gon && window.gon.ee' : JSON.stringify(false),
   IS_JH: IS_JH ? 'window.gon && window.gon.jh' : JSON.stringify(false),
+  // OC Change
+  'process.env.IS_OC': JSON.stringify(IS_OC),
+  IS_OC: IS_OC ? 'window.gon && window.gon.oc' : JSON.stringify(false),
   'process.env.SOURCEGRAPH_PUBLIC_PATH': JSON.stringify(SOURCEGRAPH_PUBLIC_PATH),
   'process.env.GITLAB_WEB_IDE_PUBLIC_PATH': JSON.stringify(GITLAB_WEB_IDE_PUBLIC_PATH),
   ...monaco.defineIsVite,

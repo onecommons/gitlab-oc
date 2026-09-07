@@ -8,13 +8,15 @@ module Gitlab
     FOSS_QUEUE_CONFIG_PATH = 'app/workers/all_queues.yml'
     EE_QUEUE_CONFIG_PATH = 'ee/app/workers/all_queues.yml'
     JH_QUEUE_CONFIG_PATH = 'jh/app/workers/all_queues.yml'
+    OC_QUEUE_CONFIG_PATH = 'oc/app/workers/all_queues.yml' # OC Change
     SIDEKIQ_QUEUES_PATH = 'config/sidekiq_queues.yml'
     JH_SIDEKIQ_QUEUES_PATH = 'jh/config/sidekiq_queues.yml'
 
     QUEUE_CONFIG_PATHS = [
       FOSS_QUEUE_CONFIG_PATH,
       (EE_QUEUE_CONFIG_PATH if Gitlab.ee?),
-      (JH_QUEUE_CONFIG_PATH if Gitlab.jh?)
+      (JH_QUEUE_CONFIG_PATH if Gitlab.jh?),
+      (OC_QUEUE_CONFIG_PATH if Gitlab.oc?) # OC Change
     ].compact.freeze
 
     # This maps workers not in our application code to queues. We need
@@ -161,14 +163,15 @@ module Gitlab
 
       private
 
-      def find_workers(root, ee:, jh:)
+      # OC Change
+      def find_workers(root, ee:, jh:, oc: false)
         concerns = root.join('concerns').to_s
 
         Dir[root.join('**', '*.rb')]
           .reject { |path| path.start_with?(concerns) }
           .map { |path| worker_from_path(path, root) }
           .select { |worker| worker < Sidekiq::Worker }
-          .map { |worker| Gitlab::SidekiqConfig::Worker.new(worker, ee: ee, jh: jh) }
+          .map { |worker| Gitlab::SidekiqConfig::Worker.new(worker, ee: ee, jh: jh, oc: oc) }
       end
 
       def worker_from_path(path, root)

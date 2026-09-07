@@ -10,7 +10,7 @@ const {
 } = require('./vue3_migration_file_validation');
 
 const ROOT_PATH = path.resolve(__dirname, '..', '..');
-const VUE3_MIGRATION_GLOB = `{,ee/,jh/}app/assets/javascripts/pages/**/${VUE3_MIGRATION_FILENAME}`;
+const VUE3_MIGRATION_GLOB = `{,ee/,jh/,oc/}app/assets/javascripts/pages/**/${VUE3_MIGRATION_FILENAME}`; // OC Change
 
 /**
  * Extract the bundler entry name from a `vue3_migration.yml` path

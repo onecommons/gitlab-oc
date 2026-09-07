@@ -13,10 +13,12 @@ module Gitlab
         :worker_has_external_dependencies?,
         to: :klass
 
-      def initialize(klass, ee:, jh: false)
+      # OC Change
+      def initialize(klass, ee:, jh: false, oc: false)
         @klass = klass
         @ee = ee
         @jh = jh
+        @oc = oc
       end
 
       def ee?
@@ -25,6 +27,11 @@ module Gitlab
 
       def jh?
         @jh
+      end
+
+      # OC Change
+      def oc?
+        @oc
       end
 
       def ==(other)

@@ -23,6 +23,7 @@ const GITLAB_WEB_IDE_PUBLIC_PATH = path.join(WEBPACK_PUBLIC_PATH, GITLAB_WEB_IDE
 
 const IS_EE = require('./helpers/is_ee_env');
 const IS_JH = require('./helpers/is_jh_env');
+const IS_OC = require('./helpers/is_oc_env'); // OC Change
 
 const SOURCEGRAPH_PACKAGE = '@sourcegraph/code-host-integration';
 const GITLAB_WEB_IDE_PACKAGE = '@gitlab/web-ide';
@@ -99,6 +100,7 @@ const DEV_SERVER_LIVERELOAD = IS_DEV_SERVER && process.env.DEV_SERVER_LIVERELOAD
 module.exports = {
   IS_EE,
   IS_JH,
+  IS_OC, // OC Change
   ROOT_PATH,
   WEBPACK_OUTPUT_PATH,
   WEBPACK_PUBLIC_PATH,

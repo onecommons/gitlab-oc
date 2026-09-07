@@ -5,6 +5,7 @@ const imagesPaths = [
   path.resolve(__dirname, '../..', 'app/assets/images'),
   path.resolve(__dirname, '../..', 'ee/app/assets/images'),
   path.resolve(__dirname, '../..', 'jh/app/assets/images'),
+  path.resolve(__dirname, '../..', 'oc/app/assets/images'), // OC Change
 ];
 
 async function getAllFiles(dir, prependPath = '') {
@@ -34,15 +35,16 @@ export async function ImagesPlugin() {
   return {
     name: 'vite-plugin-gitlab-images',
     async config() {
-      const [CEfiles, EEfiles, JHfiles] = await Promise.all(
+      const [CEfiles, EEfiles, JHfiles, OCfiles] = await Promise.all(
         // eslint-disable-next-line no-return-await
         imagesPaths.map(async (imagesPath) => await getAllFiles(imagesPath)),
       );
-      const [CEpath, EEpath, JHpath] = imagesPaths;
+      const [CEpath, EEpath, JHpath, OCpath] = imagesPaths;
       const mappings = [
         [CEpath, CEfiles],
         [EEpath, EEfiles],
         [JHpath, JHfiles],
+        [OCpath, OCfiles], // OC Change
       ].reduce((acc, [filesPath, filenames]) => {
         filenames.forEach((filename) => {
           acc[filename] = path.resolve(filesPath, filename);

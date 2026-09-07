@@ -48,6 +48,7 @@ async function getJestConfig(opts = {}) {
             roots: ['<rootDir>/spec/frontend/'],
             rootsEE: ['<rootDir>/ee/spec/frontend/'],
             rootsJH: ['<rootDir>/jh/spec/frontend/'],
+            rootsOC: ['<rootDir>/oc/spec/frontend/'], // OC Change
             ...opts,
           }),
         ),
@@ -59,8 +60,8 @@ async function getJestConfig(opts = {}) {
 
 async function resolveDependenciesWithJest(target, opts = {}) {
   const seen = new Set();
-  const { isEE = false, isJH = false } = opts;
-  const config = await getJestConfig({ isEE, isJH });
+  const { isEE = false, isJH = false, isOC = false } = opts; // OC Change
+  const config = await getJestConfig({ isEE, isJH, isOC });
   const context = await Runtime.default.createContext(config, {
     maxWorkers: 1,
     console,

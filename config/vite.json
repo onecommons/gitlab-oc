@@ -6,13 +6,15 @@
       "app/assets",
       "ee/app/assets",
       "jh/app/assets",
+      "oc/app/assets",
       "vendor/assets"
     ],
     "entrypointsDir": "javascripts/entrypoints",
     "additionalEntrypoints": [
       "~/images/*",
       "ee/images/*",
-      "jh/images/*"
+      "jh/images/*",
+      "oc/images/*"
     ],
     "skipProxy": true,
     "publicOutputDir": "assets/vite",

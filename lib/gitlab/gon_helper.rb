@@ -55,6 +55,7 @@ module Gitlab
       gon.time_display_format    = 0
       gon.ee                     = Gitlab.ee?
       gon.jh                     = Gitlab.jh?
+      gon.oc                     = Gitlab.oc? # OC Change
       gon.dot_com                = Gitlab.com?
       gon.uf_error_prefix        = ::Gitlab::Utils::ErrorMessage::UF_ERROR_PREFIX
       gon.pat_prefix             = Gitlab::CurrentSettings.current_application_settings.personal_access_token_prefix

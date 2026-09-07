@@ -50,7 +50,7 @@ namespace :gitlab do
           # Do not edit it manually!
         BANNER
 
-        foss_workers, ee_workers, jh_workers = Gitlab::SidekiqConfig.workers_for_all_queues_yml
+        foss_workers, ee_workers, jh_workers, oc_workers = Gitlab::SidekiqConfig.workers_for_all_queues_yml # OC Change
 
         write_yaml(Gitlab::SidekiqConfig::FOSS_QUEUE_CONFIG_PATH, banner, foss_workers)
 
@@ -60,6 +60,11 @@ namespace :gitlab do
 
         if Gitlab.jh?
           write_yaml(Gitlab::SidekiqConfig::JH_QUEUE_CONFIG_PATH, banner, jh_workers)
+        end
+
+        # OC Change
+        if Gitlab.oc?
+          write_yaml(Gitlab::SidekiqConfig::OC_QUEUE_CONFIG_PATH, banner, oc_workers)
         end
       end
 
@@ -76,6 +81,7 @@ namespace :gitlab do
             - #{Gitlab::SidekiqConfig::FOSS_QUEUE_CONFIG_PATH}
             - #{Gitlab::SidekiqConfig::EE_QUEUE_CONFIG_PATH}
             #{'- ' + Gitlab::SidekiqConfig::JH_QUEUE_CONFIG_PATH if Gitlab.jh?}
+            #{'- ' + Gitlab::SidekiqConfig::OC_QUEUE_CONFIG_PATH if Gitlab.oc?}
 
           MSG
         end

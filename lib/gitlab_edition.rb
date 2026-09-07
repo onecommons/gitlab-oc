@@ -27,6 +27,8 @@ module GitlabEdition
       %w[ee jh]
     elsif ee?
       %w[ee]
+    elsif oc?
+      %w[oc]
     else
       %w[]
     end
@@ -49,7 +51,18 @@ module GitlabEdition
       # The behavior needs to be synchronised with
       # config/helpers/is_ee_env.js
       root.join('ee/app/models/license.rb').exist? &&
-      !%w[true 1].include?(ENV['FOSS_ONLY'].to_s) # rubocop:disable Rails/NegateInclude
+      !%w[true 1].include?(ENV['FOSS_ONLY'].to_s) && # rubocop:disable Rails/NegateInclude
+      !oc? # OC Change: the oc edition is CE plus oc/, never EE
+  end
+
+  # OC Change
+  # The behavior needs to be synchronised with config/helpers/is_oc_env.js
+  def self.oc?
+    return @is_oc if defined?(@is_oc)
+
+    @is_oc =
+      root.join('oc').exist? &&
+      !%w[true 1].include?(ENV['GITLAB_ONLY'].to_s) # rubocop:disable Rails/NegateInclude
   end
 
   def self.jh?
@@ -67,5 +80,10 @@ module GitlabEdition
 
   def self.jh
     yield if jh?
+  end
+
+  # OC Change
+  def self.oc
+    yield if oc?
   end
 end

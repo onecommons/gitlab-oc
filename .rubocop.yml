@@ -22,6 +22,10 @@ inherit_from:
   <% Dir.glob('jh/rubocop/**/*.yml').each do |jh_rubocop_yaml| %>
   - '<%= jh_rubocop_yaml %>'
   <% end %>
+  <%# OC Change %>
+  <% Dir.glob('oc/rubocop/**/*.yml').each do |oc_rubocop_yaml| %>
+  - '<%= oc_rubocop_yaml %>'
+  <% end %>
   <%# Optional local override, applied only when the file exists. Keep it out of %>
   <%# version control (see .gitignore). See doc/development/rubocop_development_guide.md. %>
   <% if File.exist?('.rubocop.local.yml') %>
@@ -259,6 +263,7 @@ Naming/FileName:
   IgnoreExecutableScripts: true
   AllowedAcronyms:
     - EE
+    - OC # OC Change
     - JSON
     - LDAP
     - SAML

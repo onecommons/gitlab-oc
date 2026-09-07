@@ -1,0 +1,5 @@
+# This file is generated automatically by
+#   bin/rake gitlab:sidekiq:all_queues_yml:generate
+#
+# Do not edit it manually!
+--- []

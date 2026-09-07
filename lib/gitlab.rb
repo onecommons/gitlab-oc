@@ -9,7 +9,7 @@ module Gitlab
   class << self
     extend Forwardable
 
-    def_delegators :GitlabEdition, :root, :extensions, :ee?, :ee, :jh?, :jh
+    def_delegators :GitlabEdition, :root, :extensions, :ee?, :ee, :jh?, :jh, :oc?, :oc # OC Change
   end
 
   def self.version_info

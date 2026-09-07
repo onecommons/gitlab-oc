@@ -19,6 +19,7 @@ export function AutoStopPlugin() {
           'app/assets/javascripts/pages/**/*.js',
           'ee/app/assets/javascripts/pages/**/*.js',
           'jh/app/assets/javascripts/pages/**/*.js',
+          'oc/app/assets/javascripts/pages/**/*.js', // OC Change
         ],
         {
           ignoreInitial: true,

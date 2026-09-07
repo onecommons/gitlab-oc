@@ -1,6 +1,7 @@
 const IS_EE = require('./config/helpers/is_ee_env');
 const isESLint = require('./config/helpers/is_eslint');
 const IS_JH = require('./config/helpers/is_jh_env');
+const IS_OC = require('./config/helpers/is_oc_env'); // OC Change
 
 const { VUE_VERSION: EXPLICIT_VUE_VERSION } = process.env;
 const { VUE_COMPILER_VERSION } = process.env;
@@ -19,11 +20,14 @@ module.exports = (path, options = {}) => {
     moduleNameMapper: extModuleNameMapper = {},
     moduleNameMapperEE: extModuleNameMapperEE = {},
     moduleNameMapperJH: extModuleNameMapperJH = {},
+    moduleNameMapperOC: extModuleNameMapperOC = {},
     roots: extRoots = [],
     rootsEE: extRootsEE = [],
     rootsJH: extRootsJH = [],
+    rootsOC: extRootsOC = [],
     isEE = IS_EE,
     isJH = IS_JH,
+    isOC = IS_OC,
   } = options;
 
   const reporters = ['default'];
@@ -117,6 +121,11 @@ module.exports = (path, options = {}) => {
   if (isJH) {
     testMatch.push(`<rootDir>/jh/${glob}`);
   }
+
+  // OC Change
+  if (isOC) {
+    testMatch.push(`<rootDir>/oc/${glob}`);
+  }
   // workaround for eslint-import-resolver-jest only resolving in test files
   // see https://github.com/JoinColony/eslint-import-resolver-jest#note
   if (isESLint(module)) {
@@ -141,6 +150,11 @@ module.exports = (path, options = {}) => {
       '<rootDir>/app/assets/javascripts/vue_shared/components/empty_component.js',
     '^jh_component(/.*)$':
       '<rootDir>/app/assets/javascripts/vue_shared/components/empty_component.js',
+    // OC Change
+    '^oc_images/(.*)$': '<rootDir>/oc/app/assets/images/$1',
+    '^oc_component(/.*)$':
+      '<rootDir>/app/assets/javascripts/vue_shared/components/empty_component.js',
+    '^oc_else_ce(/.*)$': '<rootDir>/app/assets/javascripts$1',
     '^shared_queries(/.*)$': '<rootDir>/app/graphql/queries$1',
     '^ee_else_ce(/.*)$': '<rootDir>/app/assets/javascripts$1',
     '^jh_else_ce(/.*)$': '<rootDir>/app/assets/javascripts$1',
@@ -202,6 +216,24 @@ module.exports = (path, options = {}) => {
     });
 
     collectCoverageFrom.push(rootDirJH.replace('$1', '/**/*.{js,vue}'));
+  }
+
+  // OC Change
+  if (isOC) {
+    const rootDirOC = '<rootDir>/oc/app/assets/javascripts$1';
+    const specDirOC = '<rootDir>/oc/spec/frontend/$1';
+    Object.assign(moduleNameMapper, {
+      '^oc(/.*)$': rootDirOC,
+      '^oc_component(/.*)$': rootDirOC,
+      '^oc_else_ce(/.*)$': rootDirOC,
+      '^oc_jest/(.*)$': specDirOC,
+      '^oc_pages(/.*)$': rootDirOC,
+      '^oc_dashboard(/.*)$': '<rootDir>/oc/app/assets/javascripts/dashboard$1',
+      '^oc_vue_shared(/.*)$': '<rootDir>/oc/app/assets/javascripts/vue_shared$1',
+      ...extModuleNameMapperOC,
+    });
+
+    collectCoverageFrom.push(rootDirOC.replace('$1', '/**/*.{js,vue}'));
   }
 
   const coverageDirectory = () => {
@@ -300,6 +332,7 @@ module.exports = (path, options = {}) => {
     testEnvironmentOptions: {
       IS_EE: isEE,
       IS_JH: isJH,
+      IS_OC: isOC, // OC Change
       url: TEST_HOST,
       customExportConditions: ['node', 'node-addons'],
     },
@@ -314,6 +347,7 @@ module.exports = (path, options = {}) => {
       ...extRoots,
       ...(isEE ? ['<rootDir>/ee/app/assets/javascripts/', ...extRootsEE] : []),
       ...(isJH ? ['<rootDir>/jh/app/assets/javascripts/', ...extRootsJH] : []),
+      ...(isOC ? ['<rootDir>/oc/app/assets/javascripts/', ...extRootsOC] : []), // OC Change
     ],
     /*
     Reduce the amount of max workers in development mode.

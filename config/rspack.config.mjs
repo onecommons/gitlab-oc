@@ -37,6 +37,7 @@ import {
 import {
   IS_EE,
   IS_JH,
+  IS_OC,
   ROOT_PATH,
   WEBPACK_PUBLIC_PATH,
   copyFilesPatterns,
@@ -82,6 +83,7 @@ const plugins = [
   }),
   !IS_EE && replaceWithEmptyComponent(/^ee_component\/(.*)\.vue/),
   !IS_JH && replaceWithEmptyComponent(/^jh_component\/(.*)\.vue/),
+  !IS_OC && replaceWithEmptyComponent(/^oc_component\/(.*)\.vue/), // OC Change
   !IS_EE && !IS_JH && replaceWithEmptyComponent(/^jh_else_ee\/(.*)\.vue/),
   new rspack.ContextReplacementPlugin(/^\.$/, (context) => {
     if (!/\/node_modules\/pdfjs-dist/.test(context.context)) return;

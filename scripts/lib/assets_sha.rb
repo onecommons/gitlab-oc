@@ -7,6 +7,7 @@ module AssetsSha
   FOSS_ASSET_FOLDERS = %w[app/assets fixtures/emojis vendor/assets].freeze
   EE_ASSET_FOLDERS = %w[ee/app/assets].freeze
   JH_ASSET_FOLDERS = %w[jh/app/assets].freeze
+  OC_ASSET_FOLDERS = %w[oc/app/assets].freeze # OC Change
   PUBLIC_ASSETS_DIR = 'public/assets'
 
   # In the new caching strategy, we check the assets hash sum *before* compiling
@@ -64,6 +65,7 @@ module AssetsSha
       assets_folders = FOSS_ASSET_FOLDERS
       assets_folders += EE_ASSET_FOLDERS if ::Gitlab.ee?
       assets_folders += JH_ASSET_FOLDERS if ::Gitlab.jh?
+      assets_folders += OC_ASSET_FOLDERS if ::Gitlab.oc? # OC Change
 
       asset_files = Dir.glob(JS_ASSET_PATTERNS)
       asset_files += JS_ASSET_FILES

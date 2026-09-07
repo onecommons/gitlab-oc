@@ -68,6 +68,7 @@ RSpec.describe Gitlab::SidekiqConfig do
       allow(described_class).to receive(:workers).and_return(workers)
       allow(Gitlab).to receive(:ee?).and_return(false)
       allow(Gitlab).to receive(:jh?).and_return(false)
+      allow(Gitlab).to receive(:oc?).and_return(false) # OC Change
     end
 
     it 'returns true if the YAML file does not match the application code' do

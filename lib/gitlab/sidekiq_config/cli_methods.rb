@@ -18,6 +18,7 @@ module Gitlab
         result = %w[app/workers/all_queues.yml]
         result << 'ee/app/workers/all_queues.yml' if Gitlab.ee?
         result << 'jh/app/workers/all_queues.yml' if Gitlab.jh?
+        result << 'oc/app/workers/all_queues.yml' if Gitlab.oc? # OC Change
         result
       end.freeze
 

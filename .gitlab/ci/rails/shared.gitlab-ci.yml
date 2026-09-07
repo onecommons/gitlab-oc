@@ -332,6 +332,13 @@ include:
 .rspec-ee-integration-parallel:
   parallel: 9
 
+# OC Change
+.rspec-oc-unit-parallel:
+  parallel: 1
+
+.rspec-oc-integration-parallel:
+  parallel: 1
+
 # https://app.snowflake.com/ys68254/gitlab/w3Y3rkdbS25v/chart
 .rspec-system-parallel:
   parallel: 32

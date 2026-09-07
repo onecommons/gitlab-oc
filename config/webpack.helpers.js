@@ -1,6 +1,6 @@
 const path = require('path');
 const glob = require('glob');
-const { IS_EE, IS_JH, ROOT_PATH } = require('./webpack.constants');
+const { IS_EE, IS_JH, IS_OC, ROOT_PATH } = require('./webpack.constants');
 const {
   loadVue3Migrations,
   VUE3_MIGRATION_STATUS_ROLLOUT,
@@ -40,6 +40,15 @@ function generateEntries(defaultEntries = []) {
     });
     jhPageEntries.forEach((entryPath) => generateAutoEntries(entryPath, 'jh'));
     watchAutoEntries.push(path.join(ROOT_PATH, 'jh/app/assets/javascripts/pages/'));
+  }
+
+  // OC Change: registered last so an oc/ page entry replaces a CE one of the same name
+  if (IS_OC) {
+    const ocPageEntries = glob.sync('pages/**/index.js', {
+      cwd: path.join(ROOT_PATH, 'oc/app/assets/javascripts'),
+    });
+    ocPageEntries.forEach((entryPath) => generateAutoEntries(entryPath, 'oc'));
+    watchAutoEntries.push(path.join(ROOT_PATH, 'oc/app/assets/javascripts/pages/'));
   }
 
   const autoEntryKeys = Object.keys(autoEntriesMap);

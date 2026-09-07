@@ -76,6 +76,7 @@ ActiveSupport::Inflector.inflections do |inflect|
   inflect.acronym 'CDN'
   inflect.acronym 'EE'
   inflect.acronym 'JH'
+  inflect.acronym 'OC' # OC Change
   inflect.acronym 'CSP'
   inflect.acronym 'VSCode'
   inflect.acronym 'FIPS'

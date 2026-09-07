@@ -192,6 +192,11 @@ module Gitlab
       load_paths.call(dir: 'jh')
     end
 
+    # OC Change
+    Gitlab.oc do
+      load_paths.call(dir: 'oc')
+    end
+
     # Rake tasks ignore the eager loading settings, so we need to set the
     # autoload paths explicitly
     config.autoload_paths = config.eager_load_paths.dup
@@ -204,6 +209,7 @@ module Gitlab
     # Add EE/JH initializer into rails initializers path
     Gitlab.ee { config.paths["config/initializers"] << "#{config.root}/ee/config/initializers" }
     Gitlab.jh { config.paths["config/initializers"] << "#{config.root}/jh/config/initializers" }
+    Gitlab.oc { config.paths["config/initializers"] << "#{config.root}/oc/config/initializers" } # OC Change
 
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
@@ -464,8 +470,10 @@ module Gitlab
     # Import path for EE specific SCSS entry point
     # In CE it will import a noop file, in EE a functioning file
     # Order is important, so that the ee file takes precedence:
+    config.assets.paths << "#{config.root}/oc/app/assets/stylesheets/_oc" if Gitlab.oc? # OC Change
     config.assets.paths << "#{config.root}/jh/app/assets/stylesheets/_jh" if Gitlab.jh?
     config.assets.paths << "#{config.root}/ee/app/assets/stylesheets/_ee" if Gitlab.ee?
+    config.assets.paths << "#{config.root}/app/assets/stylesheets/_oc" # OC Change
     config.assets.paths << "#{config.root}/app/assets/stylesheets/_jh"
     config.assets.paths << "#{config.root}/app/assets/stylesheets/_ee"
 
@@ -619,6 +627,7 @@ module Gitlab
     if defined?(FactoryBotRails)
       config.factory_bot.definition_file_paths << 'ee/spec/factories' if Gitlab.ee?
       config.factory_bot.definition_file_paths << 'jh/spec/factories' if Gitlab.jh?
+      config.factory_bot.definition_file_paths << 'oc/spec/factories' if Gitlab.oc? # OC Change
     end
 
     # sprocket-rails adds some precompile assets we actually do not need.
@@ -641,6 +650,11 @@ module Gitlab
 
       if Gitlab.jh?
         asset_roots << config.root.join("jh/app/assets").to_s
+      end
+
+      # OC Change
+      if Gitlab.oc?
+        asset_roots << config.root.join("oc/app/assets").to_s
       end
 
       asset_roots << config.root.join("app/assets").to_s

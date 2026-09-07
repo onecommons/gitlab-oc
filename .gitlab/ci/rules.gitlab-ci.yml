@@ -530,7 +530,7 @@
   - "**/tsconfig*.json"
   - "**/*.config.{js,ts,cjs}"
   - "config/**/*.js"
-  - "{,ee/,jh/}app/assets/**/*"
+  - "{,ee/,jh/,oc/}app/assets/**/*"
   - "vendor/assets/**/*"
   # FE island changes
   - "ee/frontend_islands/{package.json,yarn.lock}"
@@ -552,27 +552,27 @@
   - "config/**/*.js"
   - "config/**/*.mjs"
   - "locale/**/gitlab.po"
-  - "{,ee/,jh/}app/assets/**/*"
+  - "{,ee/,jh/,oc/}app/assets/**/*"
   - "fixtures/emojis/**/*"
   - "vendor/assets/**/*"
 
 .initializers-patterns: &initializers-patterns
-  - "{,ee/,jh/}config/initializers/**/*"
+  - "{,ee/,jh/,oc/}config/initializers/**/*"
 
 .controllers-patterns: &controllers-patterns
-  - "{,ee/,jh/}{app/controllers}/**/*"
+  - "{,ee/,jh/,oc/}{app/controllers}/**/*"
 
 .models-patterns: &models-patterns
-  - "{,ee/,jh/}{app/models}/**/*"
+  - "{,ee/,jh/,oc/}{app/models}/**/*"
 
 .decomposed-db-models-patterns: &decomposed-db-models-patterns
-  - "{,ee/,jh/}app/models/{ci,geo}/**/*"
+  - "{,ee/,jh/,oc/}app/models/{ci,geo}/**/*"
 
 .lib-gitlab-patterns: &lib-gitlab-patterns
-  - "{,ee/,jh/}lib/{,ee/,jh/}gitlab/**/*"
+  - "{,ee/,jh/,oc/}lib/{,ee/,jh/,oc/}gitlab/**/*"
 
 .db-docs-patterns: &db-docs-patterns
-  - "{,ee/,jh/}{app/models}/**/*"
+  - "{,ee/,jh/,oc/}{app/models}/**/*"
   - "db/docs/**/*"
 
 # Patterns to match pure Ruby code
@@ -588,7 +588,7 @@
 
 # Spec files only (for Rspec predictive pipeline)
 .spec-only-patterns: &spec-only-patterns
-  - "{,ee/,jh/}spec/**/*"
+  - "{,ee/,jh/,oc/}spec/**/*"
 
 # Frontend GraphQL query documents.
 # A query change should re-run backend unit/integration specs (e.g. the N+1
@@ -597,7 +597,7 @@
 # so the `*-background-migration` rules (which key off `.backend-patterns`) are
 # not triggered by query-only changes.
 .frontend-graphql-patterns: &frontend-graphql-patterns
-  - "{,ee/,jh/}app/assets/javascripts/**/*.graphql"
+  - "{,ee/,jh/,oc/}app/assets/javascripts/**/*.graphql"
 
 # Backend patterns + .ci-patterns
 .backend-patterns: &backend-patterns
@@ -607,11 +607,11 @@
   - "config.ru"
   - "keeps/**/*"
   # List explicitly all the app/ dirs that are backend (i.e. all except app/assets).
-  - "{,ee/,jh/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
-  - "{,ee/,jh/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
+  - "{,ee/,jh/,oc/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
+  - "{,ee/,jh/,oc/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
   # Spec support files
-  - "{,ee/,jh/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
-  - "{,ee/,jh/}spec/{*.rb,.rspec}"
+  - "{,ee/,jh/,oc/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
+  - "{,ee/,jh/,oc/}spec/{*.rb,.rspec}"
   # CI changes
   - "{,jh/}.gitlab-ci.yml"
   - "{,jh/}.gitlab/ci/**/*"
@@ -634,11 +634,11 @@
   - "config.ru"
   - "keeps/**/*"
   # List explicitly all the app/ dirs that are backend (i.e. all except app/assets).
-  - "{,ee/,jh/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
-  - "{,ee/,jh/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
-  - "{,ee/,jh/}spec/**/*"
+  - "{,ee/,jh/,oc/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
+  - "{,ee/,jh/,oc/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
+  - "{,ee/,jh/,oc/}spec/**/*"
   # GraphQL query files
-  - "{,ee/,jh/}app/assets/javascripts/**/*.graphql"
+  - "{,ee/,jh/,oc/}app/assets/javascripts/**/*.graphql"
   # CI changes
   - "{,jh/}.gitlab-ci.yml"
   - "{,jh/}.gitlab/ci/**/*"
@@ -658,10 +658,10 @@
   - "keeps/**/*"
   - "*_VERSION"
   # List explicitly all the app/ dirs that are backend (i.e. all except app/assets).
-  - "{,ee/,jh/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
-  - "{,ee/,jh/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
+  - "{,ee/,jh/,oc/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
+  - "{,ee/,jh/,oc/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
   # GraphQL query files
-  - "{,ee/,jh/}app/assets/javascripts/**/*.graphql"
+  - "{,ee/,jh/,oc/}app/assets/javascripts/**/*.graphql"
 
 .search-backend-patterns: &search-backend-patterns
   - "{,jh/}Gemfile.lock"
@@ -669,9 +669,9 @@
   - "GITLAB_ELASTICSEARCH_INDEXER_VERSION"
   - "GITLAB_ZOEKT_VERSION"
   # List explicitly all the app/ dirs that are backend (i.e. all except app/assets).
-  - "{,ee/,jh/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
-  - "{,ee/,jh/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
-  - "{,ee/,jh/}spec/**/*"
+  - "{,ee/,jh/,oc/}{app/channels,app/components,app/controllers,app/finders,app/graphql,app/helpers,app/mailers,app/models,app/policies,app/presenters,app/serializers,app/services,app/uploaders,app/validators,app/views,app/workers}/**/*"
+  - "{,ee/,jh/,oc/}{bin,config,db,elastic,gems,generator_templates,lib}/**/*"
+  - "{,ee/,jh/,oc/}spec/**/*"
 
 .search-migration-patterns: &search-migration-patterns
   - "{ee/,jh/}{,spec/}elastic/migrate/**/*"
@@ -682,16 +682,16 @@
 
 # Redis patterns
 .redis-patterns: &redis-patterns
-  - "{,ee/,jh/}{,spec/}app/models/concerns/redis_cacheable{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}app/models/ci/build_trace_chunks/redis{,_base,_trace_chunks}{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/usage_data_counters/{hll_redis_counter,redis_counter}{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/usage/metrics/instrumentations/redis{_metric,hll_metric}{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/merge_requests/mergeability/redis_interface{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/markdown_cache/redis/*.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/redis/**/*.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/instrumentation/*.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/redis.rb"
-  - "{,ee/,jh/}config/initializers/7_redis.rb"
+  - "{,ee/,jh/,oc/}{,spec/}app/models/concerns/redis_cacheable{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}app/models/ci/build_trace_chunks/redis{,_base,_trace_chunks}{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/usage_data_counters/{hll_redis_counter,redis_counter}{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/usage/metrics/instrumentations/redis{_metric,hll_metric}{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/merge_requests/mergeability/redis_interface{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/markdown_cache/redis/*.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/redis/**/*.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/instrumentation/*.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/redis.rb"
+  - "{,ee/,jh/,oc/}config/initializers/7_redis.rb"
 
 # AI patterns:
 .ai-patterns: &ai-patterns
@@ -703,23 +703,23 @@
 
 # DB patterns + .ci-patterns
 .db-patterns: &db-patterns
-  - "{,ee/,jh/}{,spec/}{db,migrations}/**/*"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/database{,_spec}.rb"
-  - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/database/**/*"
-  - "{,ee/,jh/}spec/support/db_cleaner.rb"
-  - "{,ee/,jh/}spec/support/helpers/database/**/*"
-  - "{,ee/,jh/}spec/support/helpers/migrations_helpers/**/*"
+  - "{,ee/,jh/,oc/}{,spec/}{db,migrations}/**/*"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/database{,_spec}.rb"
+  - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/database/**/*"
+  - "{,ee/,jh/,oc/}spec/support/db_cleaner.rb"
+  - "{,ee/,jh/,oc/}spec/support/helpers/database/**/*"
+  - "{,ee/,jh/,oc/}spec/support/helpers/migrations_helpers/**/*"
   - "lib/api/admin/batched_background_migrations.rb"
   - "lib/gitlab/markdown_cache/active_record/**/*"
   - "spec/requests/api/admin/batched_background_migrations_spec.rb"
   - "spec/support/database_cleaner.rb"
-  - "{,ee/,jh/}app/models/project_statistics.rb"  # Used to calculate sizes in migration specs
-  - "{,ee/,jh/}app/{,models/,services/,workers/}loose_foreign_keys/**/*"
+  - "{,ee/,jh/,oc/}app/models/project_statistics.rb"  # Used to calculate sizes in migration specs
+  - "{,ee/,jh/,oc/}app/{,models/,services/,workers/}loose_foreign_keys/**/*"
   # Gitaly has interactions with background migrations: https://gitlab.com/gitlab-org/gitlab/-/issues/336538
   - "GITALY_SERVER_VERSION"
   - "lib/gitlab/setup_helper.rb"
   # Test-gap from https://gitlab.com/gitlab-org/quality/engineering-productivity/team/-/issues/275
-  - "{,ee/,jh/}lib/tasks/gitlab/seed/*.rake"
+  - "{,ee/,jh/,oc/}lib/tasks/gitlab/seed/*.rake"
 
 # DB backup patterns
 .db-backup-patterns: &db-backup-patterns
@@ -729,10 +729,10 @@
 .backstage-patterns: &backstage-patterns
   - "Dangerfile"
   - "danger/**/*"
-  - "{,ee/,jh/}fixtures/**/*"
-  - "{,ee/,jh/}rubocop/**/*"
-  - "{,ee/,jh/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
-  - "{,ee/,jh/}spec/{*.rb,.rspec}"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}rubocop/**/*"
+  - "{,ee/,jh/,oc/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
+  - "{,ee/,jh/,oc/}spec/{*.rb,.rspec}"
   - "scripts/**/*"
   - "tooling/**/*"
 
@@ -744,7 +744,7 @@
 # See https://gitlab.com/gitlab-org/quality/engineering-productivity/team/-/issues/470
 # for the reasons why we only match those patterns.
 .frontend-predictive-patterns: &frontend-predictive-patterns
-  - "{,ee/,jh/}{app/assets/javascripts,spec/frontend}/**/*"
+  - "{,ee/,jh/,oc/}{app/assets/javascripts,spec/frontend}/**/*"
   - "ee/frontend_islands/apps/**/*"
 
 .frontend-fe-predictive-patterns: &frontend-fe-predictive-patterns
@@ -776,7 +776,7 @@
   - "eslint.config.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -814,7 +814,7 @@
   - ".eslint_todo/*.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -840,12 +840,12 @@
   # Backstage changes
   - "Dangerfile"
   - "danger/**/*"
-  - "{,ee/,jh/}fixtures/**/*"
-  - "{,ee/,jh/}rubocop/**/*"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}rubocop/**/*"
   - "scripts/**/*"
   - "tooling/**/*"
-  - "{,ee/,jh/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
-  - "{,ee/,jh/}spec/{*.rb,.rspec}"
+  - "{,ee/,jh/,oc/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
+  - "{,ee/,jh/,oc/}spec/{*.rb,.rspec}"
   # FE island changes
   - "ee/frontend_islands/{apps,packages}/**/package.json"
   - "ee/frontend_islands/{apps,packages}/**/tsconfig*.json"
@@ -860,7 +860,7 @@
   - ".eslint_todo/*.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -886,9 +886,9 @@
   # Backstage changes
   - "Dangerfile"
   - "danger/**/*"
-  - "{,ee/,jh/}fixtures/**/*"
-  - "{,ee/,jh/}rubocop/**/*"
-  - "{,ee/,jh/}spec/**/*"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}rubocop/**/*"
+  - "{,ee/,jh/,oc/}spec/**/*"
   - "scripts/**/*"
   - "{,spec/}tooling/**/*"
   # FE island changes
@@ -905,7 +905,7 @@
   - ".eslint_todo/*.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -925,12 +925,12 @@
   - "{,jh/}.gitlab-ci.yml"
   - "{,jh/}.gitlab/ci/**/*"
   # Backstage changes
-  - "{,ee/,jh/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
   - "scripts/**/*"
   - "{,spec/}tooling/**/*"
-  - "{,ee/,jh/}spec/{frontend,frontend_integration,support,factories,fixtures}/**/*"
+  - "{,ee/,jh/,oc/}spec/{frontend,frontend_integration,support,factories,fixtures}/**/*"
   # spec_helper.rb and the files it requires (simplecov_env.rb, knapsack_env.rb, ...)
-  - "{,ee/,jh/}spec/*.rb"
+  - "{,ee/,jh/,oc/}spec/*.rb"
   # FE island changes
   - "ee/frontend_islands/{apps,packages}/**/package.json"
   - "ee/frontend_islands/{apps,packages}/**/tsconfig*.json"
@@ -944,7 +944,7 @@
   - "eslint.config.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -978,9 +978,9 @@
   - "ee/frontend_islands/packages/**/index.{js,json}"
 
 .code-rest-api-patterns: &code-rest-api-patterns
-  - "{,ee/,jh/}lib/{,ee/,jh/}api/**/*"
-  - "{,ee/,jh/}app/policies/**/*"
-  - "{,ee/,jh/}app/serializers/**/*"
+  - "{,ee/,jh/,oc/}lib/{,ee/,jh/,oc/}api/**/*"
+  - "{,ee/,jh/,oc/}app/policies/**/*"
+  - "{,ee/,jh/,oc/}app/serializers/**/*"
   # Auto-generated files
   - "doc/api/openapi/openapi_v3.yaml"
 
@@ -992,7 +992,7 @@
   - ".dependency_cruiser_todo/*.mjs"
   - ".browserslistrc"
   - ".stylelintrc"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
   - "{package.json,yarn.lock}"
@@ -1016,12 +1016,12 @@
   # Backstage changes
   - "Dangerfile"
   - "danger/**/*"
-  - "{,ee/,jh/}fixtures/**/*"
-  - "{,ee/,jh/}rubocop/**/*"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}rubocop/**/*"
   - "scripts/**/*"
   - "tooling/**/*"
-  - "{,ee/,jh/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
-  - "{,ee/,jh/}spec/{*.rb,.rspec}"
+  - "{,ee/,jh/,oc/}spec/{support,factories,fixtures,tooling/fixtures}/**/*"
+  - "{,ee/,jh/,oc/}spec/{*.rb,.rspec}"
   # QA changes
   - ".dockerignore"
   - "{,jh/}qa/**/*"
@@ -1059,7 +1059,7 @@
   - "Rakefile"
   - "tests.yml"
   - "config.ru"
-  - "{,ee/,jh/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
+  - "{,ee/,jh/,oc/}{app,bin,config,db,elastic,generator_templates,gems,haml_lint,lib,locale,public,scripts,sidekiq_cluster,storybook,symbol,vendor}/**/*"
   # Auto-generated files
   - "doc/api/graphql/reference/*"
   # CI changes
@@ -1072,9 +1072,9 @@
   # Backstage and spec changes
   - "Dangerfile"
   - "danger/**/*"
-  - "{,ee/,jh/}fixtures/**/*"
-  - "{,ee/,jh/}rubocop/**/*"
-  - "{,ee/,jh/}spec/**/*"
+  - "{,ee/,jh/,oc/}fixtures/**/*"
+  - "{,ee/,jh/,oc/}rubocop/**/*"
+  - "{,ee/,jh/,oc/}spec/**/*"
   - "scripts/**/*"
   - "{,spec/}tooling/**/*"
   # QA changes
@@ -1128,9 +1128,9 @@
   - "{,spec/}rubocop/cop/.rubocop.yml"
   - ".rubocop/*.yml"
   - ".rubocop_todo/**/*.yml"
-  - "{,ee/,jh/}rubocop/**/*"  # We might be changing custom cops
-  - "{,ee/,jh/}Gemfile.lock"  # This should include gitlab-styles, rubocop itself, and any plugins we might be using
-  - "{,ee/,jh/}Gemfile.next.lock"  # This should include gitlab-styles, rubocop itself, and any plugins we might be using
+  - "{,ee/,jh/,oc/}rubocop/**/*"  # We might be changing custom cops
+  - "{,ee/,jh/,oc/}Gemfile.lock"  # This should include gitlab-styles, rubocop itself, and any plugins we might be using
+  - "{,ee/,jh/,oc/}Gemfile.next.lock"  # This should include gitlab-styles, rubocop itself, and any plugins we might be using
   - "lib/gitlab_edition.rb"  # This is required in RuboCop::CodeReuseHelpers
   - ".gitlab/ci/static-analysis.gitlab-ci.yml"
   - "config/bounded_contexts.yml"  # Used by Gitlab/BoundedContexts
@@ -1144,10 +1144,10 @@
 .core-backend-patterns: &core-backend-patterns
   - "{,jh/}Gemfile{,.lock}"
   - "{,jh/}Gemfile.next{,.lock}"
-  - "{,ee/,jh/}config/**/*.rb"
+  - "{,ee/,jh/,oc/}config/**/*.rb"
 
 .feature-flag-development-config-patterns: &feature-flag-development-config-patterns
-  - "{,ee/,jh/}config/feature_flags/**/*.yml"
+  - "{,ee/,jh/,oc/}config/feature_flags/**/*.yml"
 
 .gdk-component-patterns: &gdk-component-patterns
   - qa/gdk/**/*
@@ -2676,7 +2676,7 @@
       changes: *initializers-patterns
     - <<: *if-default-refs
       changes:
-        - "{,ee/,jh/}{,spec/}lib/{,ee/,jh/}gitlab/content_security_policy/config_loader{,_spec}.rb"
+        - "{,ee/,jh/,oc/}{,spec/}lib/{,ee/,jh/,oc/}gitlab/content_security_policy/config_loader{,_spec}.rb"
 
 .rails:rules:praefect-with-db:
   rules:
@@ -3023,6 +3023,28 @@
     - !reference [".rails:rules:ee-only-migration", rules]
     - <<: *if-default-refs
       changes: *backend-patterns
+
+# OC Change: oc/ specs run in the FOSS RSpec environment (the oc edition never
+# loads EE) with the same change policy as the ee-and-foss jobs.
+.rails:rules:oc-unit:
+  rules:
+    - <<: *if-fork-merge-request
+      when: never
+    - !reference [".rails:rules:ee-and-foss-default-rules", rules]
+    - <<: *if-default-refs
+      changes: *backend-patterns
+    - <<: *if-default-refs
+      changes: *frontend-graphql-patterns
+
+.rails:rules:oc-integration:
+  rules:
+    - <<: *if-fork-merge-request
+      when: never
+    - !reference [".rails:rules:ee-and-foss-default-rules", rules]
+    - <<: *if-default-refs
+      changes: *backend-patterns
+    - <<: *if-default-refs
+      changes: *frontend-graphql-patterns
 
 .rails:rules:ee-only-unit:
   rules:
@@ -3691,13 +3713,13 @@
   rules:
     - <<: *if-merge-request
       changes:
-        - "{,ee/,jh/}app/models/**/*.rb"
-        - "{,ee/,jh/}app/services/**/*.rb"
-        - "{,ee/,jh/}app/workers/**/*.rb"
-        - "{,ee/,jh/}lib/gitlab/background_migration/**/*.rb"
-        - "{,ee/,jh/}lib/gitlab/database/**/*.rb"
-        - "{,ee/,jh/}lib/gitlab/ingestion/**/*.rb"
-        - "{,ee/,jh/}ee/lib/gitlab/ingestion/**/*.rb"
+        - "{,ee/,jh/,oc/}app/models/**/*.rb"
+        - "{,ee/,jh/,oc/}app/services/**/*.rb"
+        - "{,ee/,jh/,oc/}app/workers/**/*.rb"
+        - "{,ee/,jh/,oc/}lib/gitlab/background_migration/**/*.rb"
+        - "{,ee/,jh/,oc/}lib/gitlab/database/**/*.rb"
+        - "{,ee/,jh/,oc/}lib/gitlab/ingestion/**/*.rb"
+        - "{,ee/,jh/,oc/}ee/lib/gitlab/ingestion/**/*.rb"
 
 .preflight:rules:pipeline-tier-1:
   rules:

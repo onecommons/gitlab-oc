@@ -6,6 +6,7 @@ const FEATURE_FLAG_PATHS = [
   'config/feature_flags',
   'ee/config/feature_flags',
   'jh/config/feature_flags',
+  'oc/config/feature_flags', // OC Change
 ];
 
 // Organization flags don't get their own YAML file -- they're registered in

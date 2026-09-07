@@ -51,7 +51,7 @@ if (existsSync(path.resolve(dirname, 'jh'))) {
 }
 
 const jestConfig = {
-  files: ['{,ee/}spec/frontend/**/*.js'],
+  files: ['{,ee/,oc/}spec/frontend/**/*.js'], // OC Change
 
   settings: {
     // We have to teach eslint-plugin-import what node modules we use
@@ -299,6 +299,7 @@ export default [
         gon: false,
         localStorage: false,
         IS_EE: false,
+        IS_OC: false, // OC Change
       },
     },
 
@@ -328,7 +329,7 @@ export default [
       'import/no-unresolved': [
         'error',
         {
-          ignore: ['^(ee|jh)_component/', '^jh_else_ee/', '^fe_islands/'],
+          ignore: ['^(ee|jh|oc)_component/', '^jh_else_ee/', '^fe_islands/'], // OC Change
         },
       ],
 
@@ -388,15 +389,15 @@ export default [
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,}empty_states/**',
+              pattern: '{ee_,jh_,oc_,}empty_states/**', // OC Change
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,}icons/**',
+              pattern: '{ee_,jh_,oc_,}icons/**', // OC Change
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,}images/**',
+              pattern: '{ee_,jh_,oc_,}images/**', // OC Change
               group: 'internal',
             },
             {
@@ -412,11 +413,11 @@ export default [
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,}jest/**',
+              pattern: '{ee_,jh_,oc_,}jest/**', // OC Change
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,any_}else_ce/**',
+              pattern: '{ee_,jh_,oc_,any_}else_ce/**', // OC Change
               group: 'internal',
             },
             {
@@ -424,7 +425,7 @@ export default [
               group: 'internal',
             },
             {
-              pattern: '{ee_,jh_,}component/**',
+              pattern: '{ee_,jh_,oc_,}component/**', // OC Change
               group: 'internal',
             },
             {
@@ -433,6 +434,10 @@ export default [
             },
             {
               pattern: 'jh/**',
+              group: 'internal',
+            },
+            {
+              pattern: 'oc/**', // OC Change
               group: 'internal',
             },
             {
@@ -573,7 +578,7 @@ export default [
   // Page entrypoints must be top-level execution scripts and must not export anything.
   // See `scripts/frontend/find_pages_without_top_level_execution.mjs`.
   {
-    files: ['{,ee/,jh/}app/assets/javascripts/pages/**/index.js'],
+    files: ['{,ee/,jh/,oc/}app/assets/javascripts/pages/**/index.js'], // OC Change
     rules: {
       'local-rules/page-entrypoint-must-execute': 'error',
     },
@@ -642,7 +647,7 @@ export default [
   // App code only: the deliberate slot-forwarding fixtures in
   // spec/frontend/vue3migration and storybook helpers stay unguarded.
   {
-    files: ['{,ee/,jh/}app/assets/javascripts/**/*.vue'],
+    files: ['{,ee/,jh/,oc/}app/assets/javascripts/**/*.vue'], // OC Change
     plugins: {
       'local-rules': eslintLocalRules,
     },
@@ -677,7 +682,7 @@ export default [
   },
   // Spec files (unit tests)
   {
-    files: ['{,ee/,jh/}spec/frontend*/**/*'],
+    files: ['{,ee/,jh/,oc/}spec/frontend*/**/*'], // OC Change
 
     rules: {
       ...relaxedUrlAndI18nRules,
@@ -765,7 +770,7 @@ export default [
       parserOptions: {
         parser: graphqlPlugin.parser,
         graphQLConfig: {
-          documents: '{,ee/,jh/}app/**/*.graphql',
+          documents: '{,ee/,jh/,oc/}app/**/*.graphql', // OC Change
           schema: path.resolve(dirname, 'tmp/tests/graphql/gitlab_schema_apollo.graphql'),
         },
       },

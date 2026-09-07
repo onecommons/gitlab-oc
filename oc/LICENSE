@@ -1,0 +1,27 @@
+Unfurl Cloud Software
+Copyright (c) 2021 OneCommons Co.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Note
+====
+
+* All files in this directory and sub-directories are released under 
+this license.
+* All third party components incorporated into the Unfurl Cloud Software 
+are licensed under the original license provided by the owner of
+ the applicable component. 
+* In particular, this software embedded into, and depends on, the Gitlab Software
+which is licensed under the terms descibed in the LICENSE file found in 
+parent directory of this directory.

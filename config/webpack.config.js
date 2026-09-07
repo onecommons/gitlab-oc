@@ -32,6 +32,7 @@ const { isCustomElement } = require('./vue3migration/vue3_template_compiler');
 const {
   IS_EE,
   IS_JH,
+  IS_OC,
   ROOT_PATH,
   WEBPACK_OUTPUT_PATH,
   SOURCEGRAPH_PUBLIC_PATH,
@@ -796,6 +797,15 @@ module.exports = {
           'app/assets/javascripts/vue_shared/components/empty_component.js',
         );
       }),
+    // OC Change
+    !IS_OC &&
+      new webpack.NormalModuleReplacementPlugin(/^oc_component\/(.*)\.vue/, (resource) => {
+        // eslint-disable-next-line no-param-reassign
+        resource.request = path.join(
+          ROOT_PATH,
+          'app/assets/javascripts/vue_shared/components/empty_component.js',
+        );
+      }),
     !IS_EE &&
       !IS_JH &&
       new webpack.NormalModuleReplacementPlugin(/^jh_else_ee\/(.*)\.vue/, (resource) => {
@@ -906,9 +916,11 @@ module.exports = {
       // These are used to define window.gon.ee, window.gon.jh and other things properly in tests:
       'process.env.IS_EE': JSON.stringify(IS_EE),
       'process.env.IS_JH': JSON.stringify(IS_JH),
+      'process.env.IS_OC': JSON.stringify(IS_OC), // OC Change
       // These are used to check against "EE" properly in application code
       IS_EE: IS_EE ? 'window.gon && window.gon.ee' : JSON.stringify(false),
       IS_JH: IS_JH ? 'window.gon && window.gon.jh' : JSON.stringify(false),
+      IS_OC: IS_OC ? 'window.gon && window.gon.oc' : JSON.stringify(false), // OC Change
       // This is used by Sourcegraph because these assets are loaded dnamically
       'process.env.SOURCEGRAPH_PUBLIC_PATH': JSON.stringify(SOURCEGRAPH_PUBLIC_PATH),
       'process.env.GITLAB_WEB_IDE_PUBLIC_PATH': JSON.stringify(GITLAB_WEB_IDE_PUBLIC_PATH),
