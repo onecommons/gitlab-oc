@@ -1,0 +1,5 @@
+# Like upstream's HelpController, which File.join()s Rails.root on purpose:
+# Rails.root.join lets an absolute segment escape the doc tree.
+Rails/FilePath:
+  Exclude:
+    - 'oc/app/controllers/oc/help_controller.rb'

@@ -68,6 +68,8 @@ module RuboCop
             path_without_anchor = check_md_extension(node, path)
 
             docs_file_path = File.join('doc', path_without_anchor)
+            # OC Change: HelpController serves oc/doc too
+            docs_file_path = File.join('oc', docs_file_path) if oc_doc?(docs_file_path)
 
             return unless check_file_exists(node, docs_file_path)
 
@@ -168,6 +170,11 @@ module RuboCop
             return true if File.exist?(docs_file_path)
 
             false
+          end
+
+          # OC Change
+          def oc_doc?(docs_file_path)
+            !docs_file_exists?(docs_file_path) && docs_file_exists?(File.join('oc', docs_file_path))
           end
 
           def anchor_exists_in_markdown?(anchor, docs_file_path)

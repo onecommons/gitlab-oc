@@ -105,6 +105,7 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       expect(response).to have_gitlab_http_status(:ok)
       expect(response.body).to include('Work items sync')
       expect(response.body).to include('Enable work items sync')
+      expect(response.body).to include(help_page_path('user/project/work_items_sync.md'))
     end
 
     it 'shows unfurl projects as on by default, with a way to turn it off' do
