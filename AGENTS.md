@@ -11,6 +11,7 @@ Read @CLAUDE.local.md
 
 Load the following instruction files based on your current task:
 
+- **Always, before anything else**: Read .ai/oc.md — this checkout is the OneCommons (`oc`) fork of GitLab. Fork-specific guidance lives there, not in this file, so that upstream's copy of this file merges cleanly
 - When working with **git, commits, or branches**: Read .ai/git.md
 - When working with **merge requests**: Read .ai/merge-requests.md
 - When **reviewing code or giving feedback**: Read .ai/code-review.md
