@@ -15,7 +15,7 @@ that upstream generates in EE mode.
 The GDK in the parent directory uses mise (`gdk.yml` sets `asdf: opt_out:
 true`), so `mise activate` or `mise exec` provide the tools. Versions come
 from this repository's `.tool-versions` and `.ruby-version` (Ruby 3.3.11, Node
-22, Yarn 1) and the GDK's own `.tool-versions` (Postgres 17). If another
+22) and the GDK's own `.tool-versions` (Postgres 17). If another
 version manager is also installed and its shims win, put mise's Ruby first
 explicitly:
 
@@ -31,6 +31,32 @@ Gitaly's `go.mod` requires Go 1.25 or later; the GDK pins 1.26 in its
 suite's Gitaly build fail — see `oc/spec/README.md`. The same applies to
 `pg_dump`, which `db:migrate` runs and which must match the server's major
 version (mise's `postgres` install has one).
+
+### Yarn and the oc-pages package
+
+Most of the fork's Vue code is the `oc-pages` package in the
+[unfurl-gui](https://github.com/onecommons/unfurl-gui) monorepo, pulled in as
+a git dependency: `"oc-pages": "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages"`
+in `package.json`, with `yarn.lock` pinning the commit. The `workspace=`
+selector is a Yarn Berry feature, so the fork pins **Yarn 3.8.7** — the same
+release unfurl-gui uses — through `yarnPath` in `.yarnrc.yml` and the vendored
+`.yarn/releases/yarn-3.8.7.cjs`. Upstream's Yarn 1 on `PATH` delegates to it,
+so nothing needs installing; `yarn --version` must print 3.8.7 in this tree.
+Consequences:
+
+- **The lockfile is regenerated, not merged, at each upstream upgrade**: take
+  upstream's `yarn.lock` and run `yarn install`, which imports it.
+- Berry runs the root package's lifecycle scripts *after* linking and does not
+  run `pre*`/`post*` hooks of ordinary scripts. Upstream's `preinstall` (which
+  deleted `node_modules` when Yarn 1's integrity file was missing) is removed
+  and `prelint:stylelint` is folded into `lint:stylelint`. Its portable shell
+  has no `${VAR:=default}`; the scripts use `${VAR:-default}`.
+- `resolutions` use Berry's `parent/dep` form, not Yarn 1's `**/parent/dep`.
+- `yarn install --frozen-lockfile` (upstream CI) still works;
+  `--pure-lockfile`, which the GDK's `make gitlab-yarn` uses, does not — run
+  `yarn install` by hand after `gdk update`.
+- The build tools skip the EE-only frontend islands in this edition
+  (`scripts/build_frontend_islands`).
 
 ### Unfurl server integration
 

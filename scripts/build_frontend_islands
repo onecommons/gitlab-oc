@@ -18,6 +18,12 @@ function build_frontend_islands() {
     return 0
   fi
 
+  # OC Change: EE never loads in the oc edition (see GitlabEdition.oc?)
+  if [[ -d "oc/" && "${GITLAB_ONLY:-}" != "true" && "${GITLAB_ONLY:-}" != "1" ]]; then
+    echo "Not building the frontend islands in the oc edition. Exiting early"
+    return 0
+  fi
+
   section_start "frontend-islands-check" "Checking for frontend islands"
 
   # Check if frontend islands directory exists

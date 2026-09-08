@@ -5,7 +5,7 @@
     "deps:check": "depcruise --config config/dependency_cruiser.mjs --no-ignore-known",
     "deps:check:all": "yarn run deps:check .",
     "clean": "rm -rf public/assets tmp/cache/webpack tmp/cache/rspack tmp/cache/vite",
-    "dev-server": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" node scripts/frontend/webpack_dev_server.js",
+    "dev-server": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" node scripts/frontend/webpack_dev_server.js",
     "file-coverage": "scripts/frontend/file_test_coverage.js",
     "lint-docs": "scripts/lint-doc.sh",
     "internal:eslint": "eslint --cache --max-warnings 0 --report-unused-disable-directives",
@@ -36,12 +36,10 @@
     "lint:prettier:fix": "yarn run prettier --write '**/*.{graphql,js,vue}'",
     "lint:prettier:staged": "scripts/frontend/execute-on-staged-files.sh prettier '(graphql|js|vue)' --check",
     "lint:prettier:staged:fix": "scripts/frontend/execute-on-staged-files.sh prettier '(graphql|js|vue)' --write",
-    "lint:stylelint": "stylelint '{ee/,}app/assets/{stylesheets/**/*.{css,scss},builds/tailwind.css}'",
-    "prelint:stylelint": "yarn run tailwindcss:build",
+    "lint:stylelint": "yarn run tailwindcss:build && stylelint '{ee/,}app/assets/{stylesheets/**/*.{css,scss},builds/tailwind.css}'",
     "lint:stylelint:fix": "yarn run lint:stylelint --fix",
     "lint:stylelint:staged": "scripts/frontend/execute-on-staged-files.sh stylelint '(css|scss)' -q",
     "lint:stylelint:staged:fix": "yarn run lint:stylelint:staged --fix",
-    "preinstall": "node ./scripts/frontend/preinstall.mjs",
     "postinstall": "node ./scripts/frontend/postinstall.js",
     "storybook:install": "yarn --cwd ./storybook install",
     "storybook:doctor": "yarn --cwd ./storybook doctor",
@@ -50,11 +48,11 @@
     "storybook:start": "./scripts/frontend/start_storybook.sh",
     "storybook:start:skip-fixtures-update": "./scripts/frontend/start_storybook.sh --skip-fixtures-update",
     "swagger:validate": "swagger-cli validate",
-    "webpack": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" webpack --config config/webpack.config.js",
-    "webpack-vendor": "NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" webpack --config config/webpack.vendor.config.js",
-    "webpack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" NODE_ENV=production webpack --config config/webpack.config.js",
-    "rspack": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" rspack build --config config/rspack.config.mjs",
-    "rspack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:=--max-old-space-size=10240}\" NODE_ENV=production rspack build --config config/rspack.config.mjs",
+    "webpack": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" webpack --config config/webpack.config.js",
+    "webpack-vendor": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" webpack --config config/webpack.vendor.config.js",
+    "webpack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" NODE_ENV=production webpack --config config/webpack.config.js",
+    "rspack": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" rspack build --config config/rspack.config.mjs",
+    "rspack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" NODE_ENV=production rspack build --config config/rspack.config.mjs",
     "build": "if [ \"$ENABLE_RSPACK\" = \"true\" ]; then yarn run rspack; else yarn run webpack; fi",
     "vite-prod": "scripts/build_frontend_islands && yarn run tailwindcss:build && NODE_ENV=production vite build"
   },
@@ -334,9 +332,9 @@
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
-    "**/glob/jackspeak": "npm:@gitlab/noop@1.0.1",
+    "glob/jackspeak": "npm:@gitlab/noop@1.0.1",
     "jsonify": "npm:@gitlab/noop@1.0.1",
-    "**/simple-update-notifier/semver": "^7.0.0",
+    "simple-update-notifier/semver": "^7.0.0",
     "@types/node": "14.17.5",
     "chokidar": "^3.5.3",
     "nwsapi": "2.2.2",
@@ -350,5 +348,5 @@
   "scarfSettings": {
     "enabled": false
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@3.8.7"
 }

@@ -29,6 +29,12 @@ mise.local.toml
 .sass-cache/
 /.vagrant
 /.yarn-cache
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
 /.byebug_history
 /Vagrantfile
 /app/assets/images/icons.json
