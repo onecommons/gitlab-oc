@@ -21,11 +21,12 @@ module.exports = {
   presets: [tailwindDefaults],
   darkMode: ['variant', ['&:where(.dark *)']],
   content: [
-    './{ee,jh,}/app/assets/javascripts/**/*.{vue,js}',
+    // OC Change: oc/ added to the edition globs
+    './{ee,jh,oc,}/app/assets/javascripts/**/*.{vue,js}',
     '!./app/assets/javascripts/locale/',
-    './{ee,jh,}/app/helpers/**/*.rb',
-    './{ee,jh,}/app/components/**/*.{haml,rb}',
-    './{ee,jh,}/app/views/**/*.haml',
+    './{ee,jh,oc,}/app/helpers/**/*.rb',
+    './{ee,jh,oc,}/app/components/**/*.{haml,rb}',
+    './{ee,jh,oc,}/app/views/**/*.haml',
     './node_modules/@gitlab/ui/src/**/*.{vue,js}',
     './node_modules/@gitlab/duo-ui/dist/**/*.{vue,js}',
   ],

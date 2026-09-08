@@ -114,6 +114,21 @@ if (IS_OC) {
     oc_dashboard: path.join(ROOT_PATH, 'oc/app/assets/javascripts/dashboard'),
     oc_vue_shared: path.join(ROOT_PATH, 'oc/app/assets/javascripts/vue_shared'),
 
+    // A linked oc-pages checkout resolves bare imports from its own tree first; these
+    // must stay single copies, so pin them to ours.
+    vuex$: path.join(ROOT_PATH, 'node_modules/vuex'),
+    'vue-router$': path.join(ROOT_PATH, 'node_modules/vue-router'),
+    'vue-apollo$': path.join(ROOT_PATH, 'node_modules/vue-apollo'),
+    'vue-demi$': path.join(ROOT_PATH, 'node_modules/vue-demi'),
+    'graphql-tag$': path.join(ROOT_PATH, 'node_modules/graphql-tag'),
+    '@apollo/client$': path.join(ROOT_PATH, 'node_modules/@apollo/client/core'),
+    '@apollo/client': path.join(ROOT_PATH, 'node_modules/@apollo/client'),
+    '@gitlab/ui$': path.join(ROOT_PATH, 'node_modules/@gitlab/ui/src'),
+    lodash$: path.join(ROOT_PATH, 'node_modules/lodash-es'),
+    jquery$: path.join(ROOT_PATH, 'node_modules/jquery/dist/jquery.slim.js'),
+    mitt$: path.join(ROOT_PATH, 'node_modules/mitt'),
+    'js-cookie$': path.join(ROOT_PATH, 'node_modules/js-cookie'),
+
     // test-environment-only aliases duplicated from Jest config
     oc_jest: path.join(ROOT_PATH, 'oc/spec/frontend'),
   });

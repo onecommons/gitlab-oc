@@ -36,7 +36,7 @@ version (mise's `postgres` install has one).
 
 Most of the fork's Vue code is the `oc-pages` package in the
 [unfurl-gui](https://github.com/onecommons/unfurl-gui) monorepo, pulled in as
-a git dependency: `"oc-pages": "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages"`
+a Git dependency: `"oc-pages": "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages"`
 in `package.json`, with `yarn.lock` pinning the commit. The `workspace=`
 selector is a Yarn Berry feature, so the fork pins **Yarn 3.8.7** — the same
 release unfurl-gui uses — through `yarnPath` in `.yarnrc.yml` and the vendored
@@ -58,19 +58,62 @@ Consequences:
 - The build tools skip the EE-only frontend islands in this edition
   (`scripts/build_frontend_islands`).
 
-### Unfurl server integration
+Re-pin to the branch head with `oc/support/update-oc-pages.sh`, which commits
+the result. The package's directories are reached through tracked symlinks
+(`oc/app/assets/javascripts/{dashboard,project_overview,public_cloud,vue_shared}`
+→ `node_modules/oc-pages/…`), so rspack sees them at their resolved path,
+under `node_modules`. `config/rspack/loader_rules.js` carves that path out of
+the swc and graphql-tag exclusions (`OC_PAGES_SOURCE`), and
+`config/rspack/oc_pages.js` loads its bare `.svg` imports as markup. Do not
+turn `resolve.symlinks` off to avoid this: it breaks upstream's Vue 3
+infection lane. GitLab's ESLint and Prettier ignore the four directories; the
+package lints itself.
 
-To make a development instance talk to a local Unfurl Server, add this to the
-`server` block of `$GDK_ROOT/nginx/conf/nginx.conf`:
+To develop against a local unfurl-gui checkout, add a `link:` resolution to
+`package.json` and run `yarn install`:
 
-```nginx
- location /services/unfurl-server {
-      proxy_pass http://localhost:8081/;
-  }
+```json
+"resolutions": {
+  "oc-pages": "link:/path/to/unfurl-gui/packages/oc-pages"
+}
 ```
 
-(or patch the GDK's `components/nginx/nginx.conf.erb` so the change survives
-`gdk reconfigure`).
+Both files change locally; do not commit them. Berry's `yarn link` writes a
+`portal:` instead, which the node-modules linker rejects here because the
+checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's. With
+`link:` the checkout's `node_modules` supplies those, while the packages that
+must be single copies (`vue`, `vuex`, `vue-router`, `vue-apollo`, `vue-demi`,
+`@gitlab/ui`, `@apollo/client`, `graphql-tag`, `lodash`, `jquery`, `mitt`,
+`js-cookie`) are pinned to GitLab's by absolute aliases in
+`config/helpers/aliases.js`.
+
+### Unfurl server integration
+
+The blueprint pages call the Unfurl server at `/services/unfurl-server`, which
+production proxies (the chart's Ingress) and which a GDK without NGINX does
+not have. Instead run the server with CORS for the GitLab origin and tell the
+frontend where it is; `gon.unfurl_server_url` comes from the `extra` section
+of `gitlab.yml`, and the origin also has to be allowed by the CSP, which is
+configuration (`content_security_policy.directives.connect_src` replaces the
+whole default, so include the dev servers too):
+
+```yaml
+production: &base
+  gitlab:
+    content_security_policy:
+      directives:
+        connect_src: "'self' http://localhost:* ws://localhost:* wss://localhost:* http://gdk.test:* ws://gdk.test:* wss://gdk.test:*"
+  extra:
+    unfurl_server_url: 'http://localhost:8081'
+```
+
+```bash
+UNFURL_CLOUD_SERVER=http://gdk.test:3000 unfurl serve --port 8081 --cors http://gdk.test:3000
+```
+
+Deploying also needs the user's dashboard project, which is not ported yet.
+`bundle exec rake db:seed_fu FILTER=unfurl_blueprints` imports a blueprint
+project to look at (`oc/db/fixtures/development/`).
 
 ## Development
 

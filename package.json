@@ -206,6 +206,7 @@
     "monaco-editor-webpack-plugin": "^6.0.0",
     "monaco-yaml": "4.0.0",
     "mousetrap": "1.6.5",
+    "oc-pages": "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages",
     "orderedmap": "^2.1.1",
     "papaparse": "^5.3.1",
     "patch-package": "8.0.1",

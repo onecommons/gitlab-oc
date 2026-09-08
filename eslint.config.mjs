@@ -239,6 +239,8 @@ export default [
       'spec/fixtures/**/*.graphql',
       'ee/frontend_islands/',
       '{,ee/}app/assets/javascripts/lib/utils/path_helpers/*.js',
+      // OC Change: the oc-pages package lints itself
+      'oc/app/assets/javascripts/{dashboard,project_overview,public_cloud,vue_shared}/',
       'spec/frontend/scripts/infection_scanner/fixtures/**',
 
       // Dot-prefixed directories were implicitly ignored under legacy

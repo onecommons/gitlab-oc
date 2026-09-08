@@ -20,6 +20,7 @@ import { entries } from './rspack/entries.js';
 import GraphqlKnownOperationsPlugin from './plugins/graphql_known_operations_plugin.js';
 import Vue3MigrationManifestPlugin from './plugins/vue3_migration_manifest_plugin.js';
 import { buildLoaderRules } from './rspack/loader_rules.js';
+import { ocPagesRules } from './rspack/oc_pages.js'; // OC Change
 import { slimManifest } from './rspack/manifest_plugin.js';
 import {
   DEVTOOL,
@@ -134,7 +135,10 @@ export default {
       ...aliases,
       // Rspack honors Vue's package "exports" field, so a bare `vue` import can resolve
       // to two different runtime builds (two Vue instances). Pin to one build.
-      ...(VUE_VERSION === '3' ? {} : { vue$: 'vue/dist/vue.runtime.esm.js' }),
+      // OC Change: absolute, so a linked oc-pages checkout cannot resolve its own copy
+      ...(VUE_VERSION === '3'
+        ? {}
+        : { vue$: path.join(ROOT_PATH, 'node_modules/vue/dist/vue.runtime.esm.js') }),
       // Same hazard for @vue/compat: pin every import to the single runtime build the
       // infection alias targets, else getCurrentInstance() returns null in the stray copy.
       '@vue/compat$': path.join(
@@ -146,6 +150,7 @@ export default {
   },
   module: {
     rules: [
+      ...ocPagesRules, // OC Change
       ...vue.infectionRules,
       ...buildLoaderRules({
         vueLoaderOptions: { ...vue.vueRule.options, __loaderModule: vue.VUE_LOADER_MODULE },

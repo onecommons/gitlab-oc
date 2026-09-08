@@ -2031,6 +2031,110 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formily/core@npm:2.2.30, @formily/core@npm:~2.2.0":
+  version: 2.2.30
+  resolution: "@formily/core@npm:2.2.30"
+  dependencies:
+    "@formily/reactive": 2.2.30
+    "@formily/shared": 2.2.30
+    "@formily/validator": 2.2.30
+  checksum: a6b1ca682971d52edcc6df47423f7c46083190836c971a2f1190ce4012fa389fdcc8c39cb392df9475bbd5dcf008e2f9c11f2c1394a54d64c0b74cd39c5a11e2
+  languageName: node
+  linkType: hard
+
+"@formily/json-schema@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/json-schema@npm:2.2.30"
+  dependencies:
+    "@formily/core": 2.2.30
+    "@formily/reactive": 2.2.30
+    "@formily/shared": 2.2.30
+  peerDependencies:
+    typescript: ">4.1.5"
+  checksum: dda4a3806ff31958dbb970154d32f62d9dafe6b3acab6c1ca7728de1579439578d19833da9460853d412ca713b836472bb027f9c9b112cef45d3145c33523da8
+  languageName: node
+  linkType: hard
+
+"@formily/path@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/path@npm:2.2.30"
+  checksum: e9426f796c31634032aaf31640308e4c19b179f157bfcd086451265f0d208a4463295a00a0d52926c83caeb5e72b331493679882f5a31abdde6a310f6cc38094
+  languageName: node
+  linkType: hard
+
+"@formily/reactive-vue@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/reactive-vue@npm:2.2.30"
+  dependencies:
+    "@formily/reactive": 2.2.30
+    vue-demi: ^0.13.6
+  peerDependencies:
+    "@vue/composition-api": ^1.0.0-beta.1
+    vue: ^2.6.0 || >=3.0.0-rc.0
+  peerDependenciesMeta:
+    "@vue/composition-api":
+      optional: true
+  checksum: c46fb2ef596011bd12a0104feb374d0e98f60c9500e9e3af9e813744ecfd14b099533e9d3544e5a537dd8c87337861ef013e44cac1c4565533983b6982956822
+  languageName: node
+  linkType: hard
+
+"@formily/reactive@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/reactive@npm:2.2.30"
+  checksum: 4657b8013f7c0944fc4d31f5c8047b30f9dfa86509f8795536f9f886978f2eb40822db3da848723c3d74d541807331e80b2ca68eaa62172f991672a392a45f25
+  languageName: node
+  linkType: hard
+
+"@formily/shared@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/shared@npm:2.2.30"
+  dependencies:
+    "@formily/path": 2.2.30
+    camel-case: ^4.1.1
+    lower-case: ^2.0.1
+    no-case: ^3.0.4
+    param-case: ^3.0.4
+    pascal-case: ^3.1.1
+    upper-case: ^2.0.1
+  checksum: 5b5f529f518d00ab13d67b502d37d6dca12a0a2a134ce62392db00fabd3a0ff2fa248b7aa272b7af4b3bc645ea3e052f66e6f124164f738f855d8ba1bf4c55c4
+  languageName: node
+  linkType: hard
+
+"@formily/validator@npm:2.2.30":
+  version: 2.2.30
+  resolution: "@formily/validator@npm:2.2.30"
+  dependencies:
+    "@formily/shared": 2.2.30
+  checksum: 61151c780a70d0fc759df10a985b136ee661dc3ecf7d876b091b6bdec9a789edc35705ccab1dcd06f8d8a26f74b8c20fdfd5f0430bb3d664c53f641c14b8ffff
+  languageName: node
+  linkType: hard
+
+"@formily/vue@npm:~2.2.0":
+  version: 2.2.30
+  resolution: "@formily/vue@npm:2.2.30"
+  dependencies:
+    "@formily/core": 2.2.30
+    "@formily/json-schema": 2.2.30
+    "@formily/reactive": 2.2.30
+    "@formily/reactive-vue": 2.2.30
+    "@formily/shared": 2.2.30
+    "@formily/validator": 2.2.30
+    fs-extra: ^10.0.0
+    vue-demi: ^0.13.6
+    vue-frag: ^1.1.4
+  peerDependencies:
+    "@vue/composition-api": ^1.0.0-beta.1
+    vue: ^2.6.0 || >=3.0.0-rc.0
+  peerDependenciesMeta:
+    "@vue/composition-api":
+      optional: true
+  bin:
+    formily-vue-fix: bin/formily-vue-fix.js
+    formily-vue-switch: bin/formily-vue-switch.js
+  checksum: 188b2b9b6a8c0d82607e975e40762b5adf662fedad20d20e1aa8df09bda95cac8324b47ecec6446d8e55aaac4565425cf42a0fc43d45f78907d1415cdfceae30
+  languageName: node
+  linkType: hard
+
 "@gitlab/at.js@npm:1.5.9":
   version: 1.5.9
   resolution: "@gitlab/at.js@npm:1.5.9"
@@ -9097,6 +9201,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"camel-case@npm:^4.1.1":
+  version: 4.1.2
+  resolution: "camel-case@npm:4.1.2"
+  dependencies:
+    pascal-case: ^3.1.2
+    tslib: ^2.0.3
+  checksum: bcbd25cd253b3cbc69be3f535750137dbf2beb70f093bdc575f73f800acc8443d34fd52ab8f0a2413c34f1e8203139ffc88428d8863e4dfe530cfb257a379ad6
+  languageName: node
+  linkType: hard
+
 "camelcase-css@npm:^2.0.1":
   version: 2.0.1
   resolution: "camelcase-css@npm:2.0.1"
@@ -10791,7 +10905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3@npm:^7.9.0":
+"d3@npm:^7.6.1, d3@npm:^7.9.0":
   version: 7.9.0
   resolution: "d3@npm:7.9.0"
   dependencies:
@@ -11424,6 +11538,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dompurify@npm:3.4.0":
+  version: 3.4.0
+  resolution: "dompurify@npm:3.4.0"
+  dependencies:
+    "@types/trusted-types": ^2.0.7
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 8c4286d3d379c6133ff2951d73d946974ef079f5d651d66cf90c1a6e57d8d2d304e7bc18280d27c38835200bbe03877fd93fb22f9f1fb9e086d68ffcd2d5dd16
+  languageName: node
+  linkType: hard
+
 "dompurify@npm:^3.3.1, dompurify@npm:^3.4.12":
   version: 3.4.12
   resolution: "dompurify@npm:3.4.12"
@@ -11444,6 +11570,16 @@ __metadata:
     domelementtype: ^2.3.0
     domhandler: ^5.0.3
   checksum: ae941d56f03d857077d55dde9297e960a625229fc2b933187cc4123084d7c2d2517f58283a7336567127029f1e008449bac8ac8506d44341e29e3bb18e02f906
+  languageName: node
+  linkType: hard
+
+"dot-case@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "dot-case@npm:3.0.4"
+  dependencies:
+    no-case: ^3.0.4
+    tslib: ^2.0.3
+  checksum: a65e3519414856df0228b9f645332f974f2bf5433370f544a681122eab59e66038fc3349b4be1cdc47152779dac71a5864f1ccda2f745e767c46e9c6543b1169
   languageName: node
   linkType: hard
 
@@ -16213,6 +16349,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lower-case@npm:^2.0.1, lower-case@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "lower-case@npm:2.0.2"
+  dependencies:
+    tslib: ^2.0.3
+  checksum: 83a0a5f159ad7614bee8bf976b96275f3954335a84fad2696927f609ddae902802c4f3312d86668722e668bef41400254807e1d3a7f2e8c3eede79691aa1f010
+  languageName: node
+  linkType: hard
+
 "lowlight@npm:^2.9.0":
   version: 2.9.0
   resolution: "lowlight@npm:2.9.0"
@@ -16361,6 +16506,15 @@ __metadata:
   bin:
     marked: bin/marked.js
   checksum: 8749bc6228ff59eb63f82c7310750336eb85c42c2b37d0d24f86807cf9e7b441bf8a20ed1bbcadfcd7a2db41d1b6069642286d4403815b90c2ce5be6aa00124c
+  languageName: node
+  linkType: hard
+
+"marked@npm:^4.0.18":
+  version: 4.3.0
+  resolution: "marked@npm:4.3.0"
+  bin:
+    marked: bin/marked.js
+  checksum: 0db6817893952c3ec710eb9ceafb8468bf5ae38cb0f92b7b083baa13d70b19774674be04db5b817681fa7c5c6a088f61300815e4dd75a59696f4716ad69f6260
   languageName: node
   linkType: hard
 
@@ -17116,6 +17270,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"no-case@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "no-case@npm:3.0.4"
+  dependencies:
+    lower-case: ^2.0.2
+    tslib: ^2.0.3
+  checksum: 0b2ebc113dfcf737d48dde49cfebf3ad2d82a8c3188e7100c6f375e30eafbef9e9124aadc3becef237b042fd5eb0aad2fd78669c20972d045bbe7fea8ba0be5c
+  languageName: node
+  linkType: hard
+
 "node-abort-controller@npm:^3.1.1":
   version: 3.1.1
   resolution: "node-abort-controller@npm:3.1.1"
@@ -17516,6 +17680,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oc-pages@https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages":
+  version: 0.1.0
+  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=ed4868d52d53be42cc300f41f5bb6d48a83da937"
+  dependencies:
+    "@formily/core": ~2.2.0
+    "@formily/vue": ~2.2.0
+    d3: ^7.6.1
+    dompurify: 3.4.0
+    marked: ^4.0.18
+    mime-types: ^2.1.12
+    semver: ^7.3.4
+    vue-json-component: ^0.4.1
+  peerDependencies:
+    vue: ^2.7.16
+  peerDependenciesMeta:
+    vue:
+      optional: false
+  checksum: da6b72a0eb958193129d11d9af7f39624f872c67d037c44046d1f1a6f1a3627be35550fc8877dd6835bf4c0f509a99a5fb3922731ae6eacdf10e6d9bc1fba97e
+  languageName: node
+  linkType: hard
+
 "on-finished@npm:2.4.1":
   version: 2.4.1
   resolution: "on-finished@npm:2.4.1"
@@ -17795,6 +17980,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"param-case@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "param-case@npm:3.0.4"
+  dependencies:
+    dot-case: ^3.0.4
+    tslib: ^2.0.3
+  checksum: b34227fd0f794e078776eb3aa6247442056cb47761e9cd2c4c881c86d84c64205f6a56ef0d70b41ee7d77da02c3f4ed2f88e3896a8fefe08bdfb4deca037c687
+  languageName: node
+  linkType: hard
+
 "parent-module@npm:^1.0.0":
   version: 1.0.1
   resolution: "parent-module@npm:1.0.1"
@@ -17849,6 +18044,16 @@ __metadata:
   version: 1.3.3
   resolution: "parseurl@npm:1.3.3"
   checksum: 407cee8e0a3a4c5cd472559bca8b6a45b82c124e9a4703302326e9ab60fc1081442ada4e02628efef1eb16197ddc7f8822f5a91fd7d7c86b51f530aedb17dfa2
+  languageName: node
+  linkType: hard
+
+"pascal-case@npm:^3.1.1, pascal-case@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "pascal-case@npm:3.1.2"
+  dependencies:
+    no-case: ^3.0.4
+    tslib: ^2.0.3
+  checksum: ba98bfd595fc91ef3d30f4243b1aee2f6ec41c53b4546bfa3039487c367abaa182471dcfc830a1f9e1a0df00c14a370514fa2b3a1aacc68b15a460c31116873e
   languageName: node
   linkType: hard
 
@@ -19912,6 +20117,7 @@ __metadata:
     mousetrap: 1.6.5
     msw: 1.3.5
     nodemon: ^2.0.19
+    oc-pages: "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages"
     orderedmap: ^2.1.1
     papaparse: ^5.3.1
     patch-package: 8.0.1
@@ -22017,7 +22223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
+"tslib@npm:^2.0.0, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.3, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: e4aba30e632b8c8902b47587fd13345e2827fa639e7c3121074d5ee0880723282411a8838f830b55100cbe4517672f84a2472667d355b81e8af165a55dc6203a
@@ -22367,6 +22573,15 @@ __metadata:
   bin:
     update-browserslist-db: cli.js
   checksum: 6f209a97ae8eacdd3a1ef2eb365adf49d1e2a757e5b2dd4ac87dc8c99236cbe3e572d3e605a87dd7b538a11751b71d9f93edc47c7405262a293a493d155316cd
+  languageName: node
+  linkType: hard
+
+"upper-case@npm:^2.0.1":
+  version: 2.0.2
+  resolution: "upper-case@npm:2.0.2"
+  dependencies:
+    tslib: ^2.0.3
+  checksum: 508723a2b03ab90cf1d6b7e0397513980fab821cbe79c87341d0e96cedefadf0d85f9d71eac24ab23f526a041d585a575cfca120a9f920e44eb4f8a7cf89121c
   languageName: node
   linkType: hard
 
@@ -22850,6 +23065,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-demi@npm:^0.13.6":
+  version: 0.13.11
+  resolution: "vue-demi@npm:0.13.11"
+  peerDependencies:
+    "@vue/composition-api": ^1.0.0-rc.1
+    vue: ^3.0.0-0 || ^2.6.0
+  peerDependenciesMeta:
+    "@vue/composition-api":
+      optional: true
+  bin:
+    vue-demi-fix: bin/vue-demi-fix.js
+    vue-demi-switch: bin/vue-demi-switch.js
+  checksum: 0fbe9bf8ab7fe498ffa2bbd0cfc8f6f43a6bbaa5eda3e20ef1b70dca7c8b0ddb216a7ff2f632b694fe0735805638975abb441c621ec0bd2e6d4656353f316c15
+  languageName: node
+  linkType: hard
+
 "vue-demi@npm:^0.14.10":
   version: 0.14.10
   resolution: "vue-demi@npm:0.14.10"
@@ -22883,6 +23114,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-frag@npm:^1.1.4":
+  version: 1.4.3
+  resolution: "vue-frag@npm:1.4.3"
+  peerDependencies:
+    vue: ^2.6.0
+  checksum: 554d2e6e7f54cca6f892b915b8658a308da775ea1d3eb7bf111af20be8505aaf90574e5c94deb211a9319f5a0f0036bed742aa17d01ef94c3ad96ce753bebbdb
+  languageName: node
+  linkType: hard
+
 "vue-functional-data-merge@npm:^3.1.0":
   version: 3.1.0
   resolution: "vue-functional-data-merge@npm:3.1.0"
@@ -22894,6 +23134,13 @@ __metadata:
   version: 2.3.4
   resolution: "vue-hot-reload-api@npm:2.3.4"
   checksum: 9befc0b3d6c1cc69430813fb7cfd2125c6a228730a36fad0653e4ddb60c8d4cf3ddc9649d2c9105c3d6044b42e8c8dce62b3c245bc65a6f187c1e2ca82a79252
+  languageName: node
+  linkType: hard
+
+"vue-json-component@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "vue-json-component@npm:0.4.1"
+  checksum: ff566e846dd8e646137759834da81467e2fdecc992f89eb797924530f623c6e7e55bdabf1bb5d96e2619b5d8f782d9cb3609f47170ffd60b67f0bbe7178f5069
   languageName: node
   linkType: hard
 

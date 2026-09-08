@@ -6,9 +6,17 @@ const ROOT_PATH = path.resolve(__dirname, '../..');
 const WORKER_LOADER_PATH = path.join(__dirname, 'worker_loader.js');
 const WORKER_QUERY_RE = /(^|[?&])worker(&|$)/;
 
+// OC Change: the oc-pages package ships source, installed under node_modules or linked
+const OC_PAGES_SOURCE =
+  /[\\/]oc-pages[\\/](dashboard|project_overview|public_cloud|vue_shared)[\\/]/;
+
 const shouldExcludeFromCompiling = (modulePath) => {
   if (/\.vue\.js$/.test(modulePath)) {
     return false;
+  }
+
+  if (OC_PAGES_SOURCE.test(modulePath)) {
+    return false; // OC Change
   }
 
   if (/graphql-ws/.test(modulePath)) {
@@ -94,7 +102,8 @@ function buildLoaderRules({ vueLoaderOptions = {} } = {}) {
 
     {
       test: /\.(graphql|gql)$/,
-      exclude: /node_modules/,
+      // OC Change
+      exclude: (modulePath) => /node_modules/.test(modulePath) && !OC_PAGES_SOURCE.test(modulePath),
       loader: 'graphql-tag/loader',
     },
 
@@ -205,4 +214,4 @@ function buildLoaderRules({ vueLoaderOptions = {} } = {}) {
   ].filter(Boolean);
 }
 
-module.exports = { buildLoaderRules, shouldExcludeFromCompiling };
+module.exports = { buildLoaderRules, shouldExcludeFromCompiling, OC_PAGES_SOURCE };

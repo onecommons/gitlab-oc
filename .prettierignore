@@ -3,6 +3,8 @@
 /ee/app/assets/javascripts/lib/utils/path_helpers/*.js
 /fixtures/lib/gitlab/graphql/
 /ee/frontend_islands/
+# OC Change: the oc-pages package formats itself
+/oc/app/assets/javascripts/{dashboard,project_overview,public_cloud,vue_shared}/
 /node_modules/
 /public/
 /vendor/
