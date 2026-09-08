@@ -13,6 +13,7 @@ constraints(Projects::ProjectUrlConstraint.new) do
       as: :project
     ) do
       scope '-' do
+        get 'overview(/*vueroute)', to: '/projects#overview', as: :overview
         resource :work_items_sync, only: [:update], controller: :work_items_sync
       end
     end

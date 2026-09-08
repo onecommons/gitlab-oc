@@ -55,7 +55,7 @@ Specs that `require 'fast_spec_helper'` (such as
 but cannot share an rspec invocation with `spec_helper` specs — run the two
 groups separately.
 
-Request specs that render a full page (the settings section in
+Request specs that render a full page (those under
 `oc/spec/requests/projects/`) need the asset manifest, which the GDK's
 `config/gitlab.yml` fetches from the rspack dev server. Have `gdk start
 rspack` running and set `ENABLE_RSPACK=true`, or Rails asks the server for

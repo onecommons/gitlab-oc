@@ -1673,6 +1673,10 @@ production: &base
   # ==========================
 
   extra:
+    ## OC Change: where the browser reaches the Unfurl server, when it is not
+    ## proxied at /services/unfurl-server on this host (it must allow CORS).
+    # unfurl_server_url: 'https://unfurl.example.com'
+
     ## Google analytics. Uncomment if you want it
     # google_analytics_id: '_your_tracking_id'
 

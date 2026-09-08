@@ -1,0 +1,42 @@
+- if current_user
+  - if current_user.starred?(@project)
+    - star_icon = 'star'
+    - star_text = s_('ProjectPage|Unstar')
+  - else
+    - star_icon = 'star-o'
+    - star_text = s_('ProjectPage|Star')
+  - if current_user.already_forked?(@project) && current_user.forkable_namespaces.size < 2
+    - fork_path = namespace_project_path(current_user, current_user.fork_of(@project))
+  - else
+    - fork_path = new_project_fork_path(@project)
+- else
+  - star_icon = 'star-o'
+  - star_text = s_('ProjectPage|Star')
+- readme = @repository.readme if can?(current_user, :read_code, @project)
+- cloudmap = ::Ci::InstanceVariable.all_cached.find { |variable| variable.key == 'UNFURL_CLOUDMAP_JSON' }&.value
+
+#oc-project-overview-icon{ style: 'display: none;' }
+  = render Pajamas::AvatarComponent.new(@project, alt: @project.name, size: 96, avatar_options: { itemprop: 'image' })
+
+#js-oc-project-overview{ data: {
+  project_path: @project.full_path,
+  project_id: @project.id,
+  project_name: @project.name,
+  project_description: @project.description,
+  project_visibility: @project.visibility,
+  ref: @ref,
+  tree_path: project_tree_path(@project),
+  live_preview: @live_preview_url,
+  link_deployment: "#{project_environments_path(@project)}/folders/review",
+  readme_raw: readme&.data,
+  cloudmap: cloudmap,
+  button_star: {
+    text: star_text,
+    icon: star_icon,
+    count: @project.star_count,
+    link: project_starrers_path(@project),
+    endpoint: toggle_star_project_path(@project, :json) },
+  button_fork: {
+    path: fork_path,
+    count: @project.forks_count,
+    link: project_forks_path(@project) } } }
