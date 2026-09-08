@@ -2062,6 +2062,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formily/path@npm:2.3.7":
+  version: 2.3.7
+  resolution: "@formily/path@npm:2.3.7"
+  checksum: 28209d68d2206b30352386a646794665086b403c3667fe3e6f3d2bb7fc5f7d61e9c9345707e9565d94c5e5615ff38290884e619a49f3a2167866dfbae99f74db
+  languageName: node
+  linkType: hard
+
 "@formily/reactive-vue@npm:2.2.30":
   version: 2.2.30
   resolution: "@formily/reactive-vue@npm:2.2.30"
@@ -2078,10 +2085,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formily/reactive-vue@npm:~2.3.0":
+  version: 2.3.7
+  resolution: "@formily/reactive-vue@npm:2.3.7"
+  dependencies:
+    "@formily/reactive": 2.3.7
+    vue-demi: ">=0.13.6"
+  peerDependencies:
+    "@vue/composition-api": ^1.0.0-beta.1
+    vue: ^2.6.0 || >=3.0.0-rc.0
+  peerDependenciesMeta:
+    "@vue/composition-api":
+      optional: true
+  checksum: e67c69cf62b710c769567fa98c45b88930420e3e4859fb38378bade36dcdf3990f05496861c0324d5088b5d9323c62f9f9a555e7fd1003868291d568bd80bb03
+  languageName: node
+  linkType: hard
+
 "@formily/reactive@npm:2.2.30":
   version: 2.2.30
   resolution: "@formily/reactive@npm:2.2.30"
   checksum: 4657b8013f7c0944fc4d31f5c8047b30f9dfa86509f8795536f9f886978f2eb40822db3da848723c3d74d541807331e80b2ca68eaa62172f991672a392a45f25
+  languageName: node
+  linkType: hard
+
+"@formily/reactive@npm:2.3.7":
+  version: 2.3.7
+  resolution: "@formily/reactive@npm:2.3.7"
+  checksum: cbbae925e4188f6be3626b8e71534b7ac9a9d1e24568569e59dedde14f245aceed8dee0adfd2d33c127c4a32dc0665db40feb8cb95efb7b822acfd20b31cc437
   languageName: node
   linkType: hard
 
@@ -2097,6 +2127,21 @@ __metadata:
     pascal-case: ^3.1.1
     upper-case: ^2.0.1
   checksum: 5b5f529f518d00ab13d67b502d37d6dca12a0a2a134ce62392db00fabd3a0ff2fa248b7aa272b7af4b3bc645ea3e052f66e6f124164f738f855d8ba1bf4c55c4
+  languageName: node
+  linkType: hard
+
+"@formily/shared@npm:~2.3.0":
+  version: 2.3.7
+  resolution: "@formily/shared@npm:2.3.7"
+  dependencies:
+    "@formily/path": 2.3.7
+    camel-case: ^4.1.1
+    lower-case: ^2.0.1
+    no-case: ^3.0.4
+    param-case: ^3.0.4
+    pascal-case: ^3.1.1
+    upper-case: ^2.0.1
+  checksum: 727883f9e773c0f21c13a219ded9aef45bb7dd7dc5a4e8f41b520ef75ac0f749f51ce7fdde60fc757a3938436678340cd8675b5db120dbc1a45c868a0d1d456b
   languageName: node
   linkType: hard
 
@@ -17682,22 +17727,35 @@ __metadata:
 
 "oc-pages@https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages":
   version: 0.1.0
-  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=ed4868d52d53be42cc300f41f5bb6d48a83da937"
+  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=c234fd9a07a0be9ed8a8446cc30d9ecfae7b5638"
   dependencies:
     "@formily/core": ~2.2.0
+    "@formily/reactive-vue": ~2.3.0
+    "@formily/shared": ~2.3.0
     "@formily/vue": ~2.2.0
     d3: ^7.6.1
     dompurify: 3.4.0
+    graphql-tag: ^2.11.0
     marked: ^4.0.18
     mime-types: ^2.1.12
+    mitt: ^3.0.1
     semver: ^7.3.4
+    vue-demi: ^0.14.5
     vue-json-component: ^0.4.1
   peerDependencies:
+    "@apollo/client": ^3.5.10
+    "@gitlab/ui": ">=60"
+    graphql: ^15.7.2 || ^16.0.0
+    jquery: ^3.6.0
+    js-cookie: ^2.2.1 || ^3.0.0
+    lodash: ^4.17.20
     vue: ^2.7.16
+    vue-router: ^3.4.9
+    vuex: ^3.6.2
   peerDependenciesMeta:
     vue:
       optional: false
-  checksum: da6b72a0eb958193129d11d9af7f39624f872c67d037c44046d1f1a6f1a3627be35550fc8877dd6835bf4c0f509a99a5fb3922731ae6eacdf10e6d9bc1fba97e
+  checksum: 70fca28b212d7b9039c9c161b88d813b30541dd877f0a39010c1a25702d4820ce10673d430b3fdcd6dd8ceddaa68c0d4ff9260c251bd53513494920f85e51b5c
   languageName: node
   linkType: hard
 
@@ -23065,6 +23123,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-demi@npm:>=0.13.6, vue-demi@npm:^0.14.10, vue-demi@npm:^0.14.5":
+  version: 0.14.10
+  resolution: "vue-demi@npm:0.14.10"
+  peerDependencies:
+    "@vue/composition-api": ^1.0.0-rc.1
+    vue: ^3.0.0-0 || ^2.6.0
+  peerDependenciesMeta:
+    "@vue/composition-api":
+      optional: true
+  bin:
+    vue-demi-fix: bin/vue-demi-fix.js
+    vue-demi-switch: bin/vue-demi-switch.js
+  checksum: 9b4106f99be3b0c1dd4a6dc5725f5e8f79c6b98d1eeb849bf2c54416cd77f4aa344960b202768865245cfa82d57f49a9d96f67f5d8e256604b9dac1c5df9a8d6
+  languageName: node
+  linkType: hard
+
 "vue-demi@npm:^0.13.6":
   version: 0.13.11
   resolution: "vue-demi@npm:0.13.11"
@@ -23078,22 +23152,6 @@ __metadata:
     vue-demi-fix: bin/vue-demi-fix.js
     vue-demi-switch: bin/vue-demi-switch.js
   checksum: 0fbe9bf8ab7fe498ffa2bbd0cfc8f6f43a6bbaa5eda3e20ef1b70dca7c8b0ddb216a7ff2f632b694fe0735805638975abb441c621ec0bd2e6d4656353f316c15
-  languageName: node
-  linkType: hard
-
-"vue-demi@npm:^0.14.10":
-  version: 0.14.10
-  resolution: "vue-demi@npm:0.14.10"
-  peerDependencies:
-    "@vue/composition-api": ^1.0.0-rc.1
-    vue: ^3.0.0-0 || ^2.6.0
-  peerDependenciesMeta:
-    "@vue/composition-api":
-      optional: true
-  bin:
-    vue-demi-fix: bin/vue-demi-fix.js
-    vue-demi-switch: bin/vue-demi-switch.js
-  checksum: 9b4106f99be3b0c1dd4a6dc5725f5e8f79c6b98d1eeb849bf2c54416cd77f4aa344960b202768865245cfa82d57f49a9d96f67f5d8e256604b9dac1c5df9a8d6
   languageName: node
   linkType: hard
 
