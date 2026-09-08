@@ -87,6 +87,33 @@ must be single copies (`vue`, `vuex`, `vue-router`, `vue-apollo`, `vue-demi`,
 `js-cookie`) are pinned to GitLab's by absolute aliases in
 `config/helpers/aliases.js`.
 
+### Stylesheets
+
+`scripts/frontend/lib/compile_css.mjs` compiles SCSS into `app/assets/builds/`
+(the rspack dev server keeps it running as a watcher). It gives `oc/` the same
+hooks as `ee/`: `oc/app/assets/stylesheets` is first on the load path, and
+`_application_base.scss` and `application_dark.scss` import `application_oc`
+and `application_dark_oc`, which resolve to the no-op files under
+`app/assets/stylesheets/_oc/` in a GitLab-only build and to
+`oc/app/assets/stylesheets/_oc/` in the oc edition. Fork rules go in the
+`onecommons*.scss` files those two entry points import; a new page bundle goes
+under `oc/app/assets/stylesheets/page_bundles/`.
+
+19.3 puts the colour mode class on `<html>`, so dark-mode rules are scoped to
+`:root.gl-dark`, never `body.gl-dark`. The fork's look is carried mostly by
+token overrides: the brand tint of the default navigation theme sits on
+`:root.ui-neutral` (15.11 restyled `ui-indigo` the same way), dark mode forces
+the near-black ground on `html, body` and colours every `h2`–`h6` (and `h1`
+inside `.content`) Unfurl blue, exactly as 15.11 did. Prefer overriding a design token
+(`--gl-button-confirm-primary-*`, `--gl-tab-selected-indicator-color-default`,
+`--default-regular-font`) to restyling `.gl-*` classes; where a `.gl-*` rule is
+unavoidable, `.stylelintrc` exempts `oc/app/assets/stylesheets` from
+`gitlab/no-gl-class`, as it does upstream's own dark overrides.
+
+The Noto Sans faces are served statically from `public/oc/assets/fonts/`; the
+15.11 styles for views this port does not have yet (login, help, explore,
+dashboard, error pages, mailer) travel with those views when they are ported.
+
 ### Unfurl server integration
 
 The blueprint pages call the Unfurl server at `/services/unfurl-server`, which

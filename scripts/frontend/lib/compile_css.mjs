@@ -11,6 +11,7 @@ import tailwindcss from 'tailwindcss/lib/plugin.js';
 import tailwindConfig from '../../../config/tailwind.config.js';
 import IS_EE from '../../../config/helpers/is_ee_env.js';
 import IS_JH from '../../../config/helpers/is_jh_env.js';
+import IS_OC from '../../../config/helpers/is_oc_env.js'; // OC Change
 import { postCssColorToHex } from './postcss_color_to_hex.js';
 
 const ROOT_PATH = path.resolve(import.meta.dirname, '../../../');
@@ -19,6 +20,7 @@ const OUTPUT_PATH = path.join(ROOT_PATH, 'app/assets/builds/');
 const BASE_PATH = 'app/assets/stylesheets';
 const EE_BASE_PATH = 'ee/app/assets/stylesheets';
 const JH_BASE_PATH = 'jh/app/assets/stylesheets';
+const OC_BASE_PATH = 'oc/app/assets/stylesheets'; // OC Change
 
 // SCSS files starting with an underscore are partials
 // and not meant to be compiled, usually
@@ -36,6 +38,7 @@ export function resolveLoadPaths() {
       // no-op files
       'app/assets/stylesheets/_ee',
       'app/assets/stylesheets/_jh',
+      'app/assets/stylesheets/_oc', // OC Change
       // loaded last
       'vendor/assets/stylesheets', // empty
       /*
@@ -55,6 +58,11 @@ export function resolveLoadPaths() {
   if (IS_JH) {
     loadPaths.base.unshift(JH_BASE_PATH);
     loadPaths.vendor.unshift('jh/app/assets/stylesheets/_jh');
+  }
+  // OC Change
+  if (IS_OC) {
+    loadPaths.base.unshift(OC_BASE_PATH);
+    loadPaths.vendor.unshift('oc/app/assets/stylesheets/_oc');
   }
   return Object.values(loadPaths)
     .flat()
@@ -150,6 +158,16 @@ function resolveCompilationTargets(filter) {
       'jh/app/assets/stylesheets/page_bundles/**/*.scss',
       {
         basePath: JH_BASE_PATH,
+      },
+    ]);
+  }
+
+  // OC Change
+  if (IS_OC) {
+    inputGlobs.push([
+      'oc/app/assets/stylesheets/page_bundles/**/*.scss',
+      {
+        basePath: OC_BASE_PATH,
       },
     ]);
   }

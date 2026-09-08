@@ -1,0 +1,189 @@
+:root.gl-dark {
+  // 15.11 forced html and body to near-black and every heading to blue
+  --gl-background-color-default: #{$darkmode-black};
+  --gl-background-color-section: #{$darkmode-dark};
+  --gl-text-color-heading: #{$darkmode-blue};
+  --gl-button-confirm-primary-background-color-default: #{$uf-primary-teal};
+  --gl-button-confirm-primary-background-color-hover: #{$uf-teal-hover};
+  --gl-button-confirm-primary-background-color-focus: #{$uf-teal-hover};
+  --gl-button-confirm-primary-background-color-active: #{$uf-teal-active};
+  --gl-button-confirm-primary-foreground-color-default: #{$darkmode-black};
+  --gl-control-background-color-selected-default: var(--gl-color-blue-400);
+  --gl-control-background-color-selected-hover: var(--gl-color-blue-300);
+  --gl-control-indicator-color-selected: var(--gl-color-neutral-0);
+
+  &,
+  body {
+    background-color: $darkmode-black;
+  }
+
+  // the light-mode tint on ui-neutral is compiled into this sheet too
+  &.ui-neutral {
+    --gl-color-neutral-10: #fbfafd;
+    --gl-color-neutral-50: #ececef;
+    --gl-color-neutral-100: #dcdcde;
+  }
+
+  .btn-confirm.gl-button:not([disabled]) {
+    font-weight: 600;
+  }
+
+  :is(h2, h3, h4, h5, h6),
+  .content h1 {
+    color: $darkmode-blue;
+  }
+
+  [class*='qcard'] .card span {
+    color: $darkmode-bright;
+  }
+
+  .qcard1 .card {
+    background: linear-gradient(180deg, $uf-primary-teal 0%, $darkmode-dark 100%);
+  }
+
+  .qcard2 .card {
+    background: linear-gradient(180deg, rgba(20, 0, 254, 0.3) 0%, $darkmode-dark 100%);
+  }
+
+  .qcard3 .card {
+    background: linear-gradient(180deg, #399b60 0%, rgba(57, 155, 96, 0.2) 100%);
+  }
+
+  .qcard4 .card {
+    background: linear-gradient(180deg, #094f6b 0%, rgba(9, 79, 107, 0.2) 100%);
+  }
+
+  input.gl-form-input:-webkit-autofill {
+    &,
+    &:hover,
+    &:focus,
+    &:active {
+      /* stylelint-disable-next-line property-no-vendor-prefix */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: $white;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+  }
+
+  .nav-links li.active a,
+  .nav-links li.md-header-tab.active button,
+  .nav-links li a.active {
+    border-color: $darkmode-blue !important;
+  }
+
+  .light-gray {
+    color: $darkmode-white !important;
+  }
+
+  .md h3 {
+    border-bottom: 1px solid $uf-darkgrey;
+  }
+
+  .md :is(h1, h2, h3, h4, h5, h6) a.anchor::after {
+    filter: brightness(0.4) invert(1);
+  }
+
+  .gl-card > .gl-card-header {
+    background-color: $header-bg-primary-dark;
+  }
+
+  // 19.3 insets the body in the default surface, which is the page ground here
+  .gl-card-body {
+    background-color: transparent;
+  }
+
+  .gl-card-body .gl-card-header {
+    background-color: $header-bg-secondary-dark;
+  }
+
+  .filter-container input {
+    background-color: $darkmode-dark !important;
+  }
+
+  .badge.badge-pill:not(.gl-badge) {
+    background-color: $darkmode-grey !important;
+  }
+
+  .oc-table {
+    border: 0 !important;
+    background-color: $darkmode-black !important;
+
+    .expanded-row {
+      background-color: $darkmode-dark !important;
+      border-top: 1px solid $darkmode-grey !important;
+    }
+
+    .gl-table {
+      border-radius: 4px;
+      border: 1px solid $darkmode-dark;
+
+      thead {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          z-index: 0;
+          width: 100%;
+          height: 100%;
+          background-color: $darkmode-dark;
+          border-radius: 4px 4px 0 0;
+        }
+      }
+
+      tr {
+        border-color: transparent !important;
+
+        &.b-table-empty-row center {
+          margin-bottom: 1rem;
+        }
+
+        .deployment-controls .gl-icon {
+          color: $darkmode-bright !important;
+        }
+      }
+
+      th {
+        position: relative;
+        z-index: 1;
+        border-width: 0 !important;
+        color: $darkmode-bright !important;
+        background-color: transparent !important;
+      }
+    }
+  }
+
+  // #OcAppDeployments is mostly styled by oc-pages itself
+  #OcAppDeployments {
+    .gl-card > .gl-card-header {
+      background-color: $darkmode-dark;
+    }
+
+    .gl-card h4,
+    .gl-card h5,
+    .oc_table_row,
+    .oc-table-section .title,
+    .detail-heading {
+      color: $darkmode-bright !important;
+    }
+
+    .li-inner {
+      color: $darkmode-blue !important;
+    }
+  }
+
+  // remove the space at the bottom of oc-pages tables
+  .oc-table {
+    border-bottom: 0 !important;
+  }
+
+  [class*='table-responsive-'] {
+    margin-bottom: 0 !important;
+  }
+
+  table,
+  .table-body,
+  .control-cell.left {
+    border-width: 0 !important;
+  }
+}

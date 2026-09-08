@@ -1,0 +1,169 @@
+// Brand accents the fork applied through .btn-* and .gl-tab-nav-item-active-indigo
+// overrides in 15.11; 19.3 exposes them as tokens.
+:root {
+  --gl-tab-selected-indicator-color-default: #{$uf-primary-teal};
+  --gl-button-danger-primary-background-color-default: #{$uf-danger-red};
+  --gl-button-danger-primary-background-color-hover: #{$uf-danger-red};
+  --gl-button-danger-primary-background-color-focus: #{$uf-danger-red};
+  --gl-button-danger-primary-background-color-active: #{$uf-danger-red};
+  --gl-button-danger-primary-border-color-default: #{$uf-danger-red};
+  --gl-button-danger-primary-border-color-hover: #{$uf-danger-red};
+  --gl-button-danger-primary-border-color-focus: #{$uf-danger-red};
+  --gl-button-danger-primary-border-color-active: #{$uf-danger-red};
+  --gl-button-danger-primary-foreground-color-default: #{$white};
+  --gl-button-confirm-primary-background-color-default: #{$uf-confirm-blue};
+  --gl-button-confirm-primary-background-color-hover: #{$uf-confirm-blue};
+  --gl-button-confirm-primary-background-color-focus: #{$uf-confirm-blue};
+  --gl-button-confirm-primary-background-color-active: #{$uf-confirm-blue};
+  --gl-button-confirm-primary-foreground-color-default: #{$white};
+  // 19.3 paints selected checkboxes, radios and calendar days neutral; 15.11 used blue
+  --gl-control-background-color-selected-default: var(--gl-color-blue-500);
+  --gl-control-background-color-selected-hover: var(--gl-color-blue-600);
+}
+
+// 15.11 restyled the default navigation theme (theme_indigo.scss) with the
+// brand teal; 19.3's default theme is ui-neutral and reads these neutrals.
+:root.ui-neutral,
+:root.aura-tinted-themes.ui-neutral {
+  --gl-color-neutral-10: #f6fdfc;
+  --gl-color-neutral-50: #{$uf-bg-light};
+  --gl-color-neutral-100: #d6efec;
+}
+
+// #665 global font increase
+body {
+  font-size: 100%;
+}
+
+.gl-button {
+  font-size: 1rem !important;
+}
+
+.gl-breadcrumb-item {
+  font-size: 1rem;
+}
+
+.gl-card > .gl-card-header {
+  padding: 0.5rem;
+  background-color: $header-bg-primary;
+}
+
+.gl-card-body .gl-card-header {
+  padding: 0.25em 0.5em;
+  background-color: $header-bg-secondary;
+}
+
+.oc-table .gl-table th {
+  background-color: $header-bg-primary;
+}
+
+.gl-card-body .oc-table .gl-table th {
+  background-color: $header-bg-secondary;
+}
+
+.md ol li img:not(.emoji) {
+  margin: 8px 0;
+  border: 1px solid #acacac !important;
+}
+
+// #49 spacing for the fork, deployments and star buttons and the project image
+.project-repo-buttons {
+  @media (max-width: map-get($grid-breakpoints, md)) {
+    margin-top: 1.5rem !important;
+  }
+}
+
+.right-description {
+  @media (max-width: map-get($grid-breakpoints, lg)) {
+    margin-top: 1.5rem !important;
+  }
+}
+
+.deploy-display {
+  margin: 0 4px 0 0;
+}
+
+// oc-pages' number input draws its own stepper; drop this once its own sheet
+// hides the native one (19.3 no longer ships a hide-spinners utility)
+.formily-element-input-number input[type='number'] {
+  appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+}
+
+// dashboard quantity cards
+[class*='qcard'] .card {
+  background-color: $qcard-grey;
+}
+
+.qcard3 .card {
+  background-color: $qcard-green;
+}
+
+.qcard4 .card {
+  background-color: $qcard-red;
+}
+
+.uf-no-link {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+}
+
+.uf-description {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.uf-truncate {
+  /* stylelint-disable-next-line value-no-vendor-prefix */
+  display: -webkit-box;
+  -webkit-line-clamp: var(--line-clamp, 1);
+  -webkit-box-orient: vertical;
+  word-break: var(--word-break, 'none');
+  overflow: hidden;
+  hyphens: none;
+  text-align: var(--align, left);
+}
+
+.uf-badge-height {
+  height: 24px;
+}
+
+.gl-button.btn-sm.uf-button {
+  font-size: 0.75rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
+// List of resources on modals
+.uf-faded-row {
+  position: absolute;
+  z-index: 9999;
+  width: 97%;
+  height: 65px;
+  background: $white;
+  opacity: 0.5;
+
+  @media (max-width: map-get($grid-breakpoints, md)) {
+    width: 80%;
+    height: 230px;
+  }
+}
+
+.uf-prevent-wrap {
+  display: inline-block;
+}
+
+.badge-pill {
+  vertical-align: top !important;
+}
