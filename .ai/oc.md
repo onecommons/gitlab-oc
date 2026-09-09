@@ -157,7 +157,10 @@ project to look at (`oc/db/fixtures/development/`).
 - A *new* class in a namespace upstream owns takes the upstream constant and
   the plain path, exactly as `ee/` does: a fork Grape endpoint is
   `oc/lib/api/<name>.rb` defining `API::<Name>`, not `oc/lib/oc/api/`, which is
-  the extension-module tree. The generated cop exclusions follow that split, so
+  the extension-module tree. The same split runs through `oc/app`:
+  `oc/app/controllers/projects/unfurl_deployments_controller.rb` defines
+  `Projects::UnfurlDeploymentsController`, while `oc/app/controllers/oc/**`
+  holds the modules that prepend onto upstream controllers. The generated cop exclusions follow that split, so
   a Grape class in the wrong tree fails lint on cops upstream exempts for
   `lib/api`. Mount it from a `prepended` block in `oc/lib/oc/api/api.rb` —
   `lib/api/api.rb` ends in `API::API.prepend_mod`, so no in-place edit is
