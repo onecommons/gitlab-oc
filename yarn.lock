@@ -17727,7 +17727,7 @@ __metadata:
 
 "oc-pages@https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages":
   version: 0.1.0
-  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=c234fd9a07a0be9ed8a8446cc30d9ecfae7b5638"
+  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=ad3928c527bf5e5cddb4941356186ad25240213f"
   dependencies:
     "@formily/core": ~2.2.0
     "@formily/reactive-vue": ~2.3.0
@@ -17741,7 +17741,7 @@ __metadata:
     mitt: ^3.0.1
     semver: ^7.3.4
     vue-demi: ^0.14.5
-    vue-json-component: ^0.4.1
+    vue-json-pretty: ^2.4.0
   peerDependencies:
     "@apollo/client": ^3.5.10
     "@gitlab/ui": ">=60"
@@ -17749,13 +17749,13 @@ __metadata:
     jquery: ^3.6.0
     js-cookie: ^2.2.1 || ^3.0.0
     lodash: ^4.17.20
-    vue: ^2.7.16
-    vue-router: ^3.4.9
-    vuex: ^3.6.2
+    vue: ^3.5.0
+    vue-router: ^4.0.0
+    vuex: ^4.0.0
   peerDependenciesMeta:
     vue:
       optional: false
-  checksum: 70fca28b212d7b9039c9c161b88d813b30541dd877f0a39010c1a25702d4820ce10673d430b3fdcd6dd8ceddaa68c0d4ff9260c251bd53513494920f85e51b5c
+  checksum: 954315e6a811499f2723c4ed39ca876856dd918c23972de26acf602168ba86c642744a68e7e565ab16a38eaf6b75af5943740cd42111858d29be92462bdb8a0f
   languageName: node
   linkType: hard
 
@@ -23195,10 +23195,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-json-component@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "vue-json-component@npm:0.4.1"
-  checksum: ff566e846dd8e646137759834da81467e2fdecc992f89eb797924530f623c6e7e55bdabf1bb5d96e2619b5d8f782d9cb3609f47170ffd60b67f0bbe7178f5069
+"vue-json-pretty@npm:^2.4.0":
+  version: 2.6.0
+  resolution: "vue-json-pretty@npm:2.6.0"
+  peerDependencies:
+    vue: ">=3.0.0"
+  checksum: cedda88cb73e3b015da28279517d0105b5ace3abd4695f7fa2809db819850a365a4dcd4f79d6308a253c87e797fbbc3f96a46b97fb73ef89492d5e96f5089318
   languageName: node
   linkType: hard
 
