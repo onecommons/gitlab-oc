@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script>/* eslint-disable */
+    const id = decodeURIComponent(window.location.search.slice(1))
+
+    window.addEventListener('xhr', async ({detail}) => {
+      const {eventId, method, url, body, headers} = detail
+      const _headers = new Headers()
+
+      Object.entries(headers).forEach(([key, value]) => _headers.append(key, value))
+
+      const options = {
+        method,
+        headers: _headers
+      }
+
+      if (method == 'POST') options.body = body
+
+      let payload, status
+
+      try {
+        const response = await fetch(url, options)
+        status = response.status
+        const contentType = response.headers.get('Content-Type')
+        payload = contentType && contentType.includes('json') ? await response.json() : await response.text()
+      } catch (e) {
+        console.error(e)
+        status = -1
+        payload = {error: e.message}
+      }
+
+      const event = new CustomEvent(eventId, {detail: {status, payload}})
+      window.parent.document.dispatchEvent(event)
+    })
+  </script>
+</head>
+
+<body></body>
+
+</html>
