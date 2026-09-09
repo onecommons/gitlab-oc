@@ -123,6 +123,19 @@ function runInfectionScanner() {
   }
 }
 
+// OC Change: the fork reaches oc-pages through symlinks under
+// oc/app/assets/javascripts, which is the path space the scanner records,
+// while the bundlers resolve through to the real node_modules path. Map the
+// real path back so one file has one identity for both.
+const OC_PAGES_REAL = path.join(ROOT_PATH, 'node_modules', 'oc-pages');
+const OC_PAGES_LINKED = path.join(ROOT_PATH, 'oc', 'app', 'assets', 'javascripts');
+
+const normalizeOcPagesPath = (id) => {
+  if (!id.startsWith(OC_PAGES_REAL)) return id;
+
+  return path.join(OC_PAGES_LINKED, id.slice(OC_PAGES_REAL.length));
+};
+
 /**
  * Create an `isInfectable` predicate for a given scanner graph.
  *
@@ -138,7 +151,7 @@ function runInfectionScanner() {
  */
 const createIsInfectable = (scannerGraph, { shouldExclude, shouldBypass } = {}) => {
   return (id) => {
-    const clean = stripQuery(id);
+    const clean = normalizeOcPagesPath(stripQuery(id)); // OC Change
     if (!INFECTABLE_RE.test(clean)) return false;
     if (INFECTION_BLOCKLIST.some((blocked) => clean.includes(blocked))) return false;
     if (!scannerGraph) return true;
@@ -172,6 +185,7 @@ function logInfectionStats({ total, infected, clean }) {
 }
 
 module.exports = {
+  normalizeOcPagesPath, // OC Change
   stripQuery,
   getQuery,
   hasVue3Query,

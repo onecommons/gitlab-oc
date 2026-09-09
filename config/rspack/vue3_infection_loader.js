@@ -10,6 +10,7 @@ const {
   loadScannerData,
   runInfectionScanner,
   createIsInfectable,
+  normalizeOcPagesPath, // OC Change
 } = require('../helpers/vue3_infection_shared');
 
 const SCANNER_BYPASS_PACKAGES = ['core-js', 'webpack', 'css-loader', 'vue-hot-reload-api'];
@@ -50,7 +51,9 @@ function ensureScanner() {
 
 function buildEdgeMap(importerPath) {
   const map = new Map();
-  const entry = importerPath && scannerGraph && scannerGraph.get(importerPath);
+  // OC Change: the scanner records oc-pages under its symlinked path
+  const entry =
+    importerPath && scannerGraph && scannerGraph.get(normalizeOcPagesPath(importerPath));
   if (entry && Array.isArray(entry.imports)) {
     for (const edge of entry.imports) {
       if (edge.source && !map.has(edge.source)) map.set(edge.source, edge);
