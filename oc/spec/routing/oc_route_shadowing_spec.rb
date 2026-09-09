@@ -7,7 +7,11 @@ RSpec.describe 'oc routes', feature_category: :groups_and_projects do
   # unshifts oc/config/routes to the front, so a fork route silently wins
   # dispatch over an upstream one on the same path. Anything listed here is a
   # decision; anything else is an upgrade that quietly took a feature away.
-  let(:deliberate_overrides) { [] }
+  let(:deliberate_overrides) do
+    [
+      'GET /explore(.:format)' # the fork leads Explore with blueprints
+    ]
+  end
 
   it 'does not shadow an upstream route' do
     shadowed = Rails.application.routes.routes

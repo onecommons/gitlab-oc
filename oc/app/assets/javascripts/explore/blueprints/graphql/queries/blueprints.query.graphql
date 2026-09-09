@@ -1,0 +1,32 @@
+#import "~/graphql_shared/fragments/page_info.fragment.graphql"
+#import "~/graphql_shared/fragments/project.fragment.graphql"
+
+# @feature_category: groups_and_projects
+query ocExploreBlueprints(
+  $first: Int
+  $last: Int
+  $before: String
+  $after: String
+  $sort: String
+  $search: String
+  $unfurlType: OCUnfurlType
+  $namespacePath: ID
+) {
+  projects(
+    first: $first
+    last: $last
+    before: $before
+    after: $after
+    sort: $sort
+    search: $search
+    unfurlType: $unfurlType
+    namespacePath: $namespacePath
+  ) {
+    nodes {
+      ...Project
+    }
+    pageInfo {
+      ...PageInfo
+    }
+  }
+}
