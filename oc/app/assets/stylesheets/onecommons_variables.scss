@@ -24,3 +24,18 @@ $darkmode-grey: #626464;
 $qcard-grey: #f4f4f4;
 $qcard-green: #e2fbeb;
 $qcard-red: #fff4f4;
+
+// Welcome banner backgrounds. They live under public/-/ so the reserved
+// top-level route names do not have to grow a word for them.
+$uf-welcome-banner-bg-lg: '/-/oc/assets/images/uf_welcome_banner_bg.svg';
+$uf-welcome-banner-bg-md: '/-/oc/assets/images/uf_welcome_banner_bg_md.svg';
+$uf-welcome-banner-bg-sm: '/-/oc/assets/images/uf_welcome_banner_bg_sm.svg';
+$uf-welcome-banner-bg-app-bp-lg: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_lg.svg';
+$uf-welcome-banner-bg-app-bp-md: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_md.svg';
+$uf-welcome-banner-bg-app-bp-sm: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_sm.svg';
+$uf-welcome-banner-bg-lg-dark: '/-/oc/assets/images/uf_welcome_banner_bg_dark.svg';
+$uf-welcome-banner-bg-md-dark: '/-/oc/assets/images/uf_welcome_banner_bg_md_dark.svg';
+$uf-welcome-banner-bg-sm-dark: '/-/oc/assets/images/uf_welcome_banner_bg_sm_dark.svg';
+$uf-welcome-banner-bg-app-bp-lg-dark: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_lg_dark.svg';
+$uf-welcome-banner-bg-app-bp-md-dark: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_md_dark.svg';
+$uf-welcome-banner-bg-app-bp-sm-dark: '/-/oc/assets/images/uf_welcome_banner_bg_app_bp_sm_dark.svg';

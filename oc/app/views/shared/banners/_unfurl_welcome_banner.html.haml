@@ -1,0 +1,14 @@
+-# UserCallout stores the dismissal in this cookie; checking it here keeps a
+-# dismissed banner from rendering at all.
+- return if cookies['uf_welcome_banner_dismissed'] == 'true'
+- explore = variant == :explore
+
+%section.js-uf-welcome-banner.uf-banner.uf-banner-introduction{ data: { uid: 'uf_welcome_banner_dismissed' },
+  class: explore ? 'explore' : 'app-blueprint' }
+  .gl-banner-content.container-fluid.container-limited.limit-container-width
+    %h2.uf-banner-title= _('Welcome to Unfurl Cloud!')
+    = render "shared/banners/unfurl_welcome_banner_#{explore ? 'explore' : 'blueprint'}_text"
+    %a.uf-welcome-banner-button{ href: help_path, title: _('View Tutorial') }= _('View Tutorial')
+
+  %button.gl-banner-close.close.js-close-session.js-close-callout{ type: 'button', 'aria-label': _('Dismiss') }
+    = sprite_icon('close', size: 16, css_class: 'dismiss-icon')

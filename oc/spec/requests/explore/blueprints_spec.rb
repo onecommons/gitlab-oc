@@ -18,6 +18,14 @@ RSpec.describe 'Blueprint discovery', feature_category: :groups_and_projects do
     expect(response.body).to include('js-oc-explore-blueprints')
   end
 
+  it 'shows the welcome banner until it is dismissed' do
+    get '/explore/blueprints'
+    expect(response.body).to include('js-uf-welcome-banner')
+
+    get '/explore/blueprints', headers: { 'Cookie' => 'uf_welcome_banner_dismissed=true' }
+    expect(response.body).not_to include('js-uf-welcome-banner')
+  end
+
   it 'leads Explore with blueprints' do
     get '/explore'
 

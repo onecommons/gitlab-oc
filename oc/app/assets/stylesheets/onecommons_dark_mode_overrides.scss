@@ -187,3 +187,34 @@
     border-width: 0 !important;
   }
 }
+
+.uf-banner {
+  background-image: url($uf-welcome-banner-bg-lg-dark);
+
+  @media (max-width: 835px) {
+    background-image: url($uf-welcome-banner-bg-md-dark);
+  }
+
+  @media (max-width: 700px) {
+    background-image: url($uf-welcome-banner-bg-sm-dark);
+  }
+}
+
+.uf-banner.app-blueprint {
+  @media (max-width: 1700px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-lg-dark);
+  }
+
+  @media (max-width: 750px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-md-dark);
+  }
+
+  @media (max-width: 450px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-sm-dark);
+  }
+}
+
+.uf-banner-introduction .uf-welcome-banner-button {
+  color: $darkmode-black;
+  font-weight: 600;
+}

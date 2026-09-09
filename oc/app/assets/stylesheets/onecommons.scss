@@ -167,3 +167,96 @@ body {
 .badge-pill {
   vertical-align: top !important;
 }
+
+.uf-banner {
+  background-image: url($uf-welcome-banner-bg-lg);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  display: flex;
+  font-size: 18px;
+  padding: 24px 0 50px;
+  position: relative;
+
+  p {
+    line-height: 20px;
+
+    strong {
+      font-size: 20px;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    background-size: 150% auto;
+  }
+
+  @media (max-width: 835px) {
+    background-image: url($uf-welcome-banner-bg-md);
+    background-size: 100% auto;
+  }
+
+  @media (max-width: 700px) {
+    background-image: url($uf-welcome-banner-bg-sm);
+    background-size: 105% auto;
+  }
+
+  @media (max-width: 400px) {
+    background-size: 100% auto;
+  }
+}
+
+.uf-banner.explore {
+  padding-left: 25%;
+  padding-right: 23%;
+
+  @media (max-width: 700px) {
+    padding-left: 85px;
+    padding-right: 85px;
+  }
+
+  @media (max-width: 550px) {
+    padding-left: 65px;
+    padding-right: 65px;
+  }
+}
+
+.uf-banner.app-blueprint {
+  @media (max-width: 1700px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-lg);
+  }
+
+  @media (max-width: 750px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-md);
+    padding-right: 15%;
+  }
+
+  @media (max-width: 450px) {
+    background-image: url($uf-welcome-banner-bg-app-bp-sm);
+  }
+}
+
+.uf-banner-introduction {
+  .uf-banner-title {
+    color: $uf-primary-teal;
+    font-size: 32px;
+    margin: 15px auto 20px;
+  }
+
+  .uf-banner-subheader {
+    line-height: 24px;
+    margin-bottom: 35px;
+  }
+
+  .uf-welcome-banner-button {
+    background-color: $uf-primary-teal;
+    border-radius: 3px;
+    color: $white;
+    font-size: 16px;
+    padding: 5px 20px;
+
+    &:hover {
+      background-color: $uf-teal-hover;
+      text-decoration: none;
+    }
+  }
+}
