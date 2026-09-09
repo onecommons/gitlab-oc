@@ -8,6 +8,10 @@ module OC
     prepended do
       include ::OC::RendersUnfurlDashboard
 
+      feature_category :groups_and_projects, [:overview]
+      feature_category :continuous_delivery, [:deployments, :applications]
+      feature_category :source_code_management, [:invalidate_cache]
+
       skip_before_action :authenticate_user!, only: :overview
 
       # invalidate_cache is a GET that writes, so an operator can repair a
