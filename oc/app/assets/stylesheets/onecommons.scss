@@ -1,3 +1,17 @@
+// The Unfurl Cloud wordmark. brand_logo.vue inlines shared/_logo.svg through
+// v-safe-html, which strips the SVG's own <style>, so its fills live here.
+// 15.11 switched between _logo.svg and _logo_white.svg in Ruby; the token does
+// that job now, for a file the build inlines once.
+.unfurl-logo {
+  .st0 {
+    fill: $uf-primary-teal;
+  }
+
+  .st1 {
+    fill: var(--gl-text-color-default, #{$uf-darkgrey});
+  }
+}
+
 // Brand accents the fork applied through .btn-* and .gl-tab-nav-item-active-indigo
 // overrides in 15.11; 19.3 exposes them as tokens.
 :root {

@@ -49,7 +49,7 @@ export default {
   i18n: {
     skipToMainContent: __('Skip to main content'),
     adminArea: s__('Navigation|Admin'),
-    searchBtnText: __('Search or go to…'),
+    searchBtnText: s__('GlobalSearch|Search Unfurl Cloud'), // OC Change
     analyticsDashboardsBtnText: s__('AnalyticsDashboards|View analytics dashboards'),
     menuLabel: __('Open navigation menu'),
   },
