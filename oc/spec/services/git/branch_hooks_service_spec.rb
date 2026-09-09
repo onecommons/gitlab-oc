@@ -102,4 +102,34 @@ RSpec.describe Git::BranchHooksService, feature_category: :source_code_managemen
       service_for(ref: 'refs/heads/main').execute
     end
   end
+
+  # A force push reports no file list, so the Unfurl files have to be assumed
+  # changed or the project keeps a classification its repository contradicts.
+  describe '#invalidated_file_types' do
+    let(:project) { create(:project, :repository) }
+
+    def service_for(force_push:)
+      described_class.new(
+        project,
+        project.creator,
+        change: { oldrev: 'old-revision', newrev: 'new-revision', ref: 'refs/heads/master' }
+      ).tap do |service|
+        allow(service).to receive_messages(default_branch?: true, creating_branch?: false,
+          modified_file_types: [:readme])
+        allow(Gitlab::Checks::ForcePush).to receive(:force_push?).and_return(force_push)
+      end
+    end
+
+    it 'adds the Unfurl files on a force push' do
+      types = service_for(force_push: true).send(:invalidated_file_types)
+
+      expect(types).to include(:unfurl_yaml, :ensemble_template_yaml, :readme)
+    end
+
+    it 'leaves an ordinary push reporting only what it changed' do
+      types = service_for(force_push: false).send(:invalidated_file_types)
+
+      expect(types).to contain_exactly(:readme)
+    end
+  end
 end

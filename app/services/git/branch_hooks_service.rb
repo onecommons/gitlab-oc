@@ -82,7 +82,12 @@ module Git
     def invalidated_file_types
       return super unless default_branch? && !creating_branch?
 
-      modified_file_types
+      types = modified_file_types
+      # OC Change: a force push reports no file list, so assume the Unfurl
+      # files changed rather than serve a stale classification.
+      return types unless Gitlab::Checks::ForcePush.force_push?(project, oldrev, newrev)
+
+      types | %i[unfurl_yaml ensemble_template_yaml]
     end
 
     def modified_file_types

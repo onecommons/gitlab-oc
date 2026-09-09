@@ -7,6 +7,7 @@ module OC
     override :extra_retry_exceptions
     def extra_retry_exceptions
       super.merge(
+        'OC::Repositories::ProjectUnfurlCacheWorker' => 3,
         'OC::WorkItems::CommitNotesSyncWorker' => 3,
         'OC::WorkItems::FullSyncWorker' => 3,
         'OC::WorkItems::ImportRefreshWorker' => 3,
