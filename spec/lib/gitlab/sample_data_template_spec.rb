@@ -2,7 +2,8 @@
 
 require 'spec_helper'
 
-RSpec.describe Gitlab::SampleDataTemplate do
+# OC Change: the oc edition offers no sample data templates
+RSpec.describe Gitlab::SampleDataTemplate, unless: Gitlab.oc? do
   describe '.all' do
     it 'returns all templates' do
       expected = %w[

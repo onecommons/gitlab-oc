@@ -316,7 +316,7 @@ RSpec.describe Projects::CreateService, '#execute', feature_category: :groups_an
       let_it_be(:group) { create(:group, developers: user) }
 
       context 'and import is from a built-in template' do
-        let(:project_template) { Gitlab::ProjectTemplate.find(:rails) }
+        let(:project_template) { Gitlab::ProjectTemplate.all.first } # OC Change
 
         it 'does create the project' do
           project = create_project(user, opts.merge!(template_name: project_template.name))
@@ -326,7 +326,7 @@ RSpec.describe Projects::CreateService, '#execute', feature_category: :groups_an
         end
       end
 
-      context 'and import is from a sample template' do
+      context 'and import is from a sample template', unless: Gitlab.oc? do # OC Change
         let(:sample_template) { Gitlab::SampleDataTemplate.find(:sample) }
 
         it 'does create the project' do

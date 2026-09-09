@@ -7,7 +7,8 @@ RSpec.describe 'gitlab:update_templates rake task', :silence_stdout, feature_cat
     Rake.application.rake_require 'tasks/gitlab/update_templates'
   end
 
-  describe '.update_project_templates' do
+  # OC Change: gitlab:oc:update_project_templates rebuilds the Unfurl templates
+  describe '.update_project_templates', unless: Gitlab.oc? do
     let!(:tmpdir) { Dir.mktmpdir }
     let(:template) { Gitlab::ProjectTemplate.find(:rails) }
 

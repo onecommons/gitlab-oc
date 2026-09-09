@@ -284,6 +284,30 @@ upstream adds later. What is not obvious about them:
   insert your table's statements where the dump puts them relative to their
   neighbours; commit the `db/schema_migrations/<version>` marker as written.
 
+### Project templates
+
+`OC::Gitlab::ProjectTemplate` replaces upstream's table rather than appending
+to it, and `OC::Gitlab::SampleDataTemplate` empties the sample one, so the five
+Unfurl templates are the whole picker. Upstream examples that name `rails` or
+`sample` therefore carry an `# OC Change`.
+
+`unfurl_dashboard` and `unfurl_testbed` are vendored archives, rebuilt from
+`main` of their projects on unfurl.cloud by
+
+```bash
+bundle exec rake 'gitlab:oc:update_project_templates[unfurl_dashboard]'
+```
+
+which replaces the manual export in cloud-dev-ensemble's
+`project-templates/README.md` and applies that README's two invariants
+(visibility, `forward_deployment_enabled: false`) in code. The three blueprint
+entries are links to their projects; their archives are carried over from the
+15.11 fork and are not maintained by the task.
+
+Template logos go under `oc/app/assets/images/illustrations/`: sprockets only
+auto-precompiles the root `app/assets`, and `illustrations/*.svg` is one of the
+few globs `config/application.rb` adds.
+
 ### Linting
 
 Run RuboCop on every file you add or change before considering work done —

@@ -42,7 +42,7 @@ RSpec.describe Gitlab::ProjectTemplate, feature_category: :source_code_managemen
     subject { described_class.find(query) }
 
     context 'when there is a match' do
-      let(:query) { :rails }
+      let(:query) { all_templates.first } # OC Change
 
       it { is_expected.to be_a(described_class) }
     end

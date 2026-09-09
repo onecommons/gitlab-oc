@@ -1693,7 +1693,10 @@ RSpec.describe API::Projects, :aggregate_failures, feature_category: :groups_and
     end
 
     it 'creates a project using a template' do
-      expect { post api(path, user), params: { template_name: 'rails', name: 'rails-test' } }
+      # OC Change
+      template_name = Gitlab::ProjectTemplate.all.first.name
+
+      expect { post api(path, user), params: { template_name: template_name, name: 'rails-test' } }
         .to change { Project.count }.by(1)
 
       expect(response).to have_gitlab_http_status(:created)
@@ -1712,7 +1715,8 @@ RSpec.describe API::Projects, :aggregate_failures, feature_category: :groups_and
     end
 
     it 'disallows creating a project with an import_url and template' do
-      project_params = { import_url: 'http://example.com', template_name: 'rails', name: 'rails-test' }
+      # OC Change
+      project_params = { import_url: 'http://example.com', template_name: Gitlab::ProjectTemplate.all.first.name, name: 'rails-test' }
       expect { post api(path, user), params: project_params }
         .not_to change {  Project.count }
 

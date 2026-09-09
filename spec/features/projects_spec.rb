@@ -79,10 +79,10 @@ RSpec.describe 'Project', feature_category: :source_code_management do
     end
 
     context 'create with project template' do
-      it_behaves_like 'creates from template', Gitlab::ProjectTemplate.find(:rails)
+      it_behaves_like 'creates from template', Gitlab::ProjectTemplate.all.first # OC Change
     end
 
-    context 'create with sample data template' do
+    context 'create with sample data template', unless: Gitlab.oc? do # OC Change
       it_behaves_like 'creates from template', Gitlab::SampleDataTemplate.find(:sample)
     end
   end

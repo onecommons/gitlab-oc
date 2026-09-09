@@ -1957,6 +1957,7 @@ Layout/LineLength:
     - 'lib/tasks/gitlab/workhorse.rake'
     - 'lib/tasks/tanuki_emoji.rake'
     - 'lib/tasks/test.rake'
+    - 'oc/lib/oc/gitlab/project_template.rb'
     - 'qa/qa/ee/page/group/secure/show.rb'
     - 'qa/qa/ee/page/group/settings/general.rb'
     - 'qa/qa/ee/page/group/settings/saml_sso.rb'

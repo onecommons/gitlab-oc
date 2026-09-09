@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import { debounce } from 'lodash-es';
-import DEFAULT_PROJECT_TEMPLATES from 'any_else_ce/projects/default_project_templates';
+// OC Change
+import DEFAULT_PROJECT_TEMPLATES from 'oc_else_ce/projects/default_project_templates';
 import { confirmAction } from '~/lib/utils/confirm_via_gl_modal/confirm_via_gl_modal';
 import { validateImportUrlPath } from '~/lib/utils/path_helpers/import';
 import Tracking from '~/tracking';

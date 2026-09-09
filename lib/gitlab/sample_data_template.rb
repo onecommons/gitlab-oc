@@ -19,3 +19,5 @@ module Gitlab
     end
   end
 end
+
+Gitlab::SampleDataTemplate.prepend_mod # OC Change
