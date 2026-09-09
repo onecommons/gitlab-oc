@@ -154,6 +154,20 @@ project to look at (`oc/db/fixtures/development/`).
 - Extend upstream classes with a prepended `OC::` module rather than editing
   them. Most upstream classes already end with `prepend_mod_with '...'`, which
   picks up the matching module under `oc/` automatically.
+- A *new* class in a namespace upstream owns takes the upstream constant and
+  the plain path, exactly as `ee/` does: a fork Grape endpoint is
+  `oc/lib/api/<name>.rb` defining `API::<Name>`, not `oc/lib/oc/api/`, which is
+  the extension-module tree. The generated cop exclusions follow that split, so
+  a Grape class in the wrong tree fails lint on cops upstream exempts for
+  `lib/api`. Mount it from a `prepended` block in `oc/lib/oc/api/api.rb` —
+  `lib/api/api.rb` ends in `API::API.prepend_mod`, so no in-place edit is
+  needed even when the class you meant to extend lost its own hook.
+- A new API route needs `route_setting :authorization` (a `permissions:` /
+  `boundary_type:` pair, or a `skip_granular_token_authorization:` reason from
+  `lib/tasks/gitlab/permissions/routes/skip_reasons.rb`). CI runs
+  `bundle exec rake gitlab:permissions:validate`, which walks every mounted
+  route; the fork's spec tree is not in its coverage scanner, so reuse a
+  permission an upstream endpoint already declares.
 - Routes: `oc/config/routes` is first in `config.paths["config/routes"]`. A
   name upstream draws with `draw_all` (`project`, `group`, `api`,
   `dashboard`, ...) is drawn from every path, so `oc/config/routes/<name>.rb`
