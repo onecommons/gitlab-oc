@@ -1,0 +1,6 @@
+# Controllers are the application layer, which upstream exempts from bounded
+# contexts (see config/bounded_contexts.yml). Upstream lists its own top-level
+# controllers in .rubocop_todo/gitlab/namespaced_class.yml.
+Gitlab/NamespacedClass:
+  Exclude:
+    - 'oc/app/controllers/**/*.rb'

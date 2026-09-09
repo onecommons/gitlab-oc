@@ -347,6 +347,7 @@ InitializerConnections.warn_if_database_connection do
       draw_all :explore
       draw_all :admin
       draw_all :dashboard
+      Gitlab.oc { draw_all :oc } # OC Change
 
       Gitlab.ee do
         draw :identity_verification
