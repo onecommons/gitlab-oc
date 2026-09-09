@@ -80,8 +80,18 @@ To develop against a local unfurl-gui checkout, add a `link:` resolution to
 
 Both files change locally; do not commit them. Berry's `yarn link` writes a
 `portal:` instead, which the node-modules linker rejects here because the
-checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's. With
-`link:` the checkout's `node_modules` supplies those, while the packages that
+checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's.
+
+**`link:` maps the path but does not install the linked package's
+dependencies**, which `portal:` and the git pin both do. oc-pages' own
+`@formily/*` and `vue-json-pretty` are then unresolved and rspack fails to
+compile outright, so the dashboard never boots. Adding them to this
+`package.json` by hand is not equivalent either: they would resolve against
+GitLab's constraints rather than unfurl-gui's. For a single change, push and
+re-pin is the cheaper loop; reach for `link:` only for a long iteration, and
+expect to supply the missing dependencies yourself.
+
+With `link:` the checkout's `node_modules` supplies those, while the packages that
 must be single copies (`vue`, `vuex`, `vue-router`, `vue-apollo`, `vue-demi`,
 `@gitlab/ui`, `@apollo/client`, `graphql-tag`, `lodash`, `jquery`, `mitt`,
 `js-cookie`) are pinned to GitLab's by absolute aliases in
