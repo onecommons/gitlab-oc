@@ -23,7 +23,10 @@ module Gitlab
         end
 
         def fetch_query_id(context)
-          context.query.operation_fingerprint
+          # OC Change: operation_fingerprint hashes only the query string, so two
+          # entries of one batched request that differ only in variables share a
+          # key and collide against this limit. fingerprint includes them.
+          context.query.fingerprint
         rescue TypeError
           ''
         end
