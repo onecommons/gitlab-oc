@@ -19,6 +19,9 @@ constraints(Projects::ProjectUrlConstraint.new) do
         # level: its deployments controller is nested under an environment and
         # answers with JSON, and it has no applications concept at all.
         get 'deployments(/*vueroute)', to: '/projects#deployments', as: :unfurl_deployments
+        # The dashboard's deploy button. Named 'new' by the client, but it
+        # creates: it mints deploy tokens and triggers the pipeline.
+        post 'deployments/new', to: 'unfurl_deployments#create', as: :trigger_unfurl_deployment
         get 'applications(/*vueroute)', to: '/projects#applications', as: :unfurl_applications
         # Operator repair for a project whose Unfurl caches have gone stale.
         get 'invalidate_cache', to: '/projects#invalidate_cache'

@@ -42,7 +42,8 @@ module Gitlab
               }
             end
 
-            validates :start_in, duration: { limit: '1 week' }, if: :delayed?
+            # OC Change: a dashboard deployment sets start_in from the START_IN variable
+            validates :start_in, duration: { limit: '1 week', variable: true }, if: :delayed?
             validates :start_in, absence: true, if: -> { has_rules? || !delayed? }
 
             validates :publish,
