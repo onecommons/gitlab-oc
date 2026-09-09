@@ -4,3 +4,9 @@
 Gitlab/NamespacedClass:
   Exclude:
     - 'oc/app/controllers/**/*.rb'
+
+# An extension module is named after the controller it prepends, so it cannot
+# take a namespace the upstream class does not have either.
+Search/NamespacedClass:
+  Exclude:
+    - 'oc/app/controllers/oc/search_controller.rb'

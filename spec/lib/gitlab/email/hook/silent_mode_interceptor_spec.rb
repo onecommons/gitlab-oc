@@ -32,7 +32,7 @@ RSpec.describe Gitlab::Email::Hook::SilentModeInterceptor, :mailer, feature_cate
       )
       expect(Gitlab::AppJsonLogger).to receive(:info).with(
         message: 'SilentModeInterceptor prevented sending mail',
-        mail_subject: 'Welcome to GitLab!',
+        mail_subject: 'Welcome to Unfurl Cloud!', # OC Change
         silent_mode_enabled: true
       )
 
@@ -59,7 +59,7 @@ RSpec.describe Gitlab::Email::Hook::SilentModeInterceptor, :mailer, feature_cate
       )
       expect(Gitlab::AppJsonLogger).to receive(:debug).with(
         message: 'SilentModeInterceptor did nothing',
-        mail_subject: 'Welcome to GitLab!',
+        mail_subject: 'Welcome to Unfurl Cloud!', # OC Change
         silent_mode_enabled: false
       )
 

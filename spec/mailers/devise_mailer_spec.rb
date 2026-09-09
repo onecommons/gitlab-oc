@@ -136,7 +136,7 @@ RSpec.describe DeviseMailer, feature_category: :user_management do
     end
 
     it 'has the correct subject' do
-      is_expected.to have_subject 'Welcome to GitLab!'
+      is_expected.to have_subject 'Welcome to Unfurl Cloud!' # OC Change
     end
 
     it 'greets the user' do

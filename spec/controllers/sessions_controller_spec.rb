@@ -431,7 +431,8 @@ RSpec.describe SessionsController, feature_category: :system_access do
           post_action
 
           expect(@request.env['warden']).not_to be_authenticated
-          expect(flash[:alert]).to include('Your account is pending approval from your GitLab administrator and hence blocked')
+          # OC Change
+          expect(flash[:alert]).to include('Thank you for signing up for our private beta!')
         end
       end
 

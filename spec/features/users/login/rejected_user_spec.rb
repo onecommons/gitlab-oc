@@ -81,7 +81,7 @@ RSpec.describe 'Login', :with_current_organization, :clean_gitlab_redis_sessions
 
       expect(page).to have_content(
         'Your account does not have the required permission to login. ' \
-          'Please contact your GitLab administrator if you think this is an error.'
+          'Please contact support@onecommons.org if you think this is an error.' # OC Change
       )
     end
 
@@ -94,7 +94,7 @@ RSpec.describe 'Login', :with_current_organization, :clean_gitlab_redis_sessions
 
       expect(page).to have_content(
         'Your account does not have the required permission to login. ' \
-          'Please contact your GitLab administrator if you think this is an error.'
+          'Please contact support@onecommons.org if you think this is an error.' # OC Change
       )
       expect(ghost_user.reload.sign_in_count).to eq(0)
     end
