@@ -44,6 +44,22 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
     expect(menus).not_to include(blueprint_menu)
   end
 
+  it 'hides the deployment machinery from a simple-interface user' do
+    user.update!(external: true)
+
+    expect(menus).not_to include(
+      Sidebars::Projects::SuperSidebarMenus::DeployMenu,
+      Sidebars::Projects::SuperSidebarMenus::OperationsMenu,
+      Sidebars::Projects::SuperSidebarMenus::MonitorMenu,
+      Sidebars::Projects::SuperSidebarMenus::SecureMenu
+    )
+    expect(menus).to include(Sidebars::Projects::SuperSidebarMenus::CodeMenu)
+  end
+
+  it 'leaves them for everyone else' do
+    expect(menus).to include(Sidebars::Projects::SuperSidebarMenus::DeployMenu)
+  end
+
   it 'does not classify while rendering' do
     expect { menus }.not_to change { project.custom_attributes.count }
   end
