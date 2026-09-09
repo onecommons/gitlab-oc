@@ -42,7 +42,11 @@ export const VERIFIED_TAB = {
   ...baseTab,
   text: s__('Blueprints|Verified'),
   value: 'verified',
-  variables: { unfurlType: 'BLUEPRINT', namespacePath: VERIFIED_NAMESPACE_PATH },
+  variables: { unfurlType: 'BLUEPRINT' },
+  // TabView spreads the filter variables over tab.variables, and an unset
+  // namespace filter is `undefined`, which wins. transformVariables runs after
+  // that spread.
+  transformVariables: (variables) => ({ ...variables, namespacePath: VERIFIED_NAMESPACE_PATH }),
   emptyStateComponentProps: {
     ...baseTab.emptyStateComponentProps,
     title: s__('Blueprints|No verified blueprints found'),
