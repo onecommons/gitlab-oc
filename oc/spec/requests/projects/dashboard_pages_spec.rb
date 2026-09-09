@@ -36,6 +36,28 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
       expect(response).to have_gitlab_http_status(:ok)
     end
 
+    it 'serves the applications view the same way' do
+      get project_unfurl_applications_path(project)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.body).to include('js-table-component')
+    end
+
+    # The bundler builds an entry name from the controller path, so the
+    # environments controller has its own door into the same app.
+    it 'asks for a dashboard bundle whichever view rendered it' do
+      {
+        project_path(project) => 'pages.projects.oc_dashboard',
+        project_unfurl_deployments_path(project) => 'pages.projects.oc_dashboard',
+        project_unfurl_applications_path(project) => 'pages.projects.oc_dashboard',
+        project_environments_path(project) => 'pages.projects.environments.oc_dashboard'
+      }.each do |path, bundle|
+        get path
+
+        expect(response.body).to include(bundle), "#{path} did not ask for #{bundle}"
+      end
+    end
+
     it 'finds an environment by name, which the dashboard links by' do
       get project_environment_path(project, environment.name)
 

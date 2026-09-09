@@ -22,6 +22,11 @@ module OC
     def render_unfurl_dashboard
       @readme_contents = unfurl_dashboard_readme
 
+      # Every dashboard view is one page as far as the bundler is concerned,
+      # whichever controller and action rendered it. _head.html.haml passes
+      # this to webpack_controller_bundle_tags.
+      @js_action_name = 'oc_dashboard'
+
       render 'projects/dashboard'
     end
 

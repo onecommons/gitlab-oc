@@ -23,13 +23,14 @@ module OC
       render_unfurl_dashboard
     end
 
-    # The dashboard app's own deployments view, which only a dashboard has.
+    # The dashboard app's own views, which only a dashboard has. Both are
+    # client-side routes the server has to answer so a reload lands on them.
     def deployments
-      return render_404 unless unfurl_dashboard_project?
+      render_dashboard_section
+    end
 
-      @project = @project.present(current_user: current_user)
-
-      render_unfurl_dashboard
+    def applications
+      render_dashboard_section
     end
 
     # The Unfurl Cloud blueprint page, a Vue app from the oc-pages package.
@@ -44,6 +45,14 @@ module OC
     end
 
     private
+
+    def render_dashboard_section
+      return render_404 unless unfurl_dashboard_project?
+
+      @project = @project.present(current_user: current_user)
+
+      render_unfurl_dashboard
+    end
 
     # A group CI variable named after the project holds the URL of its live deployment.
     def live_preview_url
