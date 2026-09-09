@@ -14,7 +14,9 @@ module Gitlab
     #  the path `api` shouldn't be allowed because it would be masked by `api/*`
     #
     # OC Change: about, blog, cloud, developer-guide, discord, faq, guide,
-    # home, news, privacypolicy and terms are fork routes
+    # home, news, privacypolicy and terms are fork routes; company, deploy,
+    # gateway, gitlab, invite, org, services, start, testbeds and topics are
+    # reserved for the fork without one
     TOP_LEVEL_ROUTES = %w[
       -
       .well-known
@@ -30,7 +32,9 @@ module Gitlab
       assets
       blog
       cloud
+      company
       dashboard
+      deploy
       deploy.html
       developer-guide
       discord
@@ -38,17 +42,21 @@ module Gitlab
       faq
       favicon.ico
       favicon.png
+      gateway
+      gitlab
       groups
       guide
       health_check
       help
       home
       import
+      invite
       jwt
       login
       news
       o
       oauth
+      org
       privacypolicy
       profile
       projects
@@ -56,12 +64,16 @@ module Gitlab
       robots.txt
       s
       search
+      services
       sitemap
       sitemap.xml
       sitemap.xml.gz
       slash-command-logo.png
       snippets
+      start
       terms
+      testbeds
+      topics
       unsubscribes
       uploads
       users

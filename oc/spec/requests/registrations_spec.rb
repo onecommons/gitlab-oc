@@ -27,6 +27,17 @@ RSpec.describe 'Signing up', :with_current_organization, feature_category: :syst
     expect(response.body).to include('js-oc-invite-code')
   end
 
+  it 'asks for a first name only' do
+    post user_registration_path, params: { user: attributes.merge(last_name: '') }
+
+    expect(created_user).to be_present
+
+    nameless = attributes.merge(username: 'nameless', email: 'n@example.org', first_name: '')
+    post user_registration_path, params: { user: nameless }
+
+    expect(User.find_by(username: 'nameless')).to be_nil
+  end
+
   it 'lands the new user on their dashboard' do
     sign_up
 

@@ -99,6 +99,8 @@ RSpec.describe Gitlab::PathRegex, feature_category: :groups_and_projects do
     routes_not_starting_in_wildcard
       .map { |route| route.split('/')[1] }
       .concat(ee_top_level_words)
+      # OC Change: names the fork holds for later, which have no route yet
+      .concat(%w[company deploy gateway gitlab invite org services start testbeds topics])
       .concat(files_in_public)
       .concat(Array(API::API.prefix.to_s))
       .concat(sitemap_words)
@@ -194,7 +196,7 @@ RSpec.describe Gitlab::PathRegex, feature_category: :groups_and_projects do
 
     # We ban new items in this list, see https://gitlab.com/gitlab-org/gitlab/-/issues/215362
     it 'does not allow expansion' do
-      expect(described_class::TOP_LEVEL_ROUTES.size).to eq(50) # OC Change: 11 fork routes
+      expect(described_class::TOP_LEVEL_ROUTES.size).to eq(60) # OC Change: fork routes and reserved names
     end
   end
 
@@ -276,7 +278,7 @@ RSpec.describe Gitlab::PathRegex, feature_category: :groups_and_projects do
 
     it 'accepts other words' do
       expect(subject).to match('simple/')
-      expect(subject).to match('org/')
+      expect(subject).to match('acme/') # OC Change: the fork reserves org
       expect(subject).to match('my_org/')
     end
   end

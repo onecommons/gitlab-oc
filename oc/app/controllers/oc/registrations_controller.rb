@@ -44,6 +44,22 @@ module OC
       super || approved_by_invite_code?
     end
 
+    # A last name is optional here; upstream requires both.
+    override :ensure_first_name_and_last_name_not_empty
+    def ensure_first_name_and_last_name_not_empty
+      names = params.permit(
+        resource_name => [:first_name],
+        :"new_#{resource_name}" => [:first_name]
+      )
+      first_name = names.dig(resource_name, :first_name) || names.dig(:"new_#{resource_name}", :first_name)
+
+      return if first_name.present?
+
+      resource.errors.add(_('First name'), _('cannot be blank'))
+
+      render action: 'new'
+    end
+
     def simple_interface?
       oc_params[:oc_interface] == 'deploy'
     end
