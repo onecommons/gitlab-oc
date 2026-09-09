@@ -35,6 +35,20 @@ RSpec.describe EmailsHelper, feature_category: :notifications do
       expect(helper.new_email_address_added_text('a@example.com')).to eq(
         'A new email address has been added to your Unfurl account: a@example.com'
       )
+      expect(helper.admin_changed_password_text).to start_with(
+        'An administrator changed the password for your Unfurl account on'
+      )
+      expect(helper.instance_access_request_text(build_stubbed(:user, name: 'Bob'))).to start_with(
+        'Bob has asked for a Unfurl account on your instance'
+      )
+    end
+
+    # The template is marked safe so that `%` escapes what it interpolates;
+    # marking the finished string safe instead would inject the name raw.
+    it 'still escapes a name that contains markup' do
+      user = build_stubbed(:user, name: 'Bob <script>')
+
+      expect(helper.instance_access_request_text(user, format: :html)).to include('Bob &lt;script&gt;')
     end
   end
 end

@@ -22,5 +22,25 @@ module OC
         brand: brand_title, email: email
       )
     end
+
+    # safe_format passes an already-safe link through and escapes everything
+    # else, so a name carrying markup cannot reach the message raw.
+    def admin_changed_password_text(format: nil)
+      url = ::Gitlab.config.gitlab.url
+      message = _('An administrator changed the password for your %{brand} account on %{link_to}.')
+
+      return Kernel.format(message, brand: brand_title, link_to: url) unless format == :html
+
+      safe_format(message, brand: brand_title, link_to: generate_link(url, url))
+    end
+
+    def instance_access_request_text(user, format: nil)
+      safe_format(
+        _('%{username} has asked for a %{brand} account on your instance %{host}:'),
+        username: sanitize_name(user.name),
+        brand: brand_title,
+        host: gitlab_host_link(format)
+      )
+    end
   end
 end
