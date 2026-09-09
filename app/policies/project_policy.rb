@@ -640,13 +640,13 @@ class ProjectPolicy < BasePolicy
     prevent :admin_pipeline_schedule
     prevent :destroy_pipeline_schedule
 
-    prevent :read_environment
+    # OC Change: read_environment prevented in OC::ProjectPolicy instead
     prevent :create_environment
     prevent :update_environment
     prevent :admin_environment
     prevent :destroy_environment
 
-    prevent :read_deployment
+    # OC Change: read_deployment prevented in OC::ProjectPolicy instead
     prevent :create_deployment
     prevent :update_deployment
     prevent :admin_deployment

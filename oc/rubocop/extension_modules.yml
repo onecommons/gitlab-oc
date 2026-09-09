@@ -12,6 +12,7 @@ Gitlab/BoundedContexts:
     - 'oc/app/models/oc/user.rb'
     - 'oc/app/graphql/oc/types/work_item_type.rb'
     - 'oc/app/policies/oc/issuable_policy.rb'
+    - 'oc/app/policies/oc/project_policy.rb'
     - 'oc/app/services/oc/award_emojis/add_service.rb'
     - 'oc/app/services/oc/award_emojis/destroy_service.rb'
     - 'oc/app/services/oc/git/base_hooks_service.rb'
