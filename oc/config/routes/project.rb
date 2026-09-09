@@ -26,6 +26,10 @@ constraints(Projects::ProjectUrlConstraint.new) do
         # Operator repair for a project whose Unfurl caches have gone stale.
         get 'invalidate_cache', to: '/projects#invalidate_cache'
 
+        # The projects a dashboard deploys from. Upstream's own subscriptions
+        # routes are EE, so nothing is shadowed here.
+        resource :subscriptions, only: [:show, :create, :destroy]
+
         resource :work_items_sync, only: [:update], controller: :work_items_sync
       end
     end

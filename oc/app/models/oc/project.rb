@@ -4,6 +4,19 @@ module OC
   module Project
     extend ActiveSupport::Concern
 
+    prepended do
+      # The table is in the CI database and projects is in main, so the
+      # through-associations cannot join.
+      has_many :upstream_project_subscriptions, class_name: 'OC::Ci::Subscriptions::Project',
+        foreign_key: :downstream_project_id, inverse_of: :downstream_project
+      has_many :upstream_projects, class_name: 'Project', through: :upstream_project_subscriptions,
+        source: :upstream_project, disable_joins: true
+      has_many :downstream_project_subscriptions, class_name: 'OC::Ci::Subscriptions::Project',
+        foreign_key: :upstream_project_id, inverse_of: :upstream_project
+      has_many :downstream_projects, class_name: 'Project', through: :downstream_project_subscriptions,
+        source: :downstream_project, disable_joins: true
+    end
+
     # What the repository says the project is, without recording it.
     def computed_unfurl_type
       if repository.ensemble_template_yaml.present?
