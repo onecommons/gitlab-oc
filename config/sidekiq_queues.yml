@@ -319,6 +319,9 @@
   - 1
 - - ci_track_pipeline_trigger_events
   - 1
+# OC Change: the fork's dashboard redeploy queue
+- - ci_trigger_dashboard_pipeline
+  - 1
 - - ci_unlock_pipelines_in_queue
   - 1
 - - ci_update_approval_rules_for_related_mrs

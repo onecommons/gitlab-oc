@@ -23,6 +23,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace: :cronjob
+- :name: ci_trigger_dashboard_pipeline
+  :worker_name: Ci::TriggerDashboardPipelineWorker
+  :feature_category: :pipeline_composition
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :cpu
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: oc_onboarding_create_dashboard_project
   :worker_name: OC::Onboarding::CreateDashboardProjectWorker
   :feature_category: :groups_and_projects
