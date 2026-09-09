@@ -68,12 +68,13 @@ RSpec.describe 'Unfurl project templates', feature_category: :source_code_manage
       end
     end
 
-    # The blueprint archives predate the fork's own classification, and a stale
-    # unfurl_type would pre-empt it.
-    it 'leaves a blueprint project unclassified', :sidekiq_inline do
+    # The archives predate the fork's own classification, so what a project made
+    # from one carries has to come from the classifier, not the tarball.
+    it 'classifies a blueprint project from its files', :sidekiq_inline do
       project = import('application_blueprint')
 
-      expect(project.reload.custom_attributes).to be_empty
+      expect(project.reload.custom_attributes.pluck(:key, :value))
+        .to contain_exactly(['unfurl_type', OC::UNFURL_BLUEPRINT])
     end
 
     def import(name)
