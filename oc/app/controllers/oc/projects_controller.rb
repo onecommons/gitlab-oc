@@ -9,6 +9,12 @@ module OC
       include ::OC::RendersUnfurlDashboard
 
       skip_before_action :authenticate_user!, only: :overview
+
+      # invalidate_cache is a GET that writes, so an operator can repair a
+      # project by visiting a URL. Restricting it to those who could clear
+      # these caches by other means keeps that convenience from being
+      # something a stray link can trigger.
+      before_action :authorize_admin_project!, only: :invalidate_cache
     end
 
     # A dashboard project is the oc-pages dashboard app, not a repository page.
@@ -44,7 +50,38 @@ module OC
       render 'projects/overview'
     end
 
+    # Forgets everything cached about a project's Unfurl files: the repository
+    # method caches, the recorded classification, and the Unfurl server's own
+    # copy. The repair for a project whose caches disagree with its files.
+    def invalidate_cache
+      project.repository.expire_unfurl_caches
+      project.refresh_unfurl_type!
+
+      cleared = clear_unfurl_server_cache
+      flash[:alert] = _('Failed to clear the Unfurl server cache.') unless cleared
+
+      respond_to do |format|
+        format.html { redirect_to project_path(project) }
+        format.json { render json: { cleared: cleared } }
+      end
+    end
+
     private
+
+    def clear_unfurl_server_cache
+      url = ::Gitlab.config.extra['unfurl_server_url']
+      return true if url.blank?
+
+      ::Gitlab::HTTP.post(
+        "#{url}/clear_project_file_cache",
+        query: { auth_project: project.path_with_namespace },
+        allow_local_requests: true
+      )
+
+      true
+    rescue *::Gitlab::HTTP::HTTP_ERRORS
+      false
+    end
 
     def render_dashboard_section
       return render_404 unless unfurl_dashboard_project?

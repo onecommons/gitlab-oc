@@ -20,6 +20,9 @@ constraints(Projects::ProjectUrlConstraint.new) do
         # answers with JSON, and it has no applications concept at all.
         get 'deployments(/*vueroute)', to: '/projects#deployments', as: :unfurl_deployments
         get 'applications(/*vueroute)', to: '/projects#applications', as: :unfurl_applications
+        # Operator repair for a project whose Unfurl caches have gone stale.
+        get 'invalidate_cache', to: '/projects#invalidate_cache'
+
         resource :work_items_sync, only: [:update], controller: :work_items_sync
       end
     end
