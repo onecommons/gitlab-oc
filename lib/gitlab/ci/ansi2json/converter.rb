@@ -126,8 +126,8 @@ module Gitlab
           elsif scan_token(scanner, /\r*\n/)
             flush_current_line
           elsif scan_token(scanner, "\r")
-            # drop last line
-            @state.current_line.clear!
+            # OC Change: Unfurl writes metadata over the line it just wrote, so
+            # dropping it here would lose it. @state.current_line.clear!
           elsif scan_token(scanner, /.[^\e\r\ns]*/m)
             # this is a join from all previous tokens and first letters
             # it always matches at least one character `.`
@@ -169,6 +169,10 @@ module Gitlab
           indicator = scanner[1]
           terminator = scanner[3]
 
+          # OC Change: ESC[2K erases an Unfurl metadata section. Hide it rather
+          # than strip it, so the front end can still read it.
+          return if hide_erased_section(indicator, scanner[2], terminator)
+
           # We are only interested in color and text style changes - triggered by
           # sequences starting with '\e[' and ending with 'm'. Any other control
           # sequence gets stripped (including stuff like "delete last line")
@@ -176,6 +180,15 @@ module Gitlab
 
           commands = scanner[2].split ';'
           @state.update_style(commands)
+        end
+
+        # OC Change
+        def hide_erased_section(indicator, params, terminator)
+          return false unless indicator == '[' && terminator == 'K' && params == '2'
+
+          @state.current_line.hide_last_segment!
+
+          true
         end
 
         def handle_timestamp(timestamp)

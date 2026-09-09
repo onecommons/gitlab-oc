@@ -109,7 +109,8 @@ module Gitlab
               else
                 scanner.pos += 1
                 @state.offset += 1
-                @state.current_line.clear!
+                # OC Change: Unfurl writes metadata over the line it just wrote,
+                # so dropping it here would lose it. @state.current_line.clear!
               end
             when 0x73 # 's', possible section_ prefix
               if scanner.scan(SECTION_REGEX)
@@ -180,6 +181,14 @@ module Gitlab
             pos += 1
             scanner.pos = pos
             @state.offset += pos - start
+
+            # OC Change: ESC[2K erases an Unfurl metadata section. Hide it rather
+            # than strip it, so the front end can still read it.
+            if indicator == 0x5b && terminator == 0x4b &&
+                string.byteslice(param_start, param_end - param_start) == '2'
+              @state.current_line.hide_last_segment!
+              return
+            end
 
             return unless indicator == 0x5b && terminator == 0x6d
 

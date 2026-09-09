@@ -50,6 +50,13 @@ module Gitlab
             @current_text = +''
           end
 
+          # OC Change: an erased Unfurl metadata section stays in the log,
+          # hidden, so the front end can still read it.
+          def hide_last_segment!
+            flush_current_segment!
+            @segments.last&.[]=(:style, 'd-none')
+          end
+
           def clear!
             @at_line_start = true
             @segments.clear

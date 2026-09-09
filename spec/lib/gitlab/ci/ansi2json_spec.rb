@@ -48,7 +48,8 @@ RSpec.shared_examples 'an ansi2json converter' do
           ])
       end
 
-      it 'replaces the current line when encountering \r' do
+      # OC Change: the fork keeps the line a \r would clear, so Unfurl metadata survives
+      it 'replaces the current line when encountering \r', unless: Gitlab.oc? do
         expect(convert_json("Hello\rworld")).to eq([{ offset: 0, content: [{ text: 'world' }] }])
       end
     end
@@ -240,7 +241,8 @@ RSpec.shared_examples 'an ansi2json converter' do
       context 'when section name includes $' do
         let(:section_name) { 'my_$ection' }
 
-        it 'ignores the section' do
+        # OC Change: the fork keeps the line a \r would clear, so Unfurl metadata survives
+        it 'ignores the section', unless: Gitlab.oc? do
           expect(convert_json("#{section_start}hello")).to eq(
             [
               {
@@ -254,7 +256,8 @@ RSpec.shared_examples 'an ansi2json converter' do
       context 'when section name includes <' do
         let(:section_name) { '<a_tag>' }
 
-        it 'ignores the section' do
+        # OC Change: the fork keeps the line a \r would clear, so Unfurl metadata survives
+        it 'ignores the section', unless: Gitlab.oc? do
           expect(convert_json("#{section_start}hello")).to eq(
             [
               {
@@ -678,7 +681,8 @@ RSpec.shared_examples 'an ansi2json converter' do
             ])
         end
 
-        it 'captures timestamp and replaces the current line when encountering \r' do
+        # OC Change: the fork keeps the line a \r would clear, so Unfurl metadata survives
+        it 'captures timestamp and replaces the current line when encountering \r', unless: Gitlab.oc? do
           expect(convert_json("2024-05-14T11:19:19.899359Z 00O Hello \r2024-05-14T11:19:20.000000Z 00O world!")).to eq([
             { offset: 0, timestamp: '2024-05-14T11:19:20.000000Z', content: [{ text: 'world!' }] }
           ])
