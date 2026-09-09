@@ -282,6 +282,9 @@ module.exports = (path, options = {}) => {
     'escape-string-regexp',
     'lodash-es',
     'remend',
+    // OC Change: oc-pages ships source rather than a build, and the oc/ tree
+    // reaches it through symlinks that Jest resolves back into node_modules.
+    'oc-pages',
   ];
 
   return {
