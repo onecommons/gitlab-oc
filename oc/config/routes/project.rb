@@ -14,6 +14,11 @@ constraints(Projects::ProjectUrlConstraint.new) do
     ) do
       scope '-' do
         get 'overview(/*vueroute)', to: '/projects#overview', as: :overview
+
+        # The dashboard app's deployments view. Upstream has no project-level
+        # deployments route: its controller is nested under an environment and
+        # answers with JSON.
+        get 'deployments(/*vueroute)', to: '/projects#deployments', as: :unfurl_deployments
         resource :work_items_sync, only: [:update], controller: :work_items_sync
       end
     end

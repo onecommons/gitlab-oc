@@ -27,6 +27,15 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
       expect(response.body).to include('js-table-component')
     end
 
+    it 'serves its own deployments page, and every client-side route under it' do
+      get project_unfurl_deployments_path(project)
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.body).to include('js-table-component')
+
+      get "#{project_unfurl_deployments_path(project)}/production/some-deployment"
+      expect(response).to have_gitlab_http_status(:ok)
+    end
+
     it 'finds an environment by name, which the dashboard links by' do
       get project_environment_path(project, environment.name)
 
@@ -45,6 +54,12 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
 
       expect(response).to have_gitlab_http_status(:ok)
       expect(response.body).not_to include('js-table-component')
+    end
+
+    it 'has no deployments page of its own' do
+      get project_unfurl_deployments_path(project)
+
+      expect(response).to have_gitlab_http_status(:not_found)
     end
 
     it 'still looks environments up by id only' do

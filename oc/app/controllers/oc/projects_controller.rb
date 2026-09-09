@@ -23,6 +23,15 @@ module OC
       render_unfurl_dashboard
     end
 
+    # The dashboard app's own deployments view, which only a dashboard has.
+    def deployments
+      return render_404 unless unfurl_dashboard_project?
+
+      @project = @project.present(current_user: current_user)
+
+      render_unfurl_dashboard
+    end
+
     # The Unfurl Cloud blueprint page, a Vue app from the oc-pages package.
     def overview
       @id = @ref = repository_root
