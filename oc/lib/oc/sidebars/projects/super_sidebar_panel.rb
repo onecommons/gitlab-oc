@@ -15,11 +15,26 @@ module OC
           ::Sidebars::Projects::SuperSidebarMenus::SecureMenu
         ].freeze
 
+        # A dashboard project has no use for the machinery a repository needs.
+        # What is left is the dashboard's own views, its code and its settings.
+        DASHBOARD_HIDES = [
+          ::Sidebars::Projects::SuperSidebarMenus::ManageMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::PlanMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::BuildMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::SecureMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::DeployMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::OperationsMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::MonitorMenu,
+          ::Sidebars::Projects::SuperSidebarMenus::AnalyzeMenu,
+          ::Sidebars::UncategorizedMenu
+        ].freeze
+
         override :configure_menus
         def configure_menus
           super
 
           lead_with_blueprint_overview
+          lead_with_dashboard_menu
           hide_simple_interface_menus
         end
 
@@ -32,6 +47,14 @@ module OC
           return unless blueprint
 
           insert_menu_before(::Sidebars::Projects::SuperSidebarMenus::ManageMenu, blueprint)
+        end
+
+        def lead_with_dashboard_menu
+          dashboard = remove_menu(::Sidebars::Projects::Menus::UnfurlDashboardMenu)
+          return unless dashboard
+
+          DASHBOARD_HIDES.each { |menu| remove_menu(menu) }
+          insert_menu_before(::Sidebars::Projects::SuperSidebarMenus::CodeMenu, dashboard)
         end
 
         def hide_simple_interface_menus

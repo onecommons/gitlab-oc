@@ -12,9 +12,12 @@ module OC
         def add_menus
           super
 
-          return unless context.project.recorded_unfurl_type == ::OC::UNFURL_BLUEPRINT
-
-          add_menu(::Sidebars::Projects::Menus::ApplicationBlueprintMenu.new(context))
+          case context.project.recorded_unfurl_type
+          when ::OC::UNFURL_BLUEPRINT
+            add_menu(::Sidebars::Projects::Menus::ApplicationBlueprintMenu.new(context))
+          when ::OC::UNFURL_DASHBOARD
+            add_menu(::Sidebars::Projects::Menus::UnfurlDashboardMenu.new(context))
+          end
         end
       end
     end

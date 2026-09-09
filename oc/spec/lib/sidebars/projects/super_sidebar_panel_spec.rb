@@ -44,6 +44,37 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
     expect(menus).not_to include(blueprint_menu)
   end
 
+  context 'when the project is a dashboard' do
+    let(:dashboard_menu) { Sidebars::Projects::Menus::UnfurlDashboardMenu }
+
+    before do
+      project.custom_attributes.create!(key: 'unfurl_type', value: OC::UNFURL_DASHBOARD)
+    end
+
+    it 'leads with the dashboard views and drops the repository machinery' do
+      expect(menus.first(2)).to include(dashboard_menu)
+      expect(menus).to include(
+        Sidebars::Projects::SuperSidebarMenus::CodeMenu,
+        Sidebars::Projects::Menus::SettingsMenu
+      )
+      expect(menus).not_to include(
+        Sidebars::Projects::SuperSidebarMenus::ManageMenu,
+        Sidebars::Projects::SuperSidebarMenus::PlanMenu,
+        Sidebars::Projects::SuperSidebarMenus::DeployMenu,
+        Sidebars::Projects::SuperSidebarMenus::MonitorMenu
+      )
+    end
+
+    it 'offers every view the dashboard app routes to' do
+      context = Sidebars::Projects::Context.new(
+        current_user: user, container: project, current_ref: project.repository.root_ref
+      )
+      items = dashboard_menu.new(context).renderable_items.map(&:title)
+
+      expect(items).to eq(%w[Overview Environments Deployments Applications])
+    end
+  end
+
   it 'hides the deployment machinery from a simple-interface user' do
     user.update!(external: true)
 
