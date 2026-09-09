@@ -10,6 +10,8 @@ import {
   SORT_OPTIONS,
   SORT_OPTION_CREATED,
 } from '~/groups_projects/constants';
+// OC Change
+import EDITION_TABS from 'oc_else_ce/projects/your_work/edition_tabs';
 import projectsQuery from './graphql/queries/projects.query.graphql';
 import userProjectsQuery from './graphql/queries/user_projects.query.graphql';
 
@@ -122,6 +124,7 @@ export const PROJECT_DASHBOARD_TABS = [
   PERSONAL_TAB,
   MEMBER_TAB,
   INACTIVE_TAB,
+  ...EDITION_TABS, // OC Change
 ];
 
 export const ROOT_ROUTE_NAME = 'root';

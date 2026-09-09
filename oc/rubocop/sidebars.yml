@@ -1,0 +1,7 @@
+# Sidebar menus and panels are named after the upstream classes they extend or
+# sit beside, so they cannot live in a bounded context. Upstream lists its own
+# in .rubocop_todo/gitlab/bounded_contexts.yml.
+Gitlab/BoundedContexts:
+  Exclude:
+    - 'oc/lib/sidebars/**/*.rb'
+    - 'oc/lib/oc/sidebars/**/*.rb'

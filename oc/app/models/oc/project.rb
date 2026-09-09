@@ -24,6 +24,15 @@ module OC
       unfurl_type == OC::UNFURL_BLUEPRINT
     end
 
+    # What the classifier last stored, without classifying. unfurl_type falls
+    # back to refresh_unfurl_type!, which writes, so anything rendering a GET
+    # reads this instead.
+    # rubocop: disable CodeReuse/ActiveRecord -- custom attributes are the project's own key/value store
+    def recorded_unfurl_type
+      custom_attributes.find_by(key: 'unfurl_type')&.value
+    end
+    # rubocop: enable CodeReuse/ActiveRecord
+
     def unfurl_dashboard?
       unfurl_type == OC::UNFURL_DASHBOARD
     end
