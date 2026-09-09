@@ -24,5 +24,6 @@ Gitlab/BoundedContexts:
     - 'oc/app/services/oc/notes/update_service.rb'
     - 'oc/app/services/oc/post_receive_service.rb'
     - 'oc/app/services/oc/projects/update_service.rb'
+    - 'oc/app/workers/oc/project_cache_worker.rb'
     - 'oc/app/workers/oc/repository_fork_worker.rb'
     - 'oc/lib/oc/gitlab/checks/single_change_access.rb'
