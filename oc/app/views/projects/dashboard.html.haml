@@ -1,0 +1,12 @@
+- page_title _('Unfurl Cloud Home')
+- @content_class = 'limit-container-width' unless fluid_layout
+- @skip_current_level_breadcrumb = true
+
+-# The ids and dataset keys are the contract with the oc-pages dashboard package.
+#js-table-component{ data: {
+  project_path: @project.full_path,
+  project_id: @project.id,
+  environment_id: @environment&.id,
+  greeting_name: current_user&.first_name.presence || current_user&.username || _('Guest'),
+  open_cloud_publish: open_cloud_publish_request,
+  readme: @readme_contents } }
