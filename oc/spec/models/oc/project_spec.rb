@@ -44,6 +44,52 @@ RSpec.describe Project, feature_category: :groups_and_projects do
     end
   end
 
+  describe '#unfurl_type_without_recording' do
+    let(:project) { create(:project) }
+
+    context 'when the classifier has already recorded a type' do
+      before do
+        project.record_unfurl_type!(OC::UNFURL_DASHBOARD)
+      end
+
+      it 'answers from the record without touching the repository' do
+        expect(project).not_to receive(:repository)
+
+        expect(project.unfurl_type_without_recording).to eq(OC::UNFURL_DASHBOARD)
+      end
+    end
+
+    context 'when nothing has classified the project yet' do
+      let(:repository) do
+        instance_double(Repository, ensemble_template_yaml: nil, unfurl_yaml: 'apiVersion: unfurl/v1alpha1')
+      end
+
+      before do
+        allow(project).to receive_messages(repository: repository, repository_exists?: true)
+      end
+
+      it 'answers from the repository' do
+        expect(project.unfurl_type_without_recording).to eq(OC::UNFURL_DASHBOARD)
+      end
+
+      it 'records nothing, because callers are rendering a GET' do
+        project.unfurl_type_without_recording
+
+        expect(project.reset.recorded_unfurl_type).to be_nil
+      end
+    end
+
+    context 'when the project has no repository' do
+      before do
+        allow(project).to receive(:repository_exists?).and_return(false)
+      end
+
+      it 'is nil rather than raising' do
+        expect(project.unfurl_type_without_recording).to be_nil
+      end
+    end
+  end
+
   describe '#work_items_sync_enabled?' do
     let(:project) { create(:project) }
 

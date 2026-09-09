@@ -4,18 +4,30 @@ module OC
   module Project
     extend ActiveSupport::Concern
 
+    # What the repository says the project is, without recording it.
+    def computed_unfurl_type
+      if repository.ensemble_template_yaml.present?
+        OC::UNFURL_BLUEPRINT
+      elsif repository.unfurl_yaml.present?
+        OC::UNFURL_DASHBOARD
+      else
+        OC::REGULAR_PROJECT
+      end
+    end
+
+    # What the project is, for a request that must not write. Only the signup
+    # path records a type at creation; a project that arrives any other way --
+    # pushed into existence, imported, forked, seeded -- has none until
+    # ProjectCacheWorker catches up, and a dashboard without one renders as an
+    # ordinary GitLab project.
+    def unfurl_type_without_recording
+      recorded_unfurl_type.presence || (computed_unfurl_type if repository_exists?)
+    end
+
     # recalculate the project type custom attribute
     # rubocop: disable CodeReuse/ActiveRecord -- custom attributes are the project's own key/value store
     def refresh_unfurl_type!
-      type = if repository.ensemble_template_yaml.present?
-               OC::UNFURL_BLUEPRINT
-             elsif repository.unfurl_yaml.present?
-               OC::UNFURL_DASHBOARD
-             else
-               OC::REGULAR_PROJECT
-             end
-
-      record_unfurl_type!(type)
+      record_unfurl_type!(computed_unfurl_type)
     end
 
     # A project whose files are not there yet -- a template import runs in a

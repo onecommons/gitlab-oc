@@ -13,10 +13,11 @@ module OC
 
     private
 
-    # recorded_unfurl_type rather than unfurl_dashboard?: classifying writes,
-    # and these all run on GET.
+    # unfurl_type_without_recording rather than unfurl_dashboard?: classifying
+    # writes, and these all run on GET. It still answers for a project the
+    # classifier has not reached, which a freshly pushed dashboard is.
     def unfurl_dashboard_project?
-      request.format.html? && project&.recorded_unfurl_type == ::OC::UNFURL_DASHBOARD
+      request.format.html? && project&.unfurl_type_without_recording == ::OC::UNFURL_DASHBOARD
     end
 
     def render_unfurl_dashboard
