@@ -325,6 +325,17 @@ assuming an offense is yours.
 **Consult `oc/spec/README.md`** for prerequisites and commands — notably that
 `oc/spec` builds its own Gitaly and needs Go 1.25 or later on `PATH`.
 
+**When porting a feature from 15.11, look for its existing specs before writing
+new ones** — in the fork's `oc/spec` *and* `oc/spec/frontend`. RSpec files are
+named after the class under test, so a new one collides with the old and you
+notice; Jest files are named after behaviour, so a fresh spec sits happily
+beside the one you failed to bring across. Three were lost that way, all for
+code that had been ported, including one for a file that had just been
+rewritten. Jest specs reaching oc-pages need `oc-pages` in
+`transformIgnoreNodeModules` (`jest.config.base.js`): the `oc/` tree gets there
+through symlinks Jest resolves back into `node_modules`, and the failure reads
+as `Cannot use import statement outside a module`.
+
 Where tests belong:
 
 - `oc/spec/support/**` — helpers and shared examples, loaded by
