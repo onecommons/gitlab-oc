@@ -22,7 +22,8 @@ RSpec.describe Gitlab::Ci::Variables::Builder::Instance do
     context 'when the ref is protected' do
       let(:protected_ref) { true }
 
-      it 'contains all the variables' do
+      # OC Change: the fork never exposes instance protected variables
+      it 'contains all the variables', unless: Gitlab.oc? do
         is_expected.to contain_exactly(variable_item1, variable_item2, protected_variable_item)
       end
     end

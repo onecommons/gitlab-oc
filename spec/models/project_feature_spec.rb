@@ -473,7 +473,9 @@ RSpec.describe ProjectFeature, feature_category: :groups_and_projects do
         end
       end
 
-      it 'returns true when user is a team member' do
+      # OC Change: builds needs maintainer in the oc edition, so a developer
+      # does not get every private feature
+      it 'returns true when user is a team member', unless: Gitlab.oc? do
         project.add_developer(user)
 
         update_all_project_features(project, features, ProjectFeature::PRIVATE)
@@ -483,7 +485,9 @@ RSpec.describe ProjectFeature, feature_category: :groups_and_projects do
         end
       end
 
-      it 'returns true when user is a member of project group' do
+      # OC Change: builds needs maintainer in the oc edition, so a developer
+      # does not get every private feature
+      it 'returns true when user is a member of project group', unless: Gitlab.oc? do
         group = create(:group)
         project = create(:project, namespace: group)
         group.add_developer(user)

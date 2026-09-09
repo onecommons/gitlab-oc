@@ -166,7 +166,8 @@ RSpec.describe Ci::CommitStatusesFinder, '#execute', feature_category: :source_c
           )
         end
 
-        context 'and user is a member of the project' do
+        # OC Change: private builds need maintainer in the oc edition
+        context 'and user is a member of the project', unless: Gitlab.oc? do
           before_all do
             project.add_developer(user)
           end
