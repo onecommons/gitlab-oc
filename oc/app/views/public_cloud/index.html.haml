@@ -1,0 +1,15 @@
+- page_title _('The Free and Open Cloud')
+- header_title _('The Free and Open Cloud')
+- nav 'explore'
+
+-# The element ids are the contract with the oc-pages public_cloud package,
+-# which unfurl-gui mirrors in its standalone public_cloud.html.
+#tooltip
+#public-cloud-layout
+  #public-cloud-chart-pane
+    #navbar
+    #chart{ data: { cloudmap: cloudmap } }
+      #map-controls
+  #cloud-splitter{ role: 'separator', 'aria-orientation': 'horizontal', 'aria-label': _('Resize cloud chart and table') }
+  #public-cloud-table-pane
+    #cloud-table

@@ -13,7 +13,7 @@ module Gitlab
     #
     #  the path `api` shouldn't be allowed because it would be masked by `api/*`
     #
-    # OC Change: about, blog, developer-guide, discord, faq, guide,
+    # OC Change: about, blog, cloud, developer-guide, discord, faq, guide,
     # home, news, privacypolicy and terms are fork routes
     TOP_LEVEL_ROUTES = %w[
       -
@@ -29,6 +29,7 @@ module Gitlab
       apple-touch-icon.png
       assets
       blog
+      cloud
       dashboard
       deploy.html
       developer-guide

@@ -1,0 +1,12 @@
+!!! XML
+%urlset{ xmlns: 'http://www.sitemaps.org/schemas/sitemap/0.9' }
+  - @projects.each do |project|
+    = render 'entry', loc: location(project), lastmod: last_modified(project)
+  = render 'entry', loc: URI.join(Gitlab.config.gitlab.url, explore_blueprints_path), lastmod: last_modified(newest(@projects))
+  = render 'entry', loc: URI.join(Gitlab.config.gitlab.url, help_path), lastmod: nil
+  = render 'entry', loc: URI.join(Gitlab.config.gitlab.url, public_cloud_path), lastmod: last_modified(newest([@std, @cloudmap]))
+  - if @std
+    = render 'entry', loc: location(@std), lastmod: last_modified(@std)
+    = render 'entry', loc: @std.pages_url, lastmod: last_modified(@std)
+  - if @cloudmap
+    = render 'entry', loc: location(@cloudmap), lastmod: last_modified(@cloudmap)

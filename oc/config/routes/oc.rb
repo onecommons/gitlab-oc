@@ -11,6 +11,11 @@ resources(:home,
   param: :username,
   only: [:index, :show])
 
+# OC Change #965 -- the public cloud map
+get '/cloud', to: 'public_cloud#index', as: :public_cloud
+
+get '/sitemap', to: 'sitemap#show', format: :xml
+
 # OC Change #172, #1064 -- the dashboard app lived under /dashboard until 2022,
 # and these are bookmarks. Each names a second segment upstream does not use.
 scope :dashboard do

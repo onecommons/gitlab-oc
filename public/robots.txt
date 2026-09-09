@@ -115,3 +115,7 @@ Disallow: /*/-/pipelines/
 Disallow: /*/-/settings/
 Disallow: /*/-/hooks
 Disallow: /*/-/usage_quotas
+
+# OC Change
+# Don't crawl anything created by test users
+Disallow: /user-*Z

@@ -194,7 +194,7 @@ RSpec.describe Gitlab::PathRegex, feature_category: :groups_and_projects do
 
     # We ban new items in this list, see https://gitlab.com/gitlab-org/gitlab/-/issues/215362
     it 'does not allow expansion' do
-      expect(described_class::TOP_LEVEL_ROUTES.size).to eq(49) # OC Change: 10 fork routes
+      expect(described_class::TOP_LEVEL_ROUTES.size).to eq(50) # OC Change: 11 fork routes
     end
   end
 
