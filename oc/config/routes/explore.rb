@@ -5,6 +5,7 @@ namespace :explore do
   resources :blueprints, only: [:index] do
     collection do
       get :verified, to: 'blueprints#index'
+      get :starred, to: 'blueprints#index'
       get :all, to: 'blueprints#index'
     end
   end

@@ -3,4 +3,8 @@
 
 = render 'shared/banners/unfurl_welcome_banner', variant: :explore
 
+.uf-explore-title.gl-text-center
+  %h2= _('Explore Unfurl Cloud')
+  %p.uf-explore-lead= _('Discover blueprints and projects. Deploy and share cloud services and infrastructure.')
+
 #js-oc-explore-blueprints{ data: { base_path: explore_blueprints_path, initial_sort: group_project_list_sort_by } }

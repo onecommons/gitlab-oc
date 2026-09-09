@@ -12,10 +12,18 @@ RSpec.describe 'Blueprint discovery', feature_category: :groups_and_projects do
   end
 
   it 'serves each tab from the same action, so a reload keeps the tab' do
-    get '/explore/blueprints/all'
+    %w[verified starred all].each do |tab|
+      get "/explore/blueprints/#{tab}"
 
-    expect(response).to have_gitlab_http_status(:ok)
-    expect(response.body).to include('js-oc-explore-blueprints')
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.body).to include('js-oc-explore-blueprints')
+    end
+  end
+
+  it 'heads the page with the fork name, not GitLab Explore' do
+    get '/explore/blueprints'
+
+    expect(response.body).to include('Explore Unfurl Cloud')
   end
 
   it 'shows the welcome banner until it is dismissed' do

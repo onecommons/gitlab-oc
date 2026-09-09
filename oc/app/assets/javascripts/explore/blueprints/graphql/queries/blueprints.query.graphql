@@ -11,6 +11,7 @@ query ocExploreBlueprints(
   $search: String
   $unfurlType: OCUnfurlType
   $namespacePath: ID
+  $visibilityLevel: VisibilityLevelsEnum
 ) {
   projects(
     first: $first
@@ -21,9 +22,15 @@ query ocExploreBlueprints(
     search: $search
     unfurlType: $unfurlType
     namespacePath: $namespacePath
+    visibilityLevel: $visibilityLevel
   ) {
     nodes {
       ...Project
+      description
+      namespace {
+        id
+        fullName
+      }
     }
     pageInfo {
       ...PageInfo
