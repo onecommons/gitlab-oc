@@ -23,6 +23,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace: :cronjob
+- :name: oc_onboarding_create_dashboard_project
+  :worker_name: OC::Onboarding::CreateDashboardProjectWorker
+  :feature_category: :groups_and_projects
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: oc_work_items_commit_notes_sync
   :worker_name: OC::WorkItems::CommitNotesSyncWorker
   :feature_category: :source_code_management

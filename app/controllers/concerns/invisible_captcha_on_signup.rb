@@ -51,3 +51,5 @@ module InvisibleCaptchaOnSignup
     Gitlab::AuthLogger.error(request_information)
   end
 end
+
+InvisibleCaptchaOnSignup.prepend_mod # OC Change

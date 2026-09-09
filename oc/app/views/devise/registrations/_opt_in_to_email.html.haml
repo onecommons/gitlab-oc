@@ -1,0 +1,12 @@
+-# OC Change -- the interface choice and the invite code go in the slot the
+-# sign-up form offers above its submit button. Neither is a User attribute, so
+-# both are named against the form's own object rather than bound to it.
+.form-group
+  = label_tag "#{f.object_name}_oc_interface", _('What would you like to do?'), class: 'gl-font-bold'
+  = select_tag "#{f.object_name}[oc_interface]",
+    options_for_select([[_('Deploy applications'), 'deploy'], [_('Develop applications'), 'develop']], 'deploy'),
+    id: "#{f.object_name}_oc_interface", class: 'form-control gl-form-select'
+  %p.gl-text-subtle.gl-mt-2.gl-mb-0
+    = _('Deploying gives you a simpler interface. You can change this later in your profile.')
+
+= hidden_field_tag "#{f.object_name}[invite_code]", cookies[:invite_code], id: 'js-oc-invite-code'

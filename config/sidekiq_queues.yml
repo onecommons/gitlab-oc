@@ -834,6 +834,8 @@
 - - observability_create_group_o11y_setting
   - 2
 # OC Change: the oc edition's queues; the generator only runs in EE mode
+- - oc_onboarding_create_dashboard_project
+  - 1
 - - oc_work_items_commit_notes_sync
   - 1
 - - oc_work_items_full_sync
