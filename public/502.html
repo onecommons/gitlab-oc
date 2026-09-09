@@ -2,92 +2,95 @@
 <html>
 <head>
   <meta content="width=device-width, initial-scale=1" name="viewport">
-  <title>Waiting for GitLab to boot</title>
+  <title>Unfurl Cloud is not responding (502)</title>
   <style>
     body {
-      color: #333238;
+      color: #666;
       text-align: center;
-      font-family: "Nunito Sans", -apple-system, ".SFNSText-Regular", "San Francisco", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      margin: auto;
+      font-size: 14px;
     }
 
-    h1 {
-      font-size: 1.75rem;
-      line-height: 2.25rem;
-      margin: 1rem 0;
-    }
-
-    p {
-      margin-bottom: .5rem;
-    }
-
-    img {
-      display: block;
-      margin: 0 auto;
+    hr {
+      max-width: 800px;
+      margin: 18px auto;
+      border: 0;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #fff;
     }
 
     a {
+      color: #4a8bee;
       text-decoration: none;
-      color: #1068bf;
     }
 
     a:hover {
       text-decoration: underline;
     }
 
-    .error-container {
-      max-width: 65ch;
-      margin: auto;
-      padding: 1rem 0;
+    .uf-error-text {
+      display: inline-block;
+      margin-top: 5vw;
     }
 
-    .action-container {
-      margin-top: 1.5rem;
+    /* A watermark, not a message: the readable copy is .med and below. */
+    .big {
+      color: #eee;
+      font-size: 20vw;
+      font-weight: 700;
+      line-height: 80%;
+      margin-top: 4%;
+    }
+
+    .med {
+      color: #666;
+      font-size: 2.5vw;
+      line-height: 90%;
+      max-width: 60vw;
+      margin: 0 auto;
+    }
+
+    .container {
+      margin: 35px 20px 0;
+      font-size: 18px;
     }
 
     .go-back {
       display: none;
+      margin-top: 20px;
+      font-weight: 400;
     }
 
-    .footer {
-      margin: 1rem 0 0 0;
-      padding: 1rem 0 0 0;
-      border-top: 1px solid #dcdcde;
-      color: #737278;
-      font-size: 0.75rem;
-    }
-    .footer p {
-      margin: 0;
+    .unfurl-logo {
+      display: block;
+      width: 20vw;
+      height: auto;
+      margin: 40px auto;
     }
   </style>
 </head>
 
 <body>
-  <div class="error-container">
-    <img src='/-/error-illustrations/error-502-lg.svg' alt="502 error"/>
-    <h1>HTTP 502: Waiting for GitLab to boot</h1>
-    <p>It can take up to a few minutes for GitLab to boot completely.</p>
-    <p>This page will automatically reload every 5 seconds.</p>
-    <div class="action-container">
-      <a href="javascript:history.back()" class="js-go-back go-back">Go back</a>
-    </div>
-
-    <div class="footer">
-      <p>Refreshed at <span id="refreshedAt"></span></p>
-    </div>
+  <div class="uf-error-text">
+    <div class="big">502</div>
+    <div class="med">Whoops! Unfurl Cloud is taking too much time to respond</div>
   </div>
-
+  <div class="container">
+    <hr />
+    <p>Try refreshing the page, or going back and attempting the action again.</p>
+    <p>Please contact <a href="mailto:support@onecommons.org">support@onecommons.org</a> if this problem persists.</p>
+    <a href="javascript:history.back()" class="js-go-back go-back">Go back</a>
+    <img src="/-/oc/assets/unfurl-logo.svg" alt="Unfurl Cloud" class="unfurl-logo" />
+  </div>
   <script>
-    const now = new Date();
-    const refreshedAt = now.toLocaleTimeString();
+    (function () {
+      var goBack = document.querySelector('.js-go-back');
 
-    document.getElementById("refreshedAt").innerText = refreshedAt;
-
-    window.setTimeout(() => location.reload(), 5000);
-
-    if (history.length > 1) {
-      const goBack = document.querySelector('.js-go-back');
-      goBack.style.display = 'inline';
-    }
+      if (history.length > 1) {
+        goBack.style.display = 'inline';
+      }
+    })();
   </script>
 </body>
 </html>

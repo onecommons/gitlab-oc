@@ -2,63 +2,86 @@
 <html>
 <head>
   <meta content="width=device-width, initial-scale=1" name="viewport">
-  <title>The page you're looking for could not be found (404)</title>
+  <title>The page you were looking for cannot be found (404)</title>
   <style>
     body {
-      color: #333238;
+      color: #666;
       text-align: center;
-      font-family: "Nunito Sans", -apple-system, ".SFNSText-Regular", "San Francisco", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      margin: auto;
+      font-size: 14px;
     }
 
-    h1 {
-      font-size: 1.75rem;
-      line-height: 2.25rem;
-      margin: 1rem 0;
-    }
-
-    p {
-      margin-bottom: .5rem;
-    }
-
-    img {
-      display: block;
-      margin: 0 auto;
+    hr {
+      max-width: 800px;
+      margin: 18px auto;
+      border: 0;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #fff;
     }
 
     a {
+      color: #4a8bee;
       text-decoration: none;
-      color: #1068bf;
     }
 
     a:hover {
       text-decoration: underline;
     }
 
-    .error-container {
-      max-width: 65ch;
-      margin: auto;
-      padding: 1rem 0;
+    .uf-error-text {
+      display: inline-block;
+      margin-top: 5vw;
     }
 
-    .action-container {
-      margin-top: 1.5rem;
+    /* A watermark, not a message: the readable copy is .med and below. */
+    .big {
+      color: #eee;
+      font-size: 20vw;
+      font-weight: 700;
+      line-height: 80%;
+      margin-top: 4%;
+    }
+
+    .med {
+      color: #666;
+      font-size: 2.5vw;
+      line-height: 90%;
+      max-width: 60vw;
+      margin: 0 auto;
+    }
+
+    .container {
+      margin: 35px 20px 0;
+      font-size: 18px;
     }
 
     .go-back {
       display: none;
+      margin-top: 20px;
+      font-weight: 400;
+    }
+
+    .unfurl-logo {
+      display: block;
+      width: 20vw;
+      height: auto;
+      margin: 40px auto;
     }
   </style>
 </head>
 
 <body>
-  <div class="error-container">
-    <img src='/-/error-illustrations/error-404-lg.svg' alt="404 error"/>
-    <h1>404: Page not found</h1>
-    <p>Make sure the address is correct and the page has not moved.</p>
-    <p>Please contact your GitLab administrator if you think this is a mistake.</p>
-    <div class="action-container">
-      <a href="javascript:history.back()" class="js-go-back go-back">Go back</a>
-    </div>
+  <div class="uf-error-text">
+    <div class="big">404</div>
+    <div class="med">The page you were looking for cannot be found or you don't have permission to view it</div>
+  </div>
+  <div class="container">
+    <hr />
+    <p>Make sure the address is correct and that the page hasn't moved.</p>
+    <p>Please contact <a href="mailto:support@onecommons.org">support@onecommons.org</a> if this problem persists.</p>
+    <a href="javascript:history.back()" class="js-go-back go-back">Go back</a>
+    <img src="/-/oc/assets/unfurl-logo.svg" alt="Unfurl Cloud" class="unfurl-logo" />
   </div>
   <script>
     (function () {
