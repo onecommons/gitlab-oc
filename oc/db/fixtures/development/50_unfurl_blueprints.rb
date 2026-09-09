@@ -12,6 +12,8 @@ require './spec/support/sidekiq_middleware'
 Gitlab::Seeder.quiet do
   blueprints = %w[
     https://unfurl.cloud/onecommons/testing/smorgasbord.git
+    https://unfurl.cloud/onecommons/testing/simple-blueprint.git
+    https://unfurl.cloud/onecommons/blueprints/minecraft.git
   ]
 
   user = User.admins.first
@@ -40,6 +42,28 @@ Gitlab::Seeder.quiet do
       visibility_level: Gitlab::VisibilityLevel::PUBLIC
     ).execute
 
-    print project.persisted? ? '.' : "F(#{project.errors.full_messages.join(', ')})"
+    unless project.persisted?
+      print "F(#{project.errors.full_messages.join(', ')})"
+      next
+    end
+
+    # `spec/support/sidekiq_middleware` above requires `sidekiq/testing`, which
+    # leaves Sidekiq in fake mode, so the queued import never runs and the
+    # project is left with an empty repository. Import here instead: a seeded
+    # blueprint nobody can deploy from is worse than no blueprint at all.
+    state = project.import_state || project.create_import_state
+    state.update!(status: 'scheduled') unless state.scheduled? || state.started?
+
+    # seed-fu wraps the whole file in a transaction, and a finished import
+    # enqueues DetectRepositoryLanguagesWorker, which that forbids.
+    Sidekiq::Worker.skipping_transaction_check do
+      RepositoryImportWorker.new.perform(project.id)
+    end
+
+    # Nothing classifies a project on a render path, so an unclassified
+    # blueprint would import and then not look like one.
+    project.refresh_unfurl_type!
+
+    print project.reset.empty_repo? ? "F(#{project.import_state&.last_error || 'empty repository'})" : '.'
   end
 end
