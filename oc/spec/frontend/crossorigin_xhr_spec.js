@@ -1,8 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { XHR_JAIL_URL } from 'oc_vue_shared/storage-keys';
 
 describe('cross-origin XHR relay', () => {
-  const relayPath = path.join(process.cwd(), 'public/-/oc/assets/crossorigin-xhr.html');
+  // Derived from the constant oc-pages actually requests, so moving the file
+  // without moving the URL -- or the reverse -- fails here rather than as a
+  // 404 in a browser.
+  const relayPath = path.join(process.cwd(), 'public', XHR_JAIL_URL);
 
   const dispatchRelayRequest = (detail) =>
     new Promise((resolve) => {
