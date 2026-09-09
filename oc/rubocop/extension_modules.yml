@@ -22,6 +22,7 @@ Gitlab/BoundedContexts:
     - 'oc/app/services/oc/notes/destroy_service.rb'
     - 'oc/app/services/oc/notes/post_process_service.rb'
     - 'oc/app/services/oc/notes/update_service.rb'
+    - 'oc/app/services/oc/notification_service.rb'
     - 'oc/app/services/oc/post_receive_service.rb'
     - 'oc/app/services/oc/projects/update_service.rb'
     - 'oc/app/workers/oc/project_cache_worker.rb'
