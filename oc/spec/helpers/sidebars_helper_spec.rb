@@ -23,4 +23,56 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
       expect(context).to include(display_whats_new: false, show_version_check: false)
     end
   end
+
+  describe '#super_sidebar_context' do
+    let_it_be(:user) { build_stubbed(:user) }
+    let(:project) { nil }
+
+    subject(:links) do
+      helper.super_sidebar_context(user, group: nil, project: project, panel: panel, panel_type: 'explore')
+             .fetch(:edition_topbar_links)
+    end
+
+    # Upstream's half of the context needs the whole view scaffolding; the
+    # fork's contribution is the merge on top of it.
+    before do
+      allow(helper).to receive(:super_sidebar_logged_in_context).and_return({})
+    end
+
+    it 'carries the fork sections the 15.11 header had' do
+      expect(links.map { |link| link[:text] }).to eq(%w[Dashboard Blueprints Cloud])
+      # Not literal paths: route helpers prefix the organization when the
+      # current one is not the default.
+      expect(links.map { |link| link[:href] })
+        .to match([%r{/home\z}, %r{/explore/blueprints\z}, %r{/cloud\z}])
+    end
+
+    it 'marks none of them outside those sections' do
+      expect(links.map { |link| link[:active] }).to all(be(false))
+    end
+
+    context 'when a blueprint project is open' do
+      let(:project) { build_stubbed(:project) }
+
+      before do
+        allow(project).to receive(:recorded_unfurl_type).and_return(::OC::UNFURL_BLUEPRINT)
+      end
+
+      it 'marks Blueprints' do
+        expect(links.find { |link| link[:text] == 'Blueprints' }).to include(active: true)
+      end
+    end
+
+    context 'when a dashboard project is open' do
+      let(:project) { build_stubbed(:project) }
+
+      before do
+        allow(project).to receive(:recorded_unfurl_type).and_return(::OC::UNFURL_DASHBOARD)
+      end
+
+      it 'marks Dashboard' do
+        expect(links.find { |link| link[:text] == 'Dashboard' }).to include(active: true)
+      end
+    end
+  end
 end

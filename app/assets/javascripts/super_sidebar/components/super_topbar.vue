@@ -4,6 +4,8 @@ import { GlBreadcrumb, GlButton, GlIcon, GlModalDirective, GlTooltipDirective } 
 import { __, s__ } from '~/locale';
 import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import BrandLogo from 'jh_else_ce/super_sidebar/components/brand_logo.vue';
+// OC Change
+import EditionTopbarLinks from 'oc_else_ce/super_sidebar/components/edition_topbar_links.vue';
 import { parseBoolean } from '~/lib/utils/common_utils';
 import { EVENT_OPEN_GLOBAL_SEARCH } from '~/vue_shared/global_search/constants';
 import { staticBreadcrumbs } from '~/lib/utils/breadcrumbs_state';
@@ -26,6 +28,7 @@ export default {
     GlBreadcrumb,
     GlIcon,
     BrandLogo,
+    EditionTopbarLinks, // OC Change
     SuperSidebarToggle,
     CreateMenu,
     UserCounts,
@@ -126,6 +129,9 @@ export default {
     </gl-button>
     <div class="gl-flex gl-items-center gl-gap-3">
       <brand-logo :logo-url="sidebarData.logo_url" class="!gl-p-0" />
+
+      <!-- OC Change -->
+      <edition-topbar-links :links="sidebarData.edition_topbar_links" />
 
       <super-sidebar-toggle
         v-if="sidebarData.current_menu_items.length"

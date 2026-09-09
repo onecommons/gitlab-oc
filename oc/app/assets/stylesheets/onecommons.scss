@@ -122,6 +122,27 @@ body {
   background-color: $qcard-red;
 }
 
+// 15.11 carried Dashboard | Blueprints | Cloud beside the logo in
+// layouts/header/_default.html.haml. 19.3's topbar has no such row.
+.uf-topbar-nav {
+  gap: 0.25rem;
+}
+
+// 15.11 marked the current section with a straight rule under the label and no
+// fill. Not Bootstrap's `.active`, which paints a pill behind the button.
+.uf-topbar-link {
+  position: relative;
+}
+
+.uf-topbar-link-current::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid $uf-primary-teal;
+}
+
 // Blueprint discovery. Upstream lists projects as rows; the fork's public
 // discovery page is a grid of cards, as it was in 15.11.
 :root {
