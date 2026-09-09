@@ -6,9 +6,13 @@ const ROOT_PATH = path.resolve(__dirname, '../..');
 const WORKER_LOADER_PATH = path.join(__dirname, 'worker_loader.js');
 const WORKER_QUERY_RE = /(^|[?&])worker(&|$)/;
 
-// OC Change: the oc-pages package ships source, installed under node_modules or linked
-const OC_PAGES_SOURCE =
-  /[\\/]oc-pages[\\/](dashboard|project_overview|public_cloud|vue_shared)[\\/]/;
+// OC Change: the oc-pages package ships source, and resolve.symlinks is off, so
+// its files are seen at the symlinked oc/ path rather than under node_modules.
+// Match both: a rule keyed to only one of them stops applying without a word.
+const OC_PAGES_DIRS = '(dashboard|project_overview|public_cloud|vue_shared)';
+const OC_PAGES_SOURCE = new RegExp(
+  `[\\\\/](?:oc-pages|oc[\\\\/]app[\\\\/]assets[\\\\/]javascripts)[\\\\/]${OC_PAGES_DIRS}[\\\\/]`,
+);
 
 const shouldExcludeFromCompiling = (modulePath) => {
   if (/\.vue\.js$/.test(modulePath)) {

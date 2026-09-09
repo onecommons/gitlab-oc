@@ -131,6 +131,10 @@ export default {
   output,
   resolve: {
     extensions: ['.mjs', '.js'],
+    // OC Change: keep oc-pages in the one path space its aliases and the Vue 3
+    // infection scanner are written against, rather than resolving through the
+    // symlinks to a second identity for every file.
+    symlinks: false,
     alias: {
       ...aliases,
       // Rspack honors Vue's package "exports" field, so a bare `vue` import can resolve
