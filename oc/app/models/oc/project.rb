@@ -3,6 +3,7 @@
 module OC
   module Project
     extend ActiveSupport::Concern
+    extend ::Gitlab::Utils::Override
 
     prepended do
       # The table is in the CI database and projects is in main, so the
@@ -15,6 +16,11 @@ module OC
         foreign_key: :upstream_project_id, inverse_of: :upstream_project
       has_many :downstream_projects, class_name: 'Project', through: :downstream_project_subscriptions,
         source: :downstream_project, disable_joins: true
+    end
+
+    override :avatar_url
+    def avatar_url(**args)
+      super || OC::Projects::UnfurlDefaultAvatar.url_for(self, only_path: args.fetch(:only_path, true))
     end
 
     # What the repository says the project is, without recording it.

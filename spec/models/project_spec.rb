@@ -3062,7 +3062,10 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
       context 'when git repo is empty' do
         let(:project) { create(:project) }
 
-        it { is_expected.to be_nil }
+        # OC Change -- the fork falls back to an Unfurl placeholder
+        it 'is nil', unless: Gitlab.oc? do
+          is_expected.to be_nil
+        end
       end
     end
   end
