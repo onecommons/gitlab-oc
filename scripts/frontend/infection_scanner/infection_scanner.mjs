@@ -100,7 +100,7 @@ const INFECTION_SPECIFIERS = (() => {
 // boundaries), which leaves wrappers structurally uninfected.
 function collectYamlDeclaredPages() {
   const glob = cjsRequire('glob');
-  const pattern = '{,ee/,jh/}app/assets/javascripts/pages/**/vue3_migration.yml';
+  const pattern = '{,ee/,jh/,oc/}app/assets/javascripts/pages/**/vue3_migration.yml'; // OC Change
   const yamls = glob.sync(pattern, { cwd: ROOT_PATH, absolute: true });
   return yamls.map((yamlPath) => path.join(path.dirname(yamlPath), 'index.js'));
 }
