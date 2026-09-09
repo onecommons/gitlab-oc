@@ -8,6 +8,7 @@ query getJobs(
   $sources: [CiJobSource!]
   $name: String
   $kind: CiJobKind! = BUILD
+  $varDeployPath: String # OC Change
 ) {
   project(fullPath: $fullPath) {
     id
@@ -20,6 +21,7 @@ query getJobs(
       sources: $sources
       name: $name
       kind: $kind
+      varDeployPath: $varDeployPath # OC Change
     ) {
       pageInfo {
         endCursor

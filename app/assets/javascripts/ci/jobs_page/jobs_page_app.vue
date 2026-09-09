@@ -24,6 +24,8 @@ export default {
     jobsFetchErrorMsg: __('There was an error fetching the jobs for your project.'),
     jobsCountErrorMsg: __('There was an error fetching the number of jobs for your project.'),
     loadingAriaLabel: __('Loading'),
+    // OC Change
+    deployPathFilterMsg: __('Showing only the jobs of one deployment.'),
   },
   filterSearchBoxStyles:
     'gl-my-0 gl-p-5 gl-bg-subtle gl-text-default gl-border-b gl-border-default',
@@ -134,6 +136,7 @@ export default {
       jobsCount: null,
       count: 0,
       requestData: { kind: BUILD_KIND },
+      deployPathFilter: null, // OC Change
       pagination: {
         ...DEFAULT_PAGINATION,
       },
@@ -206,9 +209,24 @@ export default {
       });
     }
   },
+  created() {
+    // OC Change: a deployment page links here with ?var_deploy_path=<path>
+    this.deployPathFilter = this.validatedQueryString?.varDeployPath ?? null;
+  },
   methods: {
     resetRequestData() {
       this.requestData = { statuses: null, sources: null, name: null, kind: BUILD_KIND };
+      // OC Change: the page's own filters replace the deployment one, and
+      // requestData rebuilds the query string without it, so the notice goes
+      // when the filter does.
+      this.deployPathFilter = null;
+    },
+    // OC Change
+    clearDeployPathFilter() {
+      this.deployPathFilter = null;
+      this.$apollo.queries.jobs.refetch({ varDeployPath: null, ...DEFAULT_PAGINATION });
+      this.$apollo.queries.jobsCount.refetch({ varDeployPath: null });
+      updateHistory({ url: setUrlParams({ kind: BUILD_KIND }, { url: window.location.href, clearParams: true }) });
     },
     resetPagination() {
       this.pagination = {
@@ -299,6 +317,19 @@ export default {
       @dismiss="error = ''"
     >
       {{ error }}
+    </gl-alert>
+
+    <!-- OC Change: say why the list is short, and offer a way out -->
+    <gl-alert
+      v-if="deployPathFilter"
+      class="gl-mt-3"
+      variant="info"
+      :dismissible="false"
+      :primary-button-text="__('Show all jobs')"
+      data-testid="deploy-path-filter-alert"
+      @primary-action="clearDeployPathFilter"
+    >
+      {{ $options.i18n.deployPathFilterMsg }}
     </gl-alert>
 
     <jobs-table-tabs

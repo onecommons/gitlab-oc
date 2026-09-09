@@ -29,6 +29,10 @@ export const validateQueryString = (queryStringObj) => {
       case 'name': {
         return { ...acc, name: queryStringValue };
       }
+      // OC Change: a deployment page links here with ?var_deploy_path=<path>
+      case 'var_deploy_path': {
+        return { ...acc, varDeployPath: queryStringValue };
+      }
       default:
         return acc;
     }

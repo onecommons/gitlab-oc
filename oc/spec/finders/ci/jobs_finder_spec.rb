@@ -60,6 +60,14 @@ RSpec.describe Ci::JobsFinder, '#execute', feature_category: :continuous_integra
     is_expected.to contain_exactly(production_job, staging_job, wrong_region_job)
   end
 
+  context 'when the caller passes the key with no value' do
+    let(:params) { { var_deploy_path: nil } }
+
+    it 'reads it as no filter, not as a search for nothing' do
+      is_expected.to contain_exactly(production_job, staging_job, wrong_region_job)
+    end
+  end
+
   it 'returns a relation, so the caller can go on scoping it' do
     finder = described_class.new(current_user: user, project: project, params: { var_deploy_path: 'production' })
 

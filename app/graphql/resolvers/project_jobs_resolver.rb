@@ -36,7 +36,18 @@ module Resolvers
       required: false,
       description: 'Filter jobs by the internal pipeline ID (iid).'
 
+    # OC Change: a deployment page shows only its own jobs, matched on the
+    # DEPLOY_PATH variable they carry.
+    argument :var_deploy_path, GraphQL::Types::String,
+      required: false,
+      description: 'Filter jobs by their DEPLOY_PATH pipeline variable.'
+
     alias_method :project, :object
+
+    # OC Change: matching var_deploy_path reads each build's variables, and the
+    # predefined ones are derived from the commit, so the filtered path reaches
+    # Gitaly. 15.11 carried this without knowing why.
+    calls_gitaly!
 
     def resolve_with_lookahead(**args)
       @kind = args[:kind]
@@ -48,7 +59,8 @@ module Resolvers
       jobs = ::Ci::JobsFinder.new(
         current_user: current_user, project: project, params: {
           scope: args[:statuses], with_artifacts: args[:with_artifacts],
-          skip_ordering: filter_by_sources, pipeline_iid: args[:pipeline_iid]
+          skip_ordering: filter_by_sources, pipeline_iid: args[:pipeline_iid],
+          var_deploy_path: args[:var_deploy_path] # OC Change
         }, type: args[:kind] || ::Ci::Build
       ).execute
 

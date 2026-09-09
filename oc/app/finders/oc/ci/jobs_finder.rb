@@ -34,8 +34,10 @@ module OC
 
       # ActionController::Parameters will not #to_h unpermitted keys, and the
       # keys are not knowable ahead of time to permit them; as_json does.
+      # A caller that always passes the key, filter or not, sends nil for
+      # "no filter" -- which must not become a search for a nil value.
       def variable_filters
-        params.select { |key, _| key.to_s.start_with?('var_') }
+        params.select { |key, value| key.to_s.start_with?('var_') && !value.nil? }
           .transform_keys { |key| key.to_s.delete_prefix('var_').upcase }
           .as_json
       end
