@@ -7,16 +7,21 @@ module OC
     # recalculate the project type custom attribute
     # rubocop: disable CodeReuse/ActiveRecord -- custom attributes are the project's own key/value store
     def refresh_unfurl_type!
-      type_attr = custom_attributes.find_or_create_by(key: 'unfurl_type')
-      type_attr.value = if repository.ensemble_template_yaml.present?
-                          OC::UNFURL_BLUEPRINT
-                        elsif repository.unfurl_yaml.present?
-                          OC::UNFURL_DASHBOARD
-                        else
-                          OC::REGULAR_PROJECT
-                        end
+      type = if repository.ensemble_template_yaml.present?
+               OC::UNFURL_BLUEPRINT
+             elsif repository.unfurl_yaml.present?
+               OC::UNFURL_DASHBOARD
+             else
+               OC::REGULAR_PROJECT
+             end
 
-      type_attr.save!
+      record_unfurl_type!(type)
+    end
+
+    # A project whose files are not there yet -- a template import runs in a
+    # worker -- has to be told what it is.
+    def record_unfurl_type!(type)
+      custom_attributes.find_or_create_by(key: 'unfurl_type').update!(value: type)
     end
     # rubocop: enable CodeReuse/ActiveRecord
 

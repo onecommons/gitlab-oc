@@ -41,5 +41,43 @@ module OC
       @active_dashboard = project
     end
     # rubocop: enable Gitlab/ModuleWithInstanceVariables
+
+    # /home, the Dashboard sidebar entry and the deployment pages all resolve
+    # through this project. The signup paths call it rather than a User
+    # callback: a callback would also give one to every user an admin, the API,
+    # a seed or a spec creates.
+    def create_dashboard_project!
+      return unless human?
+
+      as_internal_user do
+        project = ::Projects::CreateService.new(self, ::OC::DASHBOARD_PROJECT_ON_SIGNUP.dup).execute
+        next unless project&.persisted?
+
+        # The import runs in a worker, so nothing can classify this from its
+        # files yet, and discovery reads what was recorded.
+        project.record_unfurl_type!(::OC::UNFURL_DASHBOARD)
+      end
+    end
+
+    private
+
+    # An external user's projects_limit is zero, so they cannot create the
+    # dashboard that is made for them. ensure_user_rights_and_limits sets the
+    # limit from the flag, so flipping it back restores the zero.
+    def as_internal_user
+      was_external = external?
+
+      if was_external
+        self.external = false
+        save(validate: false)
+      end
+
+      yield
+    ensure
+      if was_external
+        self.external = true
+        save(validate: false)
+      end
+    end
   end
 end

@@ -11,9 +11,7 @@ module OC
   REGULAR_PROJECT = 'Regular'
 
   DASHBOARD_PROJECT_ON_SIGNUP = {
-    template_name: 'unfurl_dashboard', name: 'Dashboard', path: 'dashboard',
-    import_url: 'https://gitlab.com/onecommons/project-templates/dashboard.git',
-    import_data: { credentials: {} },
+    template_name: 'unfurl_dashboard', name: 'Dashboard', path: UNFURL_DASHBOARD_NAME,
     description: 'This is your "home" repository for your environment and deployments'
   }.freeze
 
