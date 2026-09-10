@@ -21,6 +21,13 @@ module OC
 
   GIT_TOKEN_NAME = 'UNFURL_GIT_ACCESS'
 
+  # A dashboard's deployments push their results back with this token, and
+  # nothing rotates it, so it is exempt from expiry. Matched by name, which the
+  # caller supplies: anyone able to create a project access token can claim the
+  # exemption by using this name. Narrow it to a fork-owned endpoint if that
+  # ever matters.
+  PROJECT_TOKEN_NAME = 'UNFURL_PROJECT_TOKEN'
+
   STAGING_URL = 'https://staging.unfurl.cloud'
   def self.staging?
     ::Gitlab.config.gitlab.url == STAGING_URL
