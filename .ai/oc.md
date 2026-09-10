@@ -279,6 +279,15 @@ project to look at (`oc/db/fixtures/development/`).
 - **Long command output gets truncated** by the `rtk` CLI wrapper, which
   swallows most rspec and `grep` stdout. Redirect to a file in the scratchpad
   directory and read the file instead of relying on the terminal output.
+- **A Vue 2/3 error nothing explains: delete `tmp/infection_scanner.json`
+  first.** The graph is written to disk and reloaded on every rspack start, and
+  a scan taken while `node_modules` was mid-`yarn install` records import edges
+  as `resolved: null`. Those dependencies then never take `?vue3`, and a
+  Vue-3-only one fails as `export 'Fragment' was not found in 'vue'` — which
+  names Vue, the bundler, and any linked checkout, but never the graph. It
+  survives restarts, so it looks like a code problem and invites elaborate
+  theories. `warnUnclassifiedOcPagesDeps` now prints the affected packages at
+  scan time.
 
 ### Migrations and new tables
 
