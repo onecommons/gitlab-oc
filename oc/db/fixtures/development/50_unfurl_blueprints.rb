@@ -1,24 +1,31 @@
 # frozen_string_literal: true
 
-# Imports Unfurl Cloud blueprints a development instance can deploy from:
+# Imports the Unfurl Cloud repositories a development instance needs:
 #
 #   bundle exec rake db:seed_fu FILTER=unfurl_blueprints
 #
 # Each is created under the same group path it has on unfurl.cloud and left
 # public, so the Unfurl server can clone it anonymously. Imports run in the
 # background; the projects are usable once Sidekiq has finished them.
+#
+# `onecommons/std` is not a blueprint and nothing deploys from it. The
+# dashboard's external-resource picker asks the Unfurl server for `/types`,
+# which resolves the environment's declared repository by cloning it and
+# reading its tags; without std that request fails and the picker offers
+# nothing to add.
 require './spec/support/sidekiq_middleware'
 
 Gitlab::Seeder.quiet do
-  blueprints = %w[
+  repositories = %w[
     https://unfurl.cloud/onecommons/testing/smorgasbord.git
     https://unfurl.cloud/onecommons/testing/simple-blueprint.git
     https://unfurl.cloud/onecommons/blueprints/minecraft.git
+    https://unfurl.cloud/onecommons/std.git
   ]
 
   user = User.admins.first
 
-  blueprints.each do |url|
+  repositories.each do |url|
     full_path = url.delete_prefix('https://unfurl.cloud/').delete_suffix('.git')
     group_path, _, project_path = full_path.rpartition('/')
 
@@ -61,7 +68,8 @@ Gitlab::Seeder.quiet do
     end
 
     # Nothing classifies a project on a render path, so an unclassified
-    # blueprint would import and then not look like one.
+    # blueprint would import and then not look like one. std has neither
+    # unfurl file, so this records it as an ordinary project.
     project.refresh_unfurl_type!
 
     print project.reset.empty_repo? ? "F(#{project.import_state&.last_error || 'empty repository'})" : '.'
