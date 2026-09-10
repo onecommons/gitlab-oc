@@ -830,8 +830,7 @@ RSpec.describe Projects::UpdateService, feature_category: :groups_and_projects d
           result = update_project(project, user, params)
 
           expect(result).to eq({ status: :success })
-          # OC Change -- avatar_url falls back to a placeholder
-          expect(project.reload.avatar.file).to be_nil
+          expect(project.reload.avatar_url).to be_nil
         end
       end
 

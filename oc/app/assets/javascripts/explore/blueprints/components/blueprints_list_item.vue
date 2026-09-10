@@ -3,6 +3,7 @@ import { GlButton, GlButtonGroup } from '@gitlab/ui';
 import { s__ } from '~/locale';
 import TopicBadges from '~/vue_shared/components/topic_badges.vue';
 import { projectStarrersPath } from '~/lib/utils/path_helpers/project';
+import { placeholderAvatarUrl } from '../constants';
 
 export default {
   name: 'BlueprintsListItem',
@@ -27,6 +28,9 @@ export default {
     starrersHref() {
       return projectStarrersPath(this.project.fullPath);
     },
+    avatarUrl() {
+      return this.project.avatarUrl || placeholderAvatarUrl(this.project.id);
+    },
     namespaceName() {
       return this.project.namespace?.fullName;
     },
@@ -41,13 +45,7 @@ export default {
   <li class="uf-tile">
     <div class="uf-tile-avatar">
       <a :href="project.relativeWebUrl" @click="$emit('click-avatar')">
-        <img
-          :src="project.avatarUrl"
-          :alt="''"
-          class="uf-tile-avatar-image"
-          width="300"
-          height="300"
-        />
+        <img :src="avatarUrl" :alt="''" class="uf-tile-avatar-image" width="300" height="300" />
       </a>
     </div>
 

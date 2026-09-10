@@ -3,30 +3,6 @@
 require 'spec_helper'
 
 RSpec.describe Project, feature_category: :groups_and_projects do
-  describe '#avatar_url' do
-    let(:project) { create(:project) }
-
-    it 'falls back to an Unfurl placeholder rather than an identicon' do
-      expect(project.avatar_url).to match(%r{\A/-/oc/assets/images/uf-avatar-placeholder-[1-6]\.svg\z})
-    end
-
-    it 'keeps the avatar the repository provides' do
-      allow(project).to receive(:avatar_in_git).and_return('logo.png')
-
-      expect(project.avatar_url).to eq(Gitlab::Routing.url_helpers.project_avatar_url(project))
-    end
-
-    it 'picks the placeholder from the id, so it does not change under the project' do
-      expect(OC::Projects::UnfurlDefaultAvatar.url_for(project)).to eq(project.avatar_url)
-    end
-
-    # The API and the webhooks ask for an absolute URL, and the Unfurl server
-    # reads project data from another origin.
-    it 'gives an absolute URL when the caller asks for one' do
-      expect(project.avatar_url(only_path: false)).to start_with(Gitlab.config.gitlab.url)
-    end
-  end
-
   describe '#refresh_unfurl_type!' do
     let(:project) { create(:project) }
     let(:repository) do

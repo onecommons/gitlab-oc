@@ -32,6 +32,15 @@ describe('BlueprintsListItem', () => {
     expect(wrapper.find('img').attributes('src')).toBe(project.avatarUrl);
   });
 
+  // GitLab's identicon is a single letter, illegible at tile size.
+  it('falls back to an Unfurl placeholder, keyed so it is stable per project', () => {
+    createComponent({ project: { ...project, avatarUrl: null } });
+
+    expect(wrapper.find('img').attributes('src')).toBe(
+      '/-/oc/assets/images/uf-avatar-placeholder-1.svg',
+    );
+  });
+
   it('names the project and its namespace', () => {
     createComponent();
 

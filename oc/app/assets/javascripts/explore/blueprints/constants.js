@@ -16,6 +16,17 @@ import blueprintsQuery from './graphql/queries/blueprints.query.graphql';
 // The group that holds the blueprints Unfurl Cloud publishes itself.
 export const VERIFIED_NAMESPACE_PATH = 'onecommons/blueprints';
 
+// A blueprint with no avatar gets an Unfurl placeholder rather than GitLab's
+// identicon, which is illegible at tile size. Keyed on the id's last digit, as
+// in 15.11, so a blueprint keeps the placeholder it had. Done here rather than
+// in `Project#avatar_url` so it applies to the tiles alone: on the model it
+// would reach every list, both APIs and the sidebar, and cost a custom-attribute
+// query per project to scope it back.
+const PLACEHOLDERS = [4, 1, 2, 3, 4, 5, 6, 1, 2, 3];
+
+export const placeholderAvatarUrl = (id) =>
+  `/-/oc/assets/images/uf-avatar-placeholder-${PLACEHOLDERS[id % PLACEHOLDERS.length]}.svg`;
+
 const baseTab = {
   paginationType: PAGINATION_TYPE_KEYSET,
   listComponent: BlueprintsList,

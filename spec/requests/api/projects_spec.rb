@@ -3062,8 +3062,7 @@ RSpec.describe API::Projects, :aggregate_failures, feature_category: :groups_and
         expect(json_response['group_runners_enabled']).to be_present
         expect(json_response['creator_id']).to be_present
         expect(json_response['namespace']).to be_present
-        # OC Change -- the fork falls back to an Unfurl placeholder
-        expect(json_response['avatar_url']).to be_nil unless Gitlab.oc?
+        expect(json_response['avatar_url']).to be_nil
         expect(json_response['star_count']).to be_present
         expect(json_response['forks_count']).to be_present
         expect(json_response['public_jobs']).to be_present
@@ -5306,10 +5305,8 @@ RSpec.describe API::Projects, :aggregate_failures, feature_category: :groups_and
 
           aggregate_failures "testing response" do
             expect(response).to have_gitlab_http_status(:ok)
-            # OC Change -- avatar_url falls back to a placeholder, so assert
-            # the uploaded avatar is the thing that went
-            expect(json_response['avatar_url']).not_to include('banana_sample.gif')
-            expect(project_with_avatar.reload.avatar.file).to be_nil
+            expect(json_response['avatar_url']).to be_nil
+            expect(project_with_avatar.reload.avatar_url).to be_nil
           end
         end
       end
