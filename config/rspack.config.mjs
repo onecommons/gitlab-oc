@@ -20,7 +20,7 @@ import { entries } from './rspack/entries.js';
 import GraphqlKnownOperationsPlugin from './plugins/graphql_known_operations_plugin.js';
 import Vue3MigrationManifestPlugin from './plugins/vue3_migration_manifest_plugin.js';
 import { buildLoaderRules } from './rspack/loader_rules.js';
-import { ocPagesRules } from './rspack/oc_pages.js'; // OC Change
+import { ocPagesRules, ocPagesResolveModules } from './rspack/oc_pages.js'; // OC Change
 import { slimManifest } from './rspack/manifest_plugin.js';
 import {
   DEVTOOL,
@@ -135,6 +135,9 @@ export default {
     // infection scanner are written against, rather than resolving through the
     // symlinks to a second identity for every file.
     symlinks: false,
+    // OC Change: reach a linked oc-pages checkout's own dependencies, which
+    // `link:` does not install and symlinks: false hides.
+    modules: ocPagesResolveModules,
     alias: {
       ...aliases,
       // Rspack honors Vue's package "exports" field, so a bare `vue` import can resolve

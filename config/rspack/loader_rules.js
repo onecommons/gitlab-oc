@@ -6,9 +6,11 @@ const ROOT_PATH = path.resolve(__dirname, '../..');
 const WORKER_LOADER_PATH = path.join(__dirname, 'worker_loader.js');
 const WORKER_QUERY_RE = /(^|[?&])worker(&|$)/;
 
-// OC Change: the oc-pages package ships source, and resolve.symlinks is off, so
-// its files are seen at the symlinked oc/ path rather than under node_modules.
-// Match both: a rule keyed to only one of them stops applying without a word.
+// OC Change: the oc-pages package ships source, and resolve.symlinks is off
+// (rspack.config.mjs sets it so oc-pages keeps one identity across the aliases
+// and the Vue 3 infection scanner), so its files are seen at the symlinked oc/
+// path rather than under node_modules. Match both: a rule keyed to only one of
+// them stops applying without a word.
 const OC_PAGES_DIRS = '(dashboard|project_overview|public_cloud|vue_shared)';
 const OC_PAGES_SOURCE = new RegExp(
   `[\\\\/](?:oc-pages|oc[\\\\/]app[\\\\/]assets[\\\\/]javascripts)[\\\\/]${OC_PAGES_DIRS}[\\\\/]`,
