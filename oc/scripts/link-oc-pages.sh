@@ -2,7 +2,7 @@
 # Points the oc-pages source directories at a local unfurl-gui checkout, so
 # rspack builds what you are editing instead of the pinned package.
 #
-#   sh oc/support/link-oc-pages.sh ~/_dev/unfurl-gui
+#   sh oc/scripts/link-oc-pages.sh ~/_dev/unfurl-gui
 #
 # To undo, restore the four symlinks and rebuild from the pin:
 #
@@ -23,7 +23,7 @@ cd "$(dirname "$0")/../.."
 
 checkout=${1:-}
 if [ -z "$checkout" ]; then
-  echo "usage: sh oc/support/link-oc-pages.sh <path-to-unfurl-gui-checkout>" >&2
+  echo "usage: sh oc/scripts/link-oc-pages.sh <path-to-unfurl-gui-checkout>" >&2
   exit 1
 fi
 

@@ -58,7 +58,7 @@ Consequences:
 - The build tools skip the EE-only frontend islands in this edition
   (`scripts/build_frontend_islands`).
 
-Re-pin to the branch head with `oc/support/update-oc-pages.sh`, which commits
+Re-pin to the branch head with `oc/scripts/update-oc-pages.sh`, which commits
 the result. The package's directories are reached through tracked symlinks
 (`oc/app/assets/javascripts/{dashboard,project_overview,public_cloud,vue_shared}`
 → `node_modules/oc-pages/…`). `config/rspack.config.mjs` sets
@@ -77,7 +77,7 @@ itself.
 Point the four oc-pages source directories at your checkout:
 
 ```sh
-sh oc/support/link-oc-pages.sh ~/_dev/unfurl-gui
+sh oc/scripts/link-oc-pages.sh ~/_dev/unfurl-gui
 gdk restart rspack
 ```
 
@@ -273,7 +273,7 @@ project to look at (`oc/db/fixtures/development/`).
   `config/schedule.yml`.
 - **`oc/rubocop/rubocop-oc.yml` is generated.** It gives every `ee/` and `jh/`
   Include/Exclude entry in `.rubocop.yml` and `rubocop/*.yml` an `oc/` twin
-  (`ee/lib/ee/api/**` becomes `oc/lib/oc/api/**`). Rerun `ruby oc/support/generate_rubocop_config.rb` after an upstream bump;
+  (`ee/lib/ee/api/**` becomes `oc/lib/oc/api/**`). Rerun `ruby oc/scripts/generate_rubocop_config.rb` after an upstream bump;
   never edit the file by hand. `.rubocop.yml` inherits every YAML file under
   `oc/rubocop/`, so hand-written oc-only config belongs in a separate file
   there.
