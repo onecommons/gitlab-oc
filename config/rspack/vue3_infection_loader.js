@@ -12,17 +12,9 @@ const {
   createIsInfectable,
   normalizeOcPagesPath, // OC Change
 } = require('../helpers/vue3_infection_shared');
+const { warnUnclassifiedOcPagesDeps } = require('./oc_pages'); // OC Change
 
 const SCANNER_BYPASS_PACKAGES = ['core-js', 'webpack', 'css-loader', 'vue-hot-reload-api'];
-
-// OC Change: statically imported, but the scanner cannot resolve the specifier,
-// so it records the edge with `resolved: null` and the package never gets a graph
-// entry of its own. Vue-3-only packages then link against GitLab's Vue 2 and fail
-// (`vue-json-pretty` wants Fragment/createTextVNode/createVNode). Only ever list a
-// package that nothing outside oc-pages imports: force-redirecting one the plain
-// Vue 2 tree also uses is the reactivity split vue3_infection_resolve_plugin warns
-// about. `lodash` and `graphql-tag` are unresolved here too and must NOT go in.
-const OC_SCANNER_BYPASS_PACKAGES = ['vue-json-pretty'];
 
 const contextAliasKeys = Object.keys(CONTEXT_ALIASES);
 
@@ -53,9 +45,11 @@ function ensureScanner() {
   scannerGraph = loadScannerData();
   isInfectable = createIsInfectable(scannerGraph, {
     shouldBypass: (clean) =>
-      [...SCANNER_BYPASS_PACKAGES, ...OC_SCANNER_BYPASS_PACKAGES] // OC Change
-        .some((pkg) => clean.includes(`/node_modules/${pkg}/`)),
+      SCANNER_BYPASS_PACKAGES.some((pkg) => clean.includes(`/node_modules/${pkg}/`)),
   });
+  // OC Change: rspack only -- this edition builds with it, and running the check
+  // in the webpack lane too would print the same warning twice.
+  warnUnclassifiedOcPagesDeps(scannerGraph, SCANNER_BYPASS_PACKAGES);
   scannerLoaded = true;
 }
 

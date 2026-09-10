@@ -15,15 +15,6 @@ const {
 // Packages injected by loaders (not statically imported) that the scanner cannot discover.
 const SCANNER_BYPASS_PACKAGES = ['core-js', 'webpack', 'css-loader', 'vue-hot-reload-api'];
 
-// OC Change: statically imported, but the scanner cannot resolve the specifier,
-// so it records the edge with `resolved: null` and the package never gets a graph
-// entry of its own. Vue-3-only packages then link against GitLab's Vue 2 and fail
-// (`vue-json-pretty` wants Fragment/createTextVNode/createVNode). Only ever list a
-// package that nothing outside oc-pages imports: force-redirecting one the plain
-// Vue 2 tree also uses is the reactivity split vue3_infection_resolve_plugin warns
-// about. `lodash` and `graphql-tag` are unresolved here too and must NOT go in.
-const OC_SCANNER_BYPASS_PACKAGES = ['vue-json-pretty'];
-
 const PLUGIN_NAME = 'WebpackVue3InfectionPlugin';
 const contextAliasKeys = Object.keys(CONTEXT_ALIASES);
 
@@ -164,8 +155,7 @@ class WebpackVue3InfectionPlugin {
       // than statically imported in source code, so they never appear in the
       // scanner's import graph.  Bypass the scanner check for these packages.
       shouldBypass: (clean) =>
-        [...SCANNER_BYPASS_PACKAGES, ...OC_SCANNER_BYPASS_PACKAGES] // OC Change
-          .some((pkg) => clean.includes(`/node_modules/${pkg}/`)),
+        SCANNER_BYPASS_PACKAGES.some((pkg) => clean.includes(`/node_modules/${pkg}/`)),
     });
     const infectedDeps = new WeakSet();
     const resolvedTargets = resolveAliasTargets();
