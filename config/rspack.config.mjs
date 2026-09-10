@@ -186,6 +186,12 @@ export default {
     entries: false,
     prefix: `${WEBPACK_PUBLIC_PATH}_rspack/lazy/trigger`,
   },
+  // OC Change: rspack watches the symlink, not what it points at, so edits in a
+  // linked oc-pages checkout never reach the build. Costs nothing when oc-pages
+  // is the pinned real directory.
+  watchOptions: {
+    followSymlinks: true,
+  },
   devServer: {
     devMiddleware: {
       stats: 'errors-only',

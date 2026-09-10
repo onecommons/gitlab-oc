@@ -72,42 +72,47 @@ and `config/rspack/oc_pages.js` loads its bare `.svg` imports as markup.
 GitLab's ESLint and Prettier ignore the four directories; the package lints
 itself.
 
-To develop against a local unfurl-gui checkout, add a `link:` resolution to
-`package.json` and run `yarn install`:
+### Developing against a local unfurl-gui checkout
 
-```json
-"resolutions": {
-  "oc-pages": "link:/path/to/unfurl-gui/packages/oc-pages"
-}
+Point the four oc-pages source directories at your checkout:
+
+```sh
+sh oc/support/link-oc-pages.sh ~/_dev/unfurl-gui
+gdk restart rspack
 ```
 
-Both files change locally; do not commit them. Berry's `yarn link` writes a
-`portal:` instead, which the node-modules linker rejects here because the
-checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's.
+The script prints the undo command: a `git restore` of those four symlinks plus
+`rm -f tmp/infection_scanner.json` and another restart. Nothing else changes --
+`package.json` and `yarn.lock` are untouched and no `yarn install` runs, so
+there is no lockfile churn to keep out of a commit.
 
-**`link:` maps the path but does not install the linked package's
-dependencies**, which `portal:` and the git pin both do. On its own that left
-oc-pages' `@formily/*` and `vue-json-pretty` unresolved and rspack failed to
-compile outright, because `resolve.symlinks: false` also means resolution walks
-up from the symlinked path through *this* tree, where they are not. Adding them
-to this `package.json` by hand is not the fix: they would resolve against
-GitLab's constraints rather than unfurl-gui's, and they would stay in
-`yarn.lock` afterwards, so the next pinned build silently uses them too.
+It works because those directories are already symlinks into
+`node_modules/oc-pages`, and `resolve.symlinks: false` means rspack keeps
+calling the files `oc/app/assets/javascripts/...` whatever they point at, so the
+aliases, the `OC_PAGES_SOURCE` loader rules and the infection scanner all keep
+matching. **Dependencies still come from the pinned package**, because
+dependency resolution is separate from where the source file sits. If your
+working copy adds a dependency the pin lacks, re-pin instead.
 
-`config/rspack/oc_pages.js` handles it instead. `ocPagesResolveModules` appends
-the `node_modules` roots above the *realpath* of `node_modules/oc-pages` to
-`resolve.modules`, after GitLab's own. The checkout can then supply what GitLab
-lacks and cannot shadow anything both trees carry — which matters, since the
-checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's, the same
-conflict that makes Berry's `portal:` unusable here. A pinned oc-pages is a real
-directory inside the repo, so this evaluates to plain `['node_modules']` and
-pinned builds are unaffected. The packages that must be single copies (`vue`,
-`vuex`, `vue-router`, `vue-apollo`, `vue-demi`, `@gitlab/ui`, `@apollo/client`,
-`graphql-tag`, `lodash`, `jquery`, `mitt`, `js-cookie`) are pinned to GitLab's
-by absolute aliases in `config/helpers/aliases.js` regardless.
+`watchOptions.followSymlinks` is on for this: rspack otherwise watches the
+symlink rather than its target, and edits never reach the build. If a change
+still does not appear, `gdk restart rspack` picks it up.
 
-`yarn install` while the rspack dev server is running crashes it: stop rspack,
-install, start it again.
+**Do not use a `link:` resolution in `package.json`.** Yarn's `link:` protocol
+maps the path but installs none of the linked package's dependencies -- unlike
+`portal:` and the git pin -- so oc-pages' `@formily/*` and `vue-json-pretty` go
+unresolved. `config/rspack/oc_pages.js` compensates by appending the checkout's
+`node_modules` roots to `resolve.modules` after GitLab's own, but the route
+still dirties `package.json` and `yarn.lock`, still needs a `yarn install`
+(which crashes a running rspack: stop it, install, start it again), and buys
+nothing the symlinks do not. Berry's `yarn link` is worse: it writes a
+`portal:`, which the node-modules linker rejects here because the checkout's
+`d3`, `marked` and `dompurify` conflict with GitLab's.
+
+The packages that must stay single copies (`vue`, `vuex`, `vue-router`,
+`vue-apollo`, `vue-demi`, `@gitlab/ui`, `@apollo/client`, `graphql-tag`,
+`lodash`, `jquery`, `mitt`, `js-cookie`) are pinned to GitLab's by absolute
+aliases in `config/helpers/aliases.js` either way.
 
 ### Stylesheets
 
