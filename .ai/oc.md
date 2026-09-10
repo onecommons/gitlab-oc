@@ -61,13 +61,16 @@ Consequences:
 Re-pin to the branch head with `oc/support/update-oc-pages.sh`, which commits
 the result. The package's directories are reached through tracked symlinks
 (`oc/app/assets/javascripts/{dashboard,project_overview,public_cloud,vue_shared}`
-→ `node_modules/oc-pages/…`), so rspack sees them at their resolved path,
-under `node_modules`. `config/rspack/loader_rules.js` carves that path out of
-the swc and graphql-tag exclusions (`OC_PAGES_SOURCE`), and
-`config/rspack/oc_pages.js` loads its bare `.svg` imports as markup. Do not
-turn `resolve.symlinks` off to avoid this: it breaks upstream's Vue 3
-infection lane. GitLab's ESLint and Prettier ignore the four directories; the
-package lints itself.
+→ `node_modules/oc-pages/…`). `config/rspack.config.mjs` sets
+`resolve.symlinks: false`, so rspack sees those files at the symlinked `oc/`
+path rather than their resolved one under `node_modules` — one identity per
+file, which is what the `oc_pages`/`oc_vue_shared` aliases and upstream's Vue 3
+infection scanner are written against. `config/rspack/loader_rules.js` carves
+the path out of the swc and graphql-tag exclusions (`OC_PAGES_SOURCE`, which
+matches both spellings so a rule keyed to one does not quietly stop applying),
+and `config/rspack/oc_pages.js` loads its bare `.svg` imports as markup.
+GitLab's ESLint and Prettier ignore the four directories; the package lints
+itself.
 
 To develop against a local unfurl-gui checkout, add a `link:` resolution to
 `package.json` and run `yarn install`:
@@ -83,19 +86,28 @@ Both files change locally; do not commit them. Berry's `yarn link` writes a
 checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's.
 
 **`link:` maps the path but does not install the linked package's
-dependencies**, which `portal:` and the git pin both do. oc-pages' own
-`@formily/*` and `vue-json-pretty` are then unresolved and rspack fails to
-compile outright, so the dashboard never boots. Adding them to this
-`package.json` by hand is not equivalent either: they would resolve against
-GitLab's constraints rather than unfurl-gui's. For a single change, push and
-re-pin is the cheaper loop; reach for `link:` only for a long iteration, and
-expect to supply the missing dependencies yourself.
+dependencies**, which `portal:` and the git pin both do. On its own that left
+oc-pages' `@formily/*` and `vue-json-pretty` unresolved and rspack failed to
+compile outright, because `resolve.symlinks: false` also means resolution walks
+up from the symlinked path through *this* tree, where they are not. Adding them
+to this `package.json` by hand is not the fix: they would resolve against
+GitLab's constraints rather than unfurl-gui's, and they would stay in
+`yarn.lock` afterwards, so the next pinned build silently uses them too.
 
-With `link:` the checkout's `node_modules` supplies those, while the packages that
-must be single copies (`vue`, `vuex`, `vue-router`, `vue-apollo`, `vue-demi`,
-`@gitlab/ui`, `@apollo/client`, `graphql-tag`, `lodash`, `jquery`, `mitt`,
-`js-cookie`) are pinned to GitLab's by absolute aliases in
-`config/helpers/aliases.js`.
+`config/rspack/oc_pages.js` handles it instead. `ocPagesResolveModules` appends
+the `node_modules` roots above the *realpath* of `node_modules/oc-pages` to
+`resolve.modules`, after GitLab's own. The checkout can then supply what GitLab
+lacks and cannot shadow anything both trees carry — which matters, since the
+checkout's own `d3`, `marked` and `dompurify` conflict with GitLab's, the same
+conflict that makes Berry's `portal:` unusable here. A pinned oc-pages is a real
+directory inside the repo, so this evaluates to plain `['node_modules']` and
+pinned builds are unaffected. The packages that must be single copies (`vue`,
+`vuex`, `vue-router`, `vue-apollo`, `vue-demi`, `@gitlab/ui`, `@apollo/client`,
+`graphql-tag`, `lodash`, `jquery`, `mitt`, `js-cookie`) are pinned to GitLab's
+by absolute aliases in `config/helpers/aliases.js` regardless.
+
+`yarn install` while the rspack dev server is running crashes it: stop rspack,
+install, start it again.
 
 ### Stylesheets
 
