@@ -44,6 +44,17 @@
   --gl-color-neutral-100: #d6efec;
 }
 
+// The chrome's colour does not come from those neutrals. 19.3 leaves the
+// topbar and sidebar transparent and paints the body with a gradient built in
+// `page_theme_background.scss` from `--super-sidebar-theme-color`, which
+// `framework/super_sidebar.scss` defaults to `--gl-color-neutral-500` -- grey.
+// The gradient takes the hue and forces its own saturation and lightness
+// (`hsla(from … h 25 93)`), so handing it the brand teal yields the pale mint
+// the fork has always had rather than a saturated bar.
+:root {
+  --super-sidebar-theme-color: #{$uf-primary-teal};
+}
+
 // #665 global font increase
 body {
   font-size: 100%;
