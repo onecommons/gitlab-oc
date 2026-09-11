@@ -2022,7 +2022,9 @@ class Project < ApplicationRecord
     limit = creator.projects_limit
     error =
       if limit == 0
-        _('You cannot create projects in your personal namespace. Contact your GitLab administrator.')
+        # OC Change -- a deploy-interface user has a zero limit by design, and
+        # can lift it themselves; see OC::UserSettings::ProfilesController.
+        _('To create projects, set Interface to Develop applications in your profile settings.')
       else
         _("You've reached your limit of %{limit} projects created. Contact your GitLab administrator.")
       end
