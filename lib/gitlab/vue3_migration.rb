@@ -47,7 +47,7 @@ module Gitlab
     # Brace-expansion globs that walk CE, EE, and JH page roots in one pass.
     # The leading brace expands to each edition's prefix; missing editions
     # simply return no matches.
-    VUE3_MIGRATION_PAGES_GLOB = '{,ee/,jh/}app/assets/javascripts/pages'
+    VUE3_MIGRATION_PAGES_GLOB = '{,ee/,jh/,oc/}app/assets/javascripts/pages' # OC Change
     VUE3_MIGRATION_GLOB =
       "#{VUE3_MIGRATION_PAGES_GLOB}/**/#{VUE3_MIGRATION_FILENAME}".freeze
 
