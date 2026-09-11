@@ -13,6 +13,10 @@
 # which resolves the environment's declared repository by cloning it and
 # reading its tags; without std that request fails and the picker offers
 # nothing to add.
+#
+# `onecommons/cloudmap` is not one either: the sitemap links it. The cloud map
+# page itself draws from the `UNFURL_CLOUDMAP_JSON` instance CI variable, which
+# seeding the repository does not set.
 require './spec/support/sidekiq_middleware'
 
 Gitlab::Seeder.quiet do
@@ -21,6 +25,7 @@ Gitlab::Seeder.quiet do
     https://unfurl.cloud/onecommons/testing/simple-blueprint.git
     https://unfurl.cloud/onecommons/blueprints/minecraft.git
     https://unfurl.cloud/onecommons/std.git
+    https://unfurl.cloud/onecommons/cloudmap.git
   ]
 
   user = User.admins.first
