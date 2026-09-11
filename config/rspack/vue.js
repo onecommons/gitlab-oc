@@ -7,6 +7,7 @@ const EXACT_VUE_VERSION = require('vue/package.json').version;
 
 const { isCustomElement } = require('../vue3migration/vue3_template_compiler');
 const { INFECTION_LOADER_PATH } = require('./vue3_infection_loader');
+const { HOT_RELOAD_ID_LOADER_PATH } = require('./vue3_hot_reload_id_loader'); // OC Change
 
 const { VUE_VERSION = '2', VUE_COMPILER_VERSION = '2' } = process.env;
 
@@ -80,6 +81,15 @@ const infectionRules = USE_VUE3
         test: /\.vue$/,
         resourceQuery: /type=script/,
         use: [{ loader: INFECTION_LOADER_PATH }],
+      },
+      // OC Change: give an infected .vue its own hot-reload id; see
+      // vue3_hot_reload_id_loader.js. Main requests only -- vue-loader emits the
+      // hot-reload block there, and language-block requests return early.
+      {
+        enforce: 'post',
+        test: /\.vue$/,
+        resourceQuery: (query) => /(?:\?|&)vue3(?:&|$)/.test(query || '') && !/[?&]type=/.test(query || ''),
+        use: [{ loader: HOT_RELOAD_ID_LOADER_PATH }],
       },
     ];
 
