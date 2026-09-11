@@ -6,11 +6,11 @@ export default {
     icon: '.template-option .icon-application_blueprint',
   },
   unfurl_testbed: {
-    text: s__('ProjectTemplates|Testbed'),
+    text: s__('ProjectTemplates|Shared Testbed'),
     icon: '.template-option .icon-unfurl_testbed',
   },
   unfurl_dashboard: {
-    text: s__('ProjectTemplates|Dashboard'),
+    text: s__('ProjectTemplates|Home Dashboard'),
     icon: '.template-option .icon-unfurl_dashboard',
   },
   terraform_blueprint: {

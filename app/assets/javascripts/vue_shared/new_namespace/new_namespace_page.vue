@@ -148,7 +148,11 @@ export default {
           <template v-if="hasTextDetails">{{ details }}</template>
           <component :is="details" v-else v-bind="detailProps" />
           <gl-sprintf
-            v-if="activePanel.key === 'template' && showBuiltInProjectTemplates"
+            v-if="
+              activePanel.key === 'template' &&
+              showBuiltInProjectTemplates &&
+              !activePanel.hideTemplateContributionLink
+            "
             :message="$options.i18n.message"
           >
             <template #link="{ content }">

@@ -8,11 +8,11 @@ describe('Unfurl project templates', () => {
         icon: '.template-option .icon-application_blueprint',
       },
       unfurl_testbed: {
-        text: 'Testbed',
+        text: 'Shared Testbed',
         icon: '.template-option .icon-unfurl_testbed',
       },
       unfurl_dashboard: {
-        text: 'Dashboard',
+        text: 'Home Dashboard',
         icon: '.template-option .icon-unfurl_dashboard',
       },
       terraform_blueprint: {

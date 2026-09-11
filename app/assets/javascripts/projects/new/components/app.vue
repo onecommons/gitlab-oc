@@ -25,10 +25,13 @@ const PANELS = [
     key: 'template',
     name: 'create_from_template',
     selector: '#create-from-template-pane',
-    title: s__('ProjectsNew|Create from template'),
+    // OC Change
+    title: s__('ProjectsNew|Create an Unfurl project'),
     description: s__(
-      'ProjectsNew|Create a project pre-populated with the necessary files to get you started quickly.',
+      'ProjectsNew|Create a new deployment dashboard, testbed, or blueprint project.',
     ),
+    // OC Change: the built-in templates are Unfurl's, not GitLab's.
+    hideTemplateContributionLink: true,
     imageSrc: PROJECT_CREATE_FROM_TEMPLATE_SVG_URL,
   },
   {
