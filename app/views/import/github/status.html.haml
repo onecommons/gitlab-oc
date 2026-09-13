@@ -6,6 +6,9 @@
     = sprite_icon('github', size: 24, variant: 'strong')
     %span= _('Import repositories from GitHub')
 
+-# OC Change
+= render_if_exists 'import/github/mirroring_notice'
+
 = render 'import/githubish_status',
   provider: 'github', paginatable: true,
   default_namespace: @namespace,

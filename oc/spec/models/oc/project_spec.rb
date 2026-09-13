@@ -176,4 +176,72 @@ RSpec.describe Project, feature_category: :groups_and_projects do
       end
     end
   end
+
+  describe 'pull mirroring' do
+    let_it_be_with_reload(:project) do
+      create(:project, import_type: 'github', import_url: 'https://github.example.test/team/source.git')
+    end
+
+    def flag_as_mirror(is_mirror: true, mirror_enabled: true)
+      project.build_or_assign_import_data(data: { is_mirror: is_mirror, mirror_enabled: mirror_enabled })
+      project.import_data.save!
+    end
+
+    before do
+      project.record_unfurl_type!(OC::REGULAR_PROJECT)
+    end
+
+    describe '#mirror?' do
+      it 'is true once the import has recorded the request to mirror' do
+        expect(project.mirror?).to be_falsey
+
+        flag_as_mirror
+
+        expect(project.mirror?).to be(true)
+      end
+
+      it 'does not classify the project, because the banner asks this on a GET' do
+        project.custom_attributes.find_by(key: 'unfurl_type').destroy!
+        flag_as_mirror
+
+        expect { expect(project.mirror?).to be_falsey }
+          .not_to change { project.custom_attributes.count }
+      end
+
+      it 'is false for a dashboard, which is imported from a template rather than mirrored' do
+        flag_as_mirror
+        project.record_unfurl_type!(OC::UNFURL_DASHBOARD)
+
+        expect(project.mirror?).to be_falsey
+      end
+    end
+
+    describe '#mirror_enabled?' do
+      it 'follows the setting the repository settings page writes' do
+        flag_as_mirror(mirror_enabled: false)
+
+        expect(project.mirror?).to be(true)
+        expect(project.mirror_enabled?).to be_falsey
+
+        flag_as_mirror
+
+        expect(project.mirror_enabled?).to be(true)
+      end
+    end
+
+    describe '#remove_import_data' do
+      it 'keeps the credentials a mirror needs to go on fetching' do
+        flag_as_mirror
+
+        expect { project.remove_import_data }.not_to change { ProjectImportData.count }
+      end
+
+      it 'removes them from a project that is not a regular project' do
+        flag_as_mirror
+        project.record_unfurl_type!(OC::UNFURL_BLUEPRINT)
+
+        expect { project.remove_import_data }.to change { ProjectImportData.count }.by(-1)
+      end
+    end
+  end
 end

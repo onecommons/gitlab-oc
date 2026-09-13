@@ -7,6 +7,7 @@ module OC
 
       prepended do
         mount ::API::UnfurlAccessToken
+        mount OC::API::ProjectMirror
       end
     end
   end

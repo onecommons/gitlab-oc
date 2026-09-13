@@ -24,7 +24,7 @@ RSpec.describe Import::GithubService, feature_category: :importers do
   end
 
   let(:client) { Gitlab::GithubImport::Client.new(token) }
-  let(:project_double) { instance_double(Project, persisted?: true) }
+  let(:project_double) { instance_double(Project, id: 1, persisted?: true) } # OC Change -- id: the fork's webhook URL names the project
   let(:organization_log_attributes) do
     { Labkit::Fields::GL_ORGANIZATION_ID => user.namespace.organization_id }
   end
@@ -32,6 +32,18 @@ RSpec.describe Import::GithubService, feature_category: :importers do
   subject(:github_importer) { described_class.new(client, user, params) }
 
   before do
+    # OC Change -- the fork's import records the project as a mirror and pins
+    # Auto DevOps on, neither of which these examples are about
+    allow(project_double).to receive_messages(
+      build_or_assign_import_data: nil,
+      import_data: instance_double(ProjectImportData, save!: true),
+      save!: true
+    )
+    allow(project_double).to receive(:auto_devops_enabled=)
+    allow(client).to receive_message_chain(:octokit, :repo).and_return({})
+    allow(client).to receive_message_chain(:octokit, :hooks).and_return([])
+    allow(client).to receive_message_chain(:octokit, :create_hook)
+
     allow(client).to receive_message_chain(:octokit, :rate_limit, :limit)
     allow(client).to receive_message_chain(:octokit, :rate_limit, :remaining).and_return(100)
     allow(Gitlab::GithubImport::Settings).to receive(:new).with(project_double).and_return(settings)

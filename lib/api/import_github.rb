@@ -39,6 +39,8 @@ module API
       optional :timeout_strategy, type: String, values: ::ProjectImportData::TIMEOUT_STRATEGIES,
         desc: 'Strategy for behavior on timeouts'
       optional :pagination_limit, type: Integer, desc: 'Pagination limit', values: 1..100
+      # OC Change -- mirroring by default
+      optional :enable_mirroring, type: Boolean, desc: 'Enable pull mirroring webhook setup', default: true
     end
     route_setting :authorization, permissions: :create_github_import,
       boundaries: [{ boundary_type: :group, boundary_param: :target_namespace }, { boundary_type: :user }]

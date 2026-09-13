@@ -40,6 +40,9 @@ RSpec.describe API::ImportGithub, feature_category: :importers do
     before do
       allow(client).to receive_message_chain(:octokit, :rate_limit)
       allow(client).to receive_message_chain(:octokit, :repository).and_return({ status: 200 })
+      # OC Change -- the fork registers a pull-mirroring webhook after an import
+      allow(client).to receive_message_chain(:octokit, :hooks).and_return([])
+      allow(client).to receive_message_chain(:octokit, :create_hook)
 
       allow(::Gitlab::ApplicationRateLimiter).to receive(:throttled?).and_return(false)
     end

@@ -1,0 +1,4 @@
+-# OC Change -- mirroring by default
+= render Pajamas::AlertComponent.new(variant: :info, dismissible: false, alert_options: { class: 'gl-my-5' }) do |c|
+  - c.with_body do
+    = _('The imported repository will have a webhook configured for pull mirroring. You can disable this in the project repository settings after import.')

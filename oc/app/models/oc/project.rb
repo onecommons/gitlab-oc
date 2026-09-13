@@ -3,6 +3,7 @@
 module OC
   module Project
     extend ActiveSupport::Concern
+    extend ::Gitlab::Utils::Override
 
     prepended do
       # The table is in the CI database and projects is in main, so the
@@ -69,6 +70,28 @@ module OC
 
     def regular_project?
       unfurl_type == OC::REGULAR_PROJECT
+    end
+
+    # OC Change -- pull mirroring
+    # An imported project keeps its credentials, because unsafe_import_url
+    # rebuilds them from import_data and a mirror goes on fetching long after
+    # the import has finished.
+    override :remove_import_data
+    def remove_import_data
+      super unless regular_project?
+    end
+
+    # The import records the request to mirror; there is no `mirror` column in
+    # this edition, because upstream's is gated on an EE feature.
+    #
+    # Reads the recorded type rather than regular_project?, which classifies,
+    # and so writes: the banner and the settings section ask this on a GET.
+    def mirror?
+      import? && recorded_unfurl_type == OC::REGULAR_PROJECT && import_data&.data&.dig('is_mirror')
+    end
+
+    def mirror_enabled?
+      mirror? && import_data&.data&.dig('mirror_enabled')
     end
 
     # Work items sync (issues/MRs mirrored into the gitlab-work-items branch)
