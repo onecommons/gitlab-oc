@@ -158,9 +158,9 @@ export default {
       'Badges|Supported %{docsLinkStart}variables%{docsLinkEnd}: %{placeholders}',
     ),
   },
-  linkExampleUrl: 'https://example.gitlab.com/%{project_path}',
-  imageExampleUrl:
-    'https://example.gitlab.com/%{project_path}/badges/%{default_branch}/pipeline.svg',
+  // OC Change - #183
+  linkExampleUrl: 'https://unfurl.cloud/%{project_path}',
+  imageExampleUrl: 'https://unfurl.cloud/%{project_path}/badges/%{default_branch}/pipeline.svg',
 };
 </script>
 
