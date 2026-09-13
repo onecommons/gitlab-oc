@@ -23,6 +23,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace: :cronjob
+- :name: ci_record_blueprint_deployment
+  :worker_name: Ci::RecordBlueprintDeploymentWorker
+  :feature_category: :continuous_delivery
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :cpu
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: ci_trigger_dashboard_pipeline
   :worker_name: Ci::TriggerDashboardPipelineWorker
   :feature_category: :pipeline_composition

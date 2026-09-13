@@ -25638,6 +25638,22 @@ CREATE SEQUENCE observability_traces_issues_connections_id_seq
 
 ALTER SEQUENCE observability_traces_issues_connections_id_seq OWNED BY observability_traces_issues_connections.id;
 
+CREATE TABLE oc_blueprint_deployments (
+    id bigint NOT NULL,
+    blueprint_project_id bigint NOT NULL,
+    deployed_project_id bigint NOT NULL,
+    finished_at timestamp with time zone NOT NULL
+);
+
+CREATE SEQUENCE oc_blueprint_deployments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_blueprint_deployments_id_seq OWNED BY oc_blueprint_deployments.id;
+
 CREATE TABLE oc_replicated_work_items (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
@@ -37297,6 +37313,8 @@ ALTER TABLE ONLY observability_metrics_issues_connections ALTER COLUMN id SET DE
 
 ALTER TABLE ONLY observability_traces_issues_connections ALTER COLUMN id SET DEFAULT nextval('observability_traces_issues_connections_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_blueprint_deployments ALTER COLUMN id SET DEFAULT nextval('oc_blueprint_deployments_id_seq'::regclass);
+
 ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
 
 ALTER TABLE ONLY onboarding_progresses ALTER COLUMN id SET DEFAULT nextval('onboarding_progresses_id_seq'::regclass);
@@ -41058,6 +41076,9 @@ ALTER TABLE ONLY observability_metrics_issues_connections
 
 ALTER TABLE ONLY observability_traces_issues_connections
     ADD CONSTRAINT observability_traces_issues_connections_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_blueprint_deployments
+    ADD CONSTRAINT oc_blueprint_deployments_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY oc_replicated_work_items
     ADD CONSTRAINT oc_replicated_work_items_pkey PRIMARY KEY (id);
@@ -49264,6 +49285,10 @@ CREATE INDEX index_observability_metrics_issues_connections_on_namespace_id ON o
 CREATE INDEX index_observability_metrics_issues_connections_on_project_id ON observability_metrics_issues_connections USING btree (project_id);
 
 CREATE INDEX index_observability_traces_issues_connections_on_project_id ON observability_traces_issues_connections USING btree (project_id);
+
+CREATE INDEX index_oc_blueprint_deployments_on_blueprint_project_id ON oc_blueprint_deployments USING btree (blueprint_project_id);
+
+CREATE UNIQUE INDEX index_oc_blueprint_deployments_on_deployed_project_and_time ON oc_blueprint_deployments USING btree (deployed_project_id, finished_at);
 
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_issue_id ON oc_replicated_work_items USING btree (issue_id) WHERE (issue_id IS NOT NULL);
 
@@ -61073,6 +61098,9 @@ ALTER TABLE ONLY boards_epic_user_preferences
 ALTER TABLE ai_usage_events
     ADD CONSTRAINT fk_rails_852725a860 FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_blueprint_deployments
+    ADD CONSTRAINT fk_rails_857a3131cc FOREIGN KEY (blueprint_project_id) REFERENCES projects(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY value_stream_dashboard_aggregations
     ADD CONSTRAINT fk_rails_859b4f86f3 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
@@ -61441,6 +61469,9 @@ ALTER TABLE ONLY packages_build_infos
 
 ALTER TABLE ONLY authentication_events
     ADD CONSTRAINT fk_rails_b204656a54 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE ONLY oc_blueprint_deployments
+    ADD CONSTRAINT fk_rails_b2592d8a27 FOREIGN KEY (deployed_project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY merge_trains
     ADD CONSTRAINT fk_rails_b29261ce31 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

@@ -1,0 +1,14 @@
+---
+table_name: oc_blueprint_deployments
+classes:
+- OC::Environments::BlueprintDeployment
+feature_categories:
+- continuous_delivery
+description: One row per successful deployment of a blueprint, so a blueprint's
+  deploy count is an indexed lookup rather than a scan of pipeline variables
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_org
+sharding_key:
+  blueprint_project_id: projects
+table_size: small

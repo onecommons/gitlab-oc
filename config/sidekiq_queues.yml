@@ -319,7 +319,9 @@
   - 1
 - - ci_track_pipeline_trigger_events
   - 1
-# OC Change: the fork's dashboard redeploy queue
+# OC Change: the fork's dashboard redeploy and blueprint deployment queues
+- - ci_record_blueprint_deployment
+  - 1
 - - ci_trigger_dashboard_pipeline
   - 1
 - - ci_unlock_pipelines_in_queue

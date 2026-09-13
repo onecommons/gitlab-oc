@@ -10,6 +10,10 @@ module Gitlab
           store.subscribe ::Ci::TriggerDashboardPipelineWorker,
             to: ::Ci::PipelineFinishedEvent,
             if: ->(event) { event.data[:status] == 'success' }
+
+          store.subscribe ::Ci::RecordBlueprintDeploymentWorker,
+            to: ::Ci::PipelineFinishedEvent,
+            if: ->(event) { event.data[:status] == 'success' }
         end
       end
     end

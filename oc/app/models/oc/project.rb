@@ -72,6 +72,13 @@ module OC
       unfurl_type == OC::REGULAR_PROJECT
     end
 
+    # OC Change -- how many times this blueprint has been deployed. Recorded as
+    # deployments finish rather than counted from pipeline variables, which are
+    # not indexed by value; see OC::Environments::BlueprintDeployment.
+    def blueprint_deployment_count
+      ::OC::Environments::BlueprintDeployment.for_blueprint(self).count
+    end
+
     # OC Change -- pull mirroring
     # An imported project keeps its credentials, because unsafe_import_url
     # rebuilds them from import_data and a mirror goes on fetching long after
