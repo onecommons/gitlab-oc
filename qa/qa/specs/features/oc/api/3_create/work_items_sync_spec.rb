@@ -151,17 +151,21 @@ module QA
     end
 
     # API only: the screenshot the framework takes on failure would start a
-    # browser to photograph nothing.
-    before do
+    # browser to photograph nothing. capybara-screenshot hooks in through
+    # RSpec.configure, so its after(:each) runs *after* a group-level one --
+    # restoring the flag there would be too late. Context scope brackets both.
+    before(:context) do
       Capybara::Screenshot.autosave_on_failure = false
+    end
 
+    after(:context) do
+      Capybara::Screenshot.autosave_on_failure = true
+    end
+
+    before do
       enable_sync
       issue
       wait_for_branch
-    end
-
-    after do
-      Capybara::Screenshot.autosave_on_failure = true
     end
 
     it 'publishes this project own items onto the branch',
