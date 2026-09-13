@@ -331,11 +331,42 @@ upstream adds later. What is not obvious about them:
   dumps `db/structure.sql`; a `pg_dump` of another major version (Homebrew's,
   say) aborts that last step after the migration has run. Reverting is per
   database: `db:migrate:down:main VERSION=<version>`, then `ci` and `sec`.
-- **Take only your own statements from the dump.** Postgres 17's `pg_dump`
-  orders partitioned tables differently from the version upstream dumps with,
-  so the dump moves hundreds of unrelated lines. Keep the committed file and
-  insert your table's statements where the dump puts them relative to their
-  neighbours; commit the `db/schema_migrations/<version>` marker as written.
+- **Commit the dump as written — do not hand-pick statements.** An earlier
+  revision of this bullet said Postgres 17's `pg_dump` reorders partitioned
+  tables and moves hundreds of unrelated lines, so you had to insert your
+  statements by hand. Measured on 2026-09-13 that is not what happens:
+  `oc_blueprint_deployments` produced 31 insertions in 6 regions and nothing
+  else. The whole diff was the new table, its sequence, its default, its
+  primary key, its two indexes and its two foreign keys.
+
+  The reason is what the dump reads. `db:schema:dump` dumps a *database*, not
+  your migrations, and the **test** databases are built by loading
+  `structure.sql`, so their contents are the committed schema plus your
+  migration — exactly the right input. The *development* database is not:
+  this GDK's was created on `master` before the branch was cut, so it carries
+  167 migrations that do not exist on the branch, and dumping it produces a
+  diff full of things you did not do. That is what made this look
+  non-deterministic. It is not; the input was simply wrong.
+
+  So, with mise's `postgres` bin on `PATH` for a matching `pg_dump`:
+
+  ```bash
+  RAILS_ENV=test bin/rake db:migrate db:schema:dump
+  git diff --stat db/structure.sql   # expect only your table
+  ```
+
+  Check the diff before committing it. If it does contain unrelated churn,
+  the test databases have drifted from `structure.sql` — rebuild them with
+  `RAILS_ENV=test bin/rake db:drop db:create db:schema:load` rather than
+  editing the file by hand.
+
+- **Two upstream guard specs cannot pass in this edition, and neither is
+  about your table.** `spec/db/schema_spec.rb`'s jsonb-validator example fails
+  for ~30 `ApplicationSetting` columns whose `JsonSchemaValidator` is declared
+  in `ee/app/models/ee/application_setting.rb`, and `rake
+  gitlab:permissions:validate` aborts on EE permission definition files. Both
+  are EE code that never loads here. Check a failure names *your* table before
+  chasing it.
 
 ### Project templates
 
