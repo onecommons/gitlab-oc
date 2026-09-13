@@ -3,9 +3,12 @@
 module QA
   module Resource
     class ProjectImportedFromGithub < Resource::Project
+      # OC Change -- enable_mirroring: the fork pull-mirrors an import by
+      # default, and QA has to be able to ask it not to
       attr_accessor :full_notes_import,
         :attachments_import,
-        :allow_partial_import
+        :allow_partial_import,
+        :enable_mirroring
 
       attribute :github_repo_id do
         github_client.repository(github_repository_path).id
@@ -60,6 +63,7 @@ module QA
           target_namespace: @personal_namespace || group.full_path,
           personal_access_token: github_personal_access_token,
           ci_cd_only: false,
+          enable_mirroring: enable_mirroring, # OC Change -- compact drops it, so the server default applies
           optional_stages: {
             single_endpoint_notes_import: full_notes_import,
             attachments_import: attachments_import

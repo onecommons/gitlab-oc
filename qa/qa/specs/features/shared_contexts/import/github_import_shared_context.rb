@@ -6,7 +6,8 @@ module QA
 
     let(:import_wait_duration) { 240 }
 
-    let!(:github_repo) { "#{github_username}/import-test" }
+    # OC Change -- a local run points at a repository its own account owns
+    let!(:github_repo) { ENV.fetch('QA_GITHUB_IMPORT_REPOSITORY', "#{github_username}/import-test") }
     let!(:api_client) { Runtime::API::Client.as_admin }
 
     let!(:group) do
@@ -41,6 +42,8 @@ module QA
     let(:mocks_path) { Runtime::Path.fixture("mocks", "import") }
 
     before do
+      Runtime::Env.require_github_access_token! unless smocker_host # OC Change
+
       set_mocks
       group.add_member(user, Resource::Members::AccessLevel::MAINTAINER)
     end

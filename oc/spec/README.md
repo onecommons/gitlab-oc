@@ -97,8 +97,11 @@ are interpolated with `format()`, so a literal `%` must be written `%%`.
 ## QA tests
 
 The end-to-end tests under `qa/qa/specs/features/oc/` use the separate `qa/`
-bundle against a running GitLab instance. This port has one so far, for work
-items sync. It drives a real `git push` and reads back what Git printed, which
+bundle against a running GitLab instance. There are three: work items sync,
+and two for GitHub pull mirroring (see [GitHub pull mirroring](#github-pull-mirroring)
+below, which needs a GitHub account of your own).
+
+The work items sync one drives a real `git push` and reads back what Git printed, which
 is the only place three things can be checked at all: that a rejected
 `sync.yml` reaches the pusher with Gitaly's `GitLab:` prefix on it, that an
 accepted one prints its summary, and that the worker chain (push →
@@ -156,6 +159,56 @@ Anything that is not a number of seconds at least zero is ignored in favour
 of the ten-second default, so a typo makes the suite slow rather than
 silently turning the coalescing off. Put it back when you are done: with no
 delay at all, nothing about the coalescing behaviour is being exercised.
+
+### GitHub pull mirroring
+
+`qa/specs/features/oc/api/1_manage/import/github_mirroring_opt_out_spec.rb` and
+`qa/specs/features/oc/browser_ui/1_manage/import/github_pull_mirroring_spec.rb`
+import a real repository from a real GitHub account, so they need one:
+
+- `QA_GITHUB_ACCESS_TOKEN` — a GitHub personal access token with `repo` scope
+  (classic; fine-grained tokens are not supported by the importer). Create it
+  yourself at <https://github.com/settings/tokens>, pass it in the environment
+  of the run, and revoke it afterwards. Do not put it in a file, shell history,
+  or committed configuration.
+- `QA_GITHUB_IMPORT_REPOSITORY` — optional. Defaults to the fork's fixture,
+  `aszs/gitlab-qa-import-fixture`; set it to `owner/name` of any other
+  repository the token can read and create webhooks on. (Upstream's own
+  default, `gitlab-qa-github/import-test`, belongs to GitLab's QA account and
+  cannot be used here.)
+
+Export the token in the shell you run from — `read -rs QA_GITHUB_ACCESS_TOKEN
+&& export QA_GITHUB_ACCESS_TOKEN` keeps it out of shell history — and revoke it
+when you are done:
+
+```bash
+cd qa
+QA_GITLAB_URL=http://gdk.test:3000 \
+bundle exec rspec qa/specs/features/oc/api/1_manage/import/github_mirroring_opt_out_spec.rb
+```
+
+The browser one additionally needs ChromeDriver, and it exercises the fork's
+repository-settings section end to end: the checkbox off and on again, and the
+**Fetch Latest** button.
+
+Both pass (2026-09-13). Four things the first live run needed, all of which
+will bite again on a fresh machine:
+
+- A stale `/usr/local/bin/chromedriver` (Homebrew cask, 2022) shadows Selenium
+  Manager, which only downloads a matching driver when `PATH` has none. Symptom
+  is `session not created: This version of ChromeDriver only supports Chrome
+  version 104`. Remove it: `brew uninstall --cask chromedriver`.
+- `ApplicationSetting.current` must be valid, or `ImportSource.enable('github')`
+  fails with a 400 naming `rate_limits`/`importers`/`default_profile_preferences`
+  and no spec can start. This GDK's database was migrated by a newer checkout
+  than the branch, leaving settings keys the 19.3 schemas reject; see the
+  toolchain notes.
+- The token can come from the GitHub CLI -- `QA_GITHUB_ACCESS_TOKEN="$(gh auth
+  token)"` -- which avoids creating and revoking a PAT by hand. It needs `repo`
+  scope, which covers repository webhooks.
+- The browser spec creates a real webhook on the fixture repo per run, pointing
+  at `gdk.test:3000`, which GitHub cannot reach. They accumulate, and GitHub
+  caps a repository at 20. Prune them occasionally.
 
 There is no CI job for the QA suite in this port yet.
 
