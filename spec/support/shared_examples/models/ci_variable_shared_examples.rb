@@ -5,7 +5,8 @@ RSpec.shared_examples 'CI variable' do
 
   describe "variable type" do
     it 'defines variable types' do
-      expect(described_class.variable_types).to eq({ "env_var" => 1, "file" => 2 })
+      # OC Change -- unencrypted_var; see Ci::HasVariable#should_encrypt?
+      expect(described_class.variable_types).to eq({ "env_var" => 1, "file" => 2, "unencrypted_var" => 3 })
     end
 
     it "defaults variable type to env_var" do

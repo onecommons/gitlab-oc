@@ -52,6 +52,20 @@ RSpec.describe 'Unfurl deployment trigger', feature_category: :continuous_delive
       stub_pipeline_creation
     end
 
+    # oc-pages sends every deployment variable as unencrypted_var so the
+    # deployment can be found by BLUEPRINT_PROJECT_URL later. The type has to
+    # reach the pipeline, and has to reach it before the value.
+    it 'passes the unencrypted variable type through, ahead of the value' do
+      trigger(variables: [{ key: 'BLUEPRINT_PROJECT_URL', variable_type: 'unencrypted_var',
+                            secret_value: 'https://unfurl.cloud/onecommons/std.git' }])
+
+      attributes = captured[:params][:variables_attributes]
+        .find { |a| a[:key] == 'BLUEPRINT_PROJECT_URL' }
+
+      expect(attributes[:variable_type]).to eq('unencrypted_var')
+      expect(attributes.keys.index(:variable_type)).to be < attributes.keys.index(:value)
+    end
+
     it 'runs the pipeline as the bot and passes the delay as START_IN' do
       trigger(schedule: '3 weeks', variables: [{ key: 'DEPLOY_TARGET', variable_type: 'env_var',
                                                  secret_value: 'production' }])

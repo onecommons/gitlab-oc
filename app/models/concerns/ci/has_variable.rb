@@ -26,6 +26,7 @@ module Ci
       scope :order_key_desc, -> { reorder(key: :desc) }
 
       attr_encrypted :value,
+        if: :should_encrypt?, # OC Change
         mode: :per_attribute_iv_and_salt,
         insecure_mode: true,
         key: :db_key_base,
@@ -33,6 +34,12 @@ module Ci
 
       def key=(new_key)
         super(new_key.to_s.strip)
+      end
+
+      # OC Change -- deployment metadata oc-pages needs to query by value is
+      # stored in the clear; anything carrying a credential stays env_var.
+      def should_encrypt?
+        variable_type != 'unencrypted_var'
       end
     end
 
