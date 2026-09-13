@@ -23,6 +23,11 @@ module OC
     def render_unfurl_dashboard
       @readme_contents = unfurl_dashboard_readme
 
+      # oc-pages' share-resource-toggle reads this off gon, not off the mount
+      # point's dataset. Set here rather than in add_gon_variables so an
+      # instance CI variable is not handed to every page on the instance.
+      gon.openCloudPublish = open_cloud_publish_request
+
       # Every dashboard view is one page as far as the bundler is concerned,
       # whichever controller and action rendered it. _head.html.haml passes
       # this to webpack_controller_bundle_tags.
