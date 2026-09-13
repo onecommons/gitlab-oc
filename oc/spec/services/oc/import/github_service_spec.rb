@@ -53,7 +53,17 @@ RSpec.describe Import::GithubService, feature_category: :importers do
     expect(octokit).not_to receive(:create_hook)
 
     expect(service.execute({}, :gitea)[:status]).to eq(:success)
-    expect(project.reload.import_data.data).not_to include('webhook_type')
+
+    # Not flagged either. A project marked as a mirror that nothing mirrors
+    # tells the user their pushes are discarded when they are not, and puts
+    # the webhook endpoints in reach of anyone who can administer it.
+    expect(project.reload.import_data&.data.to_h)
+      .not_to include('is_mirror', 'mirror_enabled', 'webhook_type')
+  end
+
+  it 'still pins Auto DevOps on for an import it does not mirror' do
+    expect(service.execute({}, :gitea)[:status]).to eq(:success)
+    expect(project.reload.auto_devops_enabled?).to be(true)
   end
 
   it 'warns, rather than failing the import, when the webhook cannot be created' do
