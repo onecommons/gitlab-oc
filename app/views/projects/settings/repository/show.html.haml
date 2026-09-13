@@ -13,7 +13,11 @@
   = render_if_exists "projects/push_rules/index"
 
 - if can?(current_user, :admin_project, @project)
-  = render "projects/mirrors/mirror_repos"
+  -# OC Change #906 -- the fork's own section for a pull mirror
+  - if @project.mirror?
+    = render 'projects/mirrors/mirror_pull_info'
+  - else
+    = render "projects/mirrors/mirror_repos"
   -# OC Change
   = render_if_exists 'projects/work_items_sync/settings'
 

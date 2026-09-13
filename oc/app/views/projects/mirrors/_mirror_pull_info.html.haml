@@ -1,0 +1,27 @@
+-# OC Change #906 -- pull mirroring indication
+-# Replaces upstream's push-mirror section on a project that is a pull mirror:
+-# one checkbox to stop and start it, and a button to fetch now.
+- upstream_url = @project.safe_import_url(masked: false).delete_suffix('.git')
+
+= render ::Layouts::SettingsBlockComponent.new(_('Mirroring repositories'),
+  id: 'js-push-remote-settings',
+  testid: 'mirroring-repositories-settings-content',
+  css_class: 'project-mirror-settings',
+  expanded: expanded_by_default?) do |c|
+  - c.with_description do
+    = _('This repository is configured as a mirror of')
+    = succeed '.' do
+      = link_to upstream_url, upstream_url, target: '_blank', rel: 'noopener noreferrer'
+  - c.with_body do
+    = render Pajamas::AlertComponent.new(variant: :info, dismissible: false, title: _('Upstream Info'), alert_options: { class: 'gl-mb-5' }) do |alert|
+      - alert.with_body do
+        = _('This will trigger a pipeline on the default branch, if it was updated.')
+      - alert.with_actions do
+        = render Pajamas::ButtonComponent.new(href: update_now_project_mirror_path(@project), method: :post, form: true, variant: :confirm, button_options: { data: { testid: 'fetch-latest-button' } }) do
+          = _('Fetch Latest')
+
+    = gitlab_ui_form_for @project, url: project_mirror_path(@project), html: { class: 'gl-show-field-errors' } do |f|
+      %div= form_errors(@project)
+      = f.gitlab_ui_checkbox_component :mirror_enabled?, _('Enable continuous mirroring'),
+        help_text: _('If enabled, this repo will automatically fetch all changes pushed to the upstream repo.')
+      = f.submit _('Save changes'), pajamas_button: true, data: { testid: 'mirror-repository-button' }

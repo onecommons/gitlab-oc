@@ -8,6 +8,9 @@
 
 = render partial: 'flash_messages', locals: { project: @project }
 
+-# OC Change
+= render_if_exists 'projects/mirroring_banner', project: @project
+
 = render 'clusters_deprecation_alert'
 = render "projects/last_push"
 

@@ -1,0 +1,11 @@
+-# OC Change #906 -- a mirrored project says so, the way GitHub marks an archived one
+- if project.mirror?
+  - upstream_url = project.safe_import_url(masked: false).delete_suffix('.git')
+
+  = render Pajamas::AlertComponent.new(variant: :info, dismissible: false, alert_options: { class: 'gl-my-3' }) do |c|
+    - c.with_body do
+      .gl-text-center
+        = _('This repository is a mirror of')
+        = succeed '.' do
+          = link_to upstream_url, upstream_url, target: '_blank', rel: 'noopener noreferrer'
+        = _('Direct pushes to this repo will be discarded.')
