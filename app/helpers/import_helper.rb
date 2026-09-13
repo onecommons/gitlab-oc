@@ -61,7 +61,8 @@ module ImportHelper
   end
 
   def import_github_authorize_message
-    s_('GithubImport|To import GitHub repositories, you must first authorize GitLab to access your GitHub repositories.')
+    # OC Change
+    s_('GithubImport|To import GitHub repositories, you must first authorize Unfurl Cloud to access your GitHub repositories.')
   end
 
   def import_configure_github_admin_message

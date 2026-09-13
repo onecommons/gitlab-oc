@@ -191,7 +191,8 @@ export default {
               {{ fromHeaderText }}
             </th>
             <th class="gl-w-1/2">
-              {{ __('To GitLab') }}
+              <!-- OC Change -->
+              {{ __('To Unfurl Cloud') }}
             </th>
             <th>
               {{ __('Status') }}
