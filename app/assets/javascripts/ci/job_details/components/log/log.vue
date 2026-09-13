@@ -30,6 +30,10 @@ export default {
     },
   },
   mounted() {
+    // OC Change - oc-pages' console-wrapper scrolls #console-container itself;
+    // scrolling the window here fights it and yanks the dashboard page
+    if (this.$el.closest('#console-container')) return;
+
     if (window.location.hash) {
       const lineNumber = getLocationHash();
 

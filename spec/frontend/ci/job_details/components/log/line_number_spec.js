@@ -29,7 +29,8 @@ describe('Job Log Line Number', () => {
     expect(wrapper.attributes().id).toBe('L1');
   });
 
-  it('links to the provided path with line number as anchor', () => {
-    expect(wrapper.attributes().href).toBe(`${data.path}#L1`);
+  // OC Change - hash-only: the log is embedded in the dashboard's console
+  it('links to the line number as a hash-only anchor', () => {
+    expect(wrapper.attributes().href).toBe('#L1');
   });
 });

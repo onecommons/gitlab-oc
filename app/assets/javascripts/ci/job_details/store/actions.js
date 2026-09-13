@@ -178,6 +178,9 @@ export const scrollTop = () => {
 };
 
 export const scrollBottom = () => {
+  // OC Change - see log.vue: the dashboard's console owns its own scrolling
+  if (document.getElementById('console-container')) return;
+
   scrollDown();
 };
 

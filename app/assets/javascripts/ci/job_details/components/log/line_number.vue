@@ -15,10 +15,12 @@ export default normalizeRender({
     },
   },
   render(h, { props }) {
-    const { lineNumber, path } = props;
+    // OC Change - hash-only href: the log is embedded in the dashboard's
+    // console, where a full path would navigate away from it
+    const { lineNumber } = props;
 
     const lineId = `L${lineNumber}`;
-    const lineHref = `${path}#${lineId}`;
+    const lineHref = `#${lineId}`;
 
     return h(
       'a',

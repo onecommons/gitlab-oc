@@ -83,7 +83,8 @@ describe('Job Log', () => {
         const w = findLineNumbers().at(i);
 
         expect(w.text()).toBe(`${i + 1}`);
-        expect(w.attributes('href')).toBe(`${mockPagePath}#L${i + 1}`);
+        // OC Change - the fork emits a hash-only href; see line_number.vue
+        expect(w.attributes('href')).toBe(`#L${i + 1}`);
       }
     });
   });
