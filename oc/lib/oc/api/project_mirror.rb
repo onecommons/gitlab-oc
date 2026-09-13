@@ -66,6 +66,20 @@ module OC
             ::Gitlab::ProjectTemplate.find(:unfurl_dashboard)&.clone_url
         end
 
+        # Managing the hook mints or clears the secret that authenticates every
+        # later fetch, so it takes the same permission as the mirror settings
+        # page. user_project alone only proves the caller can *read*, which on
+        # a public project is everyone.
+        def authorize_manage_mirror_hook!
+          authenticate!
+          # rubocop:disable Gitlab/Authz/PermissionCheck -- this is upstream's own
+          # permission for managing a project's mirrors, enforced identically by
+          # Projects::MirrorsController#check_mirror_available!; neither CE nor EE
+          # defines a granular alternative.
+          authorize! :admin_remote_mirror, user_project
+          # rubocop:enable Gitlab/Authz/PermissionCheck
+        end
+
         # A signature-validated delivery carries no CSRF token, and does not
         # need one.
         def verified_request?
@@ -138,6 +152,8 @@ module OC
           requires :personal_access_token, type: String, desc: 'Github personal access token'
         end
         post ":id/mirror/hook/github" do
+          authorize_manage_mirror_hook!
+
           result = OC::Repositories::PullMirrors::Webhook::GithubService
             .new(user_project, gh_client, repo_name: user_project.import_source)
             .execute(:create)
@@ -148,6 +164,8 @@ module OC
           requires :personal_access_token, type: String, desc: 'Github personal access token'
         end
         delete ":id/mirror/hook/github" do
+          authorize_manage_mirror_hook!
+
           result = OC::Repositories::PullMirrors::Webhook::GithubService
             .new(user_project, gh_client, repo_name: user_project.import_source)
             .execute(:delete)
@@ -156,9 +174,13 @@ module OC
         end
 
         post ":id/mirror/hook/manual" do
+          authorize_manage_mirror_hook!
+
           present_hook(OC::Repositories::PullMirrors::Webhook::ManualService.new(user_project).execute(:create))
         end
         delete ":id/mirror/hook/manual" do
+          authorize_manage_mirror_hook!
+
           present_hook(OC::Repositories::PullMirrors::Webhook::ManualService.new(user_project).execute(:delete))
         end
       end

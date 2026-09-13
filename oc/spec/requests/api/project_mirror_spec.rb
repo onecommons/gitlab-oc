@@ -8,7 +8,7 @@ RSpec.describe 'GitHub pull-mirror webhooks', feature_category: :source_code_man
   let(:webhook_token) { 'test-webhook-token' }
   let(:payload) { Gitlab::Json.dump(ref: 'refs/heads/main') }
   let(:signature) { "sha256=#{OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha256'), webhook_token, payload)}" }
-  let(:repository) { instance_double(Repository) }
+  let(:repository) { instance_double(Repository, empty?: false, root_ref: 'main') }
 
   before do
     project.update!(import_type: 'github', import_url: 'https://github.example.test/team/source.git')
@@ -90,6 +90,82 @@ RSpec.describe 'GitHub pull-mirror webhooks', feature_category: :source_code_man
 
     expect(response).to have_gitlab_http_status(:created)
     expect(json_response['currently_mirroring']).to be(false)
+  end
+
+  # Minting the secret is what authenticates every later fetch, and a fetch
+  # creates a pipeline. On a public project user_project proves only that the
+  # caller can read, so without an explicit check these endpoints are open.
+  describe 'managing the webhook' do
+    let(:outsider) { create(:user) }
+
+    before do
+      project.update!(visibility_level: Gitlab::VisibilityLevel::PUBLIC)
+    end
+
+    it 'refuses an anonymous caller, though a public project is readable by one' do
+      post api("/projects/#{project.id}/mirror/hook/manual")
+
+      expect(response).to have_gitlab_http_status(:unauthorized)
+    end
+
+    it 'refuses a signed-in user who cannot administer the project' do
+      post api("/projects/#{project.id}/mirror/hook/manual", outsider)
+
+      expect(response).to have_gitlab_http_status(:forbidden)
+    end
+
+    # The permission is mirror_available-gated, exactly as upstream's own
+    # Projects::MirrorsController#check_mirror_available! already is, so the
+    # fork's settings section and these endpoints go away together.
+    it 'refuses even the owner when the instance has mirroring switched off' do
+      stub_application_setting(mirror_available: false)
+
+      post api("/projects/#{project.id}/mirror/hook/manual", project.first_owner)
+
+      expect(response).to have_gitlab_http_status(:forbidden)
+    end
+
+    it 'lets an administrator of the project mint the secret and clear it again' do
+      post api("/projects/#{project.id}/mirror/hook/manual", project.first_owner)
+
+      expect(response).to have_gitlab_http_status(:created)
+      expect(json_response['secret']).to be_present
+      expect(project.reload.import_data.credentials[:webhook_token]).to eq(json_response['secret'])
+
+      delete api("/projects/#{project.id}/mirror/hook/manual", project.first_owner)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(project.reload.import_data.credentials[:webhook_token]).to be_nil
+    end
+  end
+
+  # The fetch endpoint waives CSRF because a signed delivery carries no token.
+  # That waiver is scoped by route, and nothing else proves it stays scoped.
+  describe 'the CSRF waiver', :allow_forgery_protection do
+    let(:head_commit) { instance_double(Commit, id: 'session-fetch-sha') }
+
+    it 'lets a session-authenticated caller fetch without a CSRF token' do
+      stub_loaded_project
+      allow(repository).to receive(:fetch_as_mirror).with(project.unsafe_import_url, forced: true)
+      allow(repository).to receive_messages(commit: head_commit, head_commit: head_commit)
+      login_as(project.first_owner)
+
+      post api("/projects/#{project.id}/mirror/fetch")
+
+      expect(response).to have_gitlab_http_status(:created)
+      expect(json_response['new_head_commit']).to eq('session-fetch-sha')
+    end
+
+    # Read with the example above, which is the control: the same session, with
+    # no CSRF token either, is accepted on the fetch route. So this 401 is the
+    # waiver not applying, rather than session auth not working here at all.
+    it 'does not waive it for the webhook management endpoints' do
+      login_as(project.first_owner)
+
+      post api("/projects/#{project.id}/mirror/hook/manual")
+
+      expect(response).to have_gitlab_http_status(:unauthorized)
+    end
   end
 
   it 'answers a ping delivery without fetching' do
