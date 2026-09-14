@@ -96,7 +96,10 @@ module Projects
       role.update(role_arn: provider.role_arn, region: provider.region)
 
       render json: represent(provider)
-    rescue ::Aws::Errors::MissingCredentialsError, ::Aws::Errors::ServiceError => error
+    # A timeout reaching STS is a NetworkingError rather than a ServiceError,
+    # and is the user's answer to give up on or retry, not a 500.
+    rescue ::Aws::Errors::MissingCredentialsError, ::Aws::Errors::ServiceError,
+      ::Seahorse::Client::NetworkingError => error
       render_error(error.message)
     end
 

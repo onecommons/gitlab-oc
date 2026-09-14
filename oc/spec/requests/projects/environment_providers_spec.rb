@@ -98,6 +98,17 @@ RSpec.describe 'Environment cloud providers', feature_category: :continuous_deli
       expect(environment.reload.unfurl_provider).to be_nil
     end
 
+    it 'reports a timeout reaching AWS rather than failing the request' do
+      allow(Aws::AssumeRoleCredentials).to receive(:new).and_raise(
+        Seahorse::Client::NetworkingError.new(Timeout::Error.new)
+      )
+
+      put base, params: params
+
+      expect(response).to have_gitlab_http_status(:unprocessable_entity)
+      expect(json_response['message']).to be_present
+    end
+
     it 'rejects a malformed role arn without calling AWS' do
       put base, params: params.merge(role_arn: 'not-an-arn')
 
