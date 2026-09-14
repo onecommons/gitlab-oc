@@ -31,6 +31,9 @@ RSpec.describe 'Help pages from oc/doc', feature_category: :source_code_manageme
       expect(response.body).to include('Google Cloud Platform').and include('Amazon Web Services')
       # The footer the fork's help layout adds under upstream's application layout.
       expect(response.body).to include('support@unfurl.cloud')
+      # docs_bundle binds Mousetrap to these without a null check; dropping
+      # them makes the page raise on load.
+      expect(response.body).to include('js-trigger-search-bar').and include('js-trigger-shortcut')
     end
 
     it 'serves a guide the landing page links to' do

@@ -32,3 +32,13 @@
   - if @developer_guide.present?
     .documentation-index.md
       = markdown(@developer_guide)
+
+  -# Upstream's docs_bundle binds Mousetrap to these two without a null check,
+  -# so this view has to keep them or /help raises on load.
+  %ul.content-list.oc-help-shortcuts
+    %li
+      %button.gl-button.btn-link.js-trigger-search-bar{ type: 'button' }
+        = _('Use the search bar at the top of this page')
+    %li
+      %button.gl-button.btn-link.js-trigger-shortcut{ type: 'button' }
+        = _('Use shortcuts')
