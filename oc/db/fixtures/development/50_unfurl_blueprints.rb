@@ -18,6 +18,11 @@
 # page itself draws from the `UNFURL_CLOUDMAP_JSON` instance CI variable, which
 # seeding the repository does not set.
 #
+# `onecommons/support` is where the dashboard's "Report Issue" action opens a
+# new issue. It is created empty rather than imported: the real project serves
+# its issues publicly but refuses a clone ("You are not allowed to download
+# code from this project"), so an import fails and leaves nothing behind.
+#
 # `onecommons/ci` holds the pipeline every dashboard includes -- a dashboard's
 # whole .gitlab-ci.yml is `include: project: onecommons/ci`. Without it no
 # deployment can start: Ci::CreatePipelineService fails to resolve the include
@@ -36,6 +41,15 @@ Gitlab::Seeder.quiet do
 
   user = User.admins.first
 
+  find_or_create_group = ->(group_path) do
+    Sidekiq::Worker.skipping_transaction_check do
+      Group.find_by_full_path(group_path) || Groups::NestedCreateService.new(
+        user, group_path: group_path, organization_id: user.organization.id,
+        visibility_level: Gitlab::VisibilityLevel::PUBLIC
+      ).execute
+    end
+  end
+
   repositories.each do |url|
     full_path = url.delete_prefix('https://unfurl.cloud/').delete_suffix('.git')
     group_path, _, project_path = full_path.rpartition('/')
@@ -45,12 +59,7 @@ Gitlab::Seeder.quiet do
       next
     end
 
-    group = Sidekiq::Worker.skipping_transaction_check do
-      Group.find_by_full_path(group_path) || Groups::NestedCreateService.new(
-        user, group_path: group_path, organization_id: user.organization.id,
-        visibility_level: Gitlab::VisibilityLevel::PUBLIC
-      ).execute
-    end
+    group = find_or_create_group.call(group_path)
 
     project = Projects::CreateService.new(user,
       import_url: url,
@@ -84,5 +93,23 @@ Gitlab::Seeder.quiet do
     project.refresh_unfurl_type!
 
     print project.reset.empty_repo? ? "F(#{project.import_state&.last_error || 'empty repository'})" : '.'
+  end
+
+  support_path = 'onecommons/support'
+
+  if Project.find_by_full_path(support_path)
+    print 'S'
+  else
+    group_path, _, project_path = support_path.rpartition('/')
+
+    project = Projects::CreateService.new(user,
+      namespace_id: find_or_create_group.call(group_path).id,
+      path: project_path,
+      name: 'Support',
+      description: 'Report a problem with this instance.',
+      visibility_level: Gitlab::VisibilityLevel::PUBLIC
+    ).execute
+
+    print project.persisted? ? '.' : "F(#{project.errors.full_messages.join(', ')})"
   end
 end
