@@ -5,7 +5,25 @@ module OC
   module HelpController
     extend ::Gitlab::Utils::Override
 
+    # The fork's help landing page shows two more documents beside the index.
+    override :index
+    def index
+      super
+
+      @help_index_faqs = oc_markdown('index_faqs.md')
+      @developer_guide = oc_markdown('developer_guide.md')
+    end
+
     private
+
+    # Upstream's own reader, so frontmatter is stripped the same way. Neither
+    # file has a doc/ counterpart, so path_to_doc's fallback cannot fire.
+    def oc_markdown(file_name)
+      path = File.join(Rails.root, 'oc', 'doc', file_name)
+      return unless File.exist?(path)
+
+      markdown_for(path)
+    end
 
     override :path_to_doc
     def path_to_doc(file_name)

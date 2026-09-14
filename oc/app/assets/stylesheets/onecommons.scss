@@ -386,3 +386,78 @@ body {
     }
   }
 }
+
+// OC Change -- the help landing page's "deploy your first app" tiles and the
+// contact footer under every help page. Surfaces read design tokens rather
+// than the fork's old hardcoded greys, so dark mode needs no counterpart.
+.uf-cards {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 15px;
+  padding: 10px 0;
+  margin-bottom: 15px;
+
+  @media (max-width: 415px) {
+    justify-content: center;
+  }
+
+  a,
+  a:hover,
+  a:visited,
+  a:active {
+    text-decoration: none;
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 230px;
+    height: 10rem;
+    padding: 18% 1.2rem 1.2rem;
+    border: 1px solid var(--gl-border-color-default);
+    border-radius: 10px;
+    background-color: var(--gl-background-color-subtle);
+
+    @media (max-width: 415px) {
+      margin-bottom: 15px;
+    }
+
+    &:hover {
+      background-color: $uf-bg-light;
+      box-shadow: 0 0 15px $uf-primary-teal;
+    }
+
+  }
+
+  .card-text {
+    height: auto;
+    font-size: 1rem;
+    color: var(--gl-text-color-default);
+
+    p {
+      margin-bottom: 5px;
+    }
+  }
+
+  .unfurl-logo {
+    display: flex;
+    justify-content: right;
+    width: 100%;
+    margin: 10px 10px 5px 0;
+
+    img {
+      height: 35px;
+    }
+  }
+}
+
+.uf-help-footer {
+  margin: 0 auto;
+  padding: 1rem 0;
+  text-align: center;
+
+  .uf-help-footer-logo img {
+    height: 30px;
+  }
+}

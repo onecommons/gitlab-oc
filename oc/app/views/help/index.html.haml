@@ -1,0 +1,34 @@
+-# OC Change -- the fork's own help landing page, from oc/doc rather than doc/.
+.md-container
+  .md
+    %h2= _('Help Center')
+    #version
+      %b= _('Current Version: ')
+      %span= Gitlab.revision
+
+  .documentation-index.md
+    = markdown(@help_index)
+
+  .uf-cards
+    = link_to help_page_path('guides/getting_started_gcp') do
+      .main
+        .card-text
+          %strong= _('Deploy your first app:')
+          %p= _('Google Cloud Platform')
+        .unfurl-logo
+          %img{ alt: _('Google Cloud Platform logo'), src: '/-/oc/assets/images/google-cloud-logo.png' }
+    = link_to help_page_path('guides/getting_started_aws') do
+      .main
+        .card-text.sm
+          %strong= _('Deploy your first app:')
+          %p= _('Amazon Web Services')
+        .unfurl-logo
+          %img{ alt: _('Amazon Web Services logo'), src: '/-/oc/assets/images/aws_logo.svg' }
+
+  - if @help_index_faqs.present?
+    .documentation-index.md
+      = markdown(@help_index_faqs)
+
+  - if @developer_guide.present?
+    .documentation-index.md
+      = markdown(@developer_guide)

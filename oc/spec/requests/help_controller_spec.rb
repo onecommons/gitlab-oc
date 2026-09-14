@@ -22,6 +22,23 @@ RSpec.describe 'Help pages from oc/doc', feature_category: :source_code_manageme
       expect(response.body).to include('gitlab-work-items')
     end
 
+    it 'serves the fork help landing page, with its guides and contact footer' do
+      get help_path
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.body).to include('Help Center')
+      # The two getting-started tiles, from oc/doc/guides.
+      expect(response.body).to include('Google Cloud Platform').and include('Amazon Web Services')
+      # The footer the fork's help layout adds under upstream's application layout.
+      expect(response.body).to include('support@unfurl.cloud')
+    end
+
+    it 'serves a guide the landing page links to' do
+      get help_page_path('guides/getting_started_gcp.md')
+
+      expect(response).to have_gitlab_http_status(:ok)
+    end
+
     it 'still serves upstream pages' do
       get help_page_path('user/project/repository/mirror/_index.md')
 
