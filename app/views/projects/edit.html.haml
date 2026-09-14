@@ -40,6 +40,9 @@
     - c.with_body do
       = render 'shared/badges/badge_settings'
 
+  -# OC Change #1256 -- the deploy button, for a blueprint
+  = render_if_exists 'projects/deployment_status/settings_block', expanded: expanded_by_default?
+
   = render 'projects/settings/gitlab_duo', duo_settings_form_id: duo_settings_form_id
 
   = render_if_exists 'projects/settings/default_issue_template'

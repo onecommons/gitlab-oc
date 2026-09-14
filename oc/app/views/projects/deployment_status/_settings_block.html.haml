@@ -1,0 +1,11 @@
+-# OC Change #1256 -- only a blueprint has anything to deploy from
+- return unless @project.unfurl_blueprint?
+
+= render ::Layouts::SettingsBlockComponent.new(s_('ProjectSettings|Unfurl Deploy Button'),
+  id: 'js-unfurl-badge-settings',
+  testid: 'deploy-badges-settings-content',
+  expanded: expanded) do |c|
+  - c.with_description do
+    = s_("ProjectSettings|Create an embeddable 'Deploy With Unfurl' button for this blueprint.")
+  - c.with_body do
+    = render 'projects/deployment_status/settings'

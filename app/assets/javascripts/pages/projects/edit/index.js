@@ -16,6 +16,8 @@ import initUnarchiveSettings from '~/groups_projects/unarchive';
 import initTopicsTokenSelector from '~/projects/settings/topics';
 import { initProjectNameValidation } from '~/projects/project_name_validation';
 import mountProjectGeneralSettings from '~/projects/settings/mount_project_general_settings';
+// OC Change #1256 -- the deploy button settings form
+import initUnfurlBadgeUrlBuilder from 'oc/pages/projects/edit/uf_badge';
 import { initProjectPermissionsSettings } from '../shared/permissions/init_project_permissions_settings';
 import initGitlabDuoSettings from '../shared/permissions/gitlab_duo_settings';
 import initProjectLoadingSpinner from '../shared/save_project_loader';
@@ -50,3 +52,5 @@ if (mountProjectGeneralSettings()) {
   initProjectNameValidation();
   dirtySubmitFactory(document.querySelectorAll('.js-general-settings-form, .js-mr-settings-form'));
 }
+
+initUnfurlBadgeUrlBuilder(); // OC Change
