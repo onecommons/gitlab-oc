@@ -67,6 +67,15 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
 
     # The dashboard replaces the HTML view only. oc-pages' delete flow reads
     # this endpoint, so the guard that lets JSON through is worth pinning.
+    # A dashboard declares its environments in its Unfurl files, so the list
+    # can link to one that was never created through GitLab.
+    it 'serves an environment the dashboard knows about but GitLab has no row for' do
+      get project_environment_path(project, 'declared-in-unfurl-only')
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.body).to include('js-table-component')
+    end
+
     it 'passes the environments list through as JSON' do
       get project_environments_path(project, format: :json)
 
