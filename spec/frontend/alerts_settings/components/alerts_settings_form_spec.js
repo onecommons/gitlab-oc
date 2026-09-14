@@ -125,11 +125,12 @@ describe('AlertsSettingsForm', () => {
       expect(findMultiSupportText().exists()).toBe(true);
     });
 
-    it('verify pricing link url', async () => {
+    // OC Change - the fork states the limit rather than selling a subscription,
+    // so there is no pricing link left to verify.
+    it('does not link to GitLab pricing', async () => {
       await createComponent({ props: { canAddIntegration: false } });
 
-      const link = findMultiSupportText().findComponent(GlLink);
-      expect(link.attributes('href')).toMatch(/https:\/\/about.gitlab.(com|cn)\/pricing/);
+      expect(findMultiSupportText().findComponent(GlLink).exists()).toBe(false);
     });
 
     describe('form tabs', () => {

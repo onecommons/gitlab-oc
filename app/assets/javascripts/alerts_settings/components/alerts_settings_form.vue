@@ -18,7 +18,7 @@ import {
 import { isEqual, isEmpty, omit } from 'lodash-es';
 import * as Sentry from '~/sentry/sentry_browser_wrapper';
 import ClipboardButton from '~/vue_shared/components/clipboard_button.vue';
-import { PROMO_URL, DOCS_URL } from '~/constants';
+import { DOCS_URL } from '~/constants';
 import {
   integrationTypes,
   integrationSteps,
@@ -136,7 +136,6 @@ export default {
       validationState: {
         name: true,
       },
-      pricingLink: `${PROMO_URL}/pricing`,
     };
   },
   computed: {
@@ -419,14 +418,13 @@ export default {
             autofocus
           />
 
-          <alert-settings-form-help-block
+          <!-- OC Change: states the limit instead of selling a subscription -->
+          <span
             v-if="!canAddIntegration"
-            disabled="true"
-            class="gl-my-4 gl-inline-block"
-            :message="$options.i18n.integrationFormSteps.selectType.enterprise"
-            :link="pricingLink"
+            class="gl-my-4 gl-inline-block gl-text-subtle"
             data-testid="multi-integrations-not-supported"
-          />
+            >{{ $options.i18n.integrationFormSteps.selectType.oneIntegrationPerType }}</span
+          >
         </gl-form-group>
         <div class="gl-mt-3">
           <gl-form-group

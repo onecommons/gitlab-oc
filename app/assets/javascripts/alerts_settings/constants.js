@@ -13,9 +13,8 @@ export const i18n = {
   integrationFormSteps: {
     selectType: {
       label: s__('AlertSettings|Select integration type'),
-      enterprise: s__(
-        'AlertSettings|Free versions of GitLab are limited to one integration per type. To add more, %{linkStart}upgrade your subscription%{linkEnd}.',
-      ),
+      // OC Change: was an upsell to a GitLab subscription, which does not exist here
+      oneIntegrationPerType: s__('AlertSettings|Only one integration of each type can be added.'),
     },
     nameIntegration: {
       label: s__('AlertSettings|Name integration'),
