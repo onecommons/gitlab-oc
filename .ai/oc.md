@@ -226,6 +226,43 @@ ApplicationSetting.current_without_cache.update!(
 )
 ```
 
+A GDK needs two invite codes as well, which production sets to real values.
+Mark both **protected**: in this fork that means a variable reaches no CI job
+at all, and `OC::Onboarding::InviteCodes` reads them through `all_cached`,
+which ignores the flag — so protecting them costs the signup path nothing and
+keeps them out of every tenant's pipeline.
+
+```ruby
+# rails console, continuing from above. 'cypress-e2e' is what the fork's
+# cypress suite signs up with (OC_INVITE_CODE, with OC_USERNAME/OC_PASSWORD
+# unset so it takes the signup path, which is the only one that creates a
+# dashboard).
+invite_codes = {
+  'UNFURL_VALID_INVITE_CODES' => 'cypress-e2e',
+  'UNFURL_APPROVE_MATCHING_CODES' => '\Acypress-e2e\z'  # single-quoted: double quotes eat the backslashes
+}
+
+# with_indifferent_access is not optional: the service looks the record up with
+# attributes[:id] but strips it with except('id'), because it is written for
+# ActionController::Parameters. A plain Hash misses the lookup and tries to
+# create a duplicate key.
+attributes = invite_codes.map do |key, value|
+  { id: ::Ci::InstanceVariable.find_by(key: key)&.id,
+    key: key, value: value, protected: true, masked: false }.compact.with_indifferent_access
+end
+
+service = ::Ci::UpdateInstanceVariablesService.new({ variables_attributes: attributes }, admin)
+raise service.errors.join(', ') unless service.execute
+```
+
+`UNFURL_VALID_INVITE_CODES` on its own looks sufficient and is not. Signup
+succeeds with it and the dashboard project is created, but the user is left
+active with `confirmed_at` NULL, and an unconfirmed user cannot authenticate
+over git HTTP — so anything driving that account fails later, somewhere else.
+`UNFURL_APPROVE_MATCHING_CODES` is what makes `skip_confirmation?` true. It is
+a `Regexp.new` source string, so anchor it: unanchored, any code *containing*
+the pattern is approved.
+
 Four things the 15.11 version of this script got away with and 19.3 does not:
 
 - **`default_branch_protection` is now half-vestigial.** The integer column
