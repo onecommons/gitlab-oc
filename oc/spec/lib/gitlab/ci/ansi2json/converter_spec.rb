@@ -20,7 +20,7 @@ RSpec.shared_examples 'keeps erased Unfurl metadata' do
   it 'hides an erased segment instead of dropping it' do
     lines = convert_json("metadata\e[2K\n")
 
-    expect(lines.first[:content]).to include(hash_including(text: 'metadata', style: 'd-none'))
+    expect(lines.first[:content]).to include(hash_including(text: 'metadata', style: 'gl-hidden'))
   end
 
   it 'leaves ordinary text and styling alone' do

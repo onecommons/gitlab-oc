@@ -56,10 +56,12 @@ module Gitlab
         end
 
         # OC Change: an erased Unfurl metadata section stays in the log,
-        # hidden, so the front end can still read it.
+        # hidden, so the front end can still read it. The class has to be one
+        # 19.3 still ships and one oc-pages' console wrapper matches on --
+        # 15.11's `d-none` is neither, and left the metadata visible.
         def hide_last_segment!
           flush_current_segment!
-          @segments.last&.[]=(:style, 'd-none')
+          @segments.last&.[]=(:style, 'gl-hidden')
         end
 
         def clear!
