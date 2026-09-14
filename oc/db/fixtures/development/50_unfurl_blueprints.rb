@@ -17,6 +17,11 @@
 # `onecommons/cloudmap` is not one either: the sitemap links it. The cloud map
 # page itself draws from the `UNFURL_CLOUDMAP_JSON` instance CI variable, which
 # seeding the repository does not set.
+#
+# `onecommons/ci` holds the pipeline every dashboard includes -- a dashboard's
+# whole .gitlab-ci.yml is `include: project: onecommons/ci`. Without it no
+# deployment can start: Ci::CreatePipelineService fails to resolve the include
+# and the dashboard reports "Failed to trigger deployment".
 require './spec/support/sidekiq_middleware'
 
 Gitlab::Seeder.quiet do
@@ -26,6 +31,7 @@ Gitlab::Seeder.quiet do
     https://unfurl.cloud/onecommons/blueprints/minecraft.git
     https://unfurl.cloud/onecommons/std.git
     https://unfurl.cloud/onecommons/cloudmap.git
+    https://unfurl.cloud/onecommons/ci.git
   ]
 
   user = User.admins.first
