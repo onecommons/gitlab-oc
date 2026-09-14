@@ -24,6 +24,9 @@ constraints(Projects::ProjectUrlConstraint.new) do
         post 'deployments/new', to: 'unfurl_deployments#create', as: :trigger_unfurl_deployment
         get 'applications(/*vueroute)', to: '/projects#applications', as: :unfurl_applications
         # Operator repair for a project whose Unfurl caches have gone stale.
+        # OC Change #88 #1256 -- the public deploy count badge
+        get 'deploybutton', to: '/projects#deploy_status_as_image', as: :deploy_badge
+
         get 'invalidate_cache', to: '/projects#invalidate_cache'
 
         # The projects a dashboard deploys from. Upstream's own subscriptions

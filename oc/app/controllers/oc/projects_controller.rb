@@ -5,20 +5,55 @@ module OC
     extend ActiveSupport::Concern
     extend ::Gitlab::Utils::Override
 
+    # The badge renders one of these four directories of SVG templates. Anything
+    # else is the default, rather than a render of an attacker-chosen path.
+    BADGE_TYPES = %w[default white monochrome mono_inverse].freeze
+
     prepended do
       include ::OC::RendersUnfurlDashboard
 
       feature_category :groups_and_projects, [:overview]
       feature_category :continuous_delivery, [:deployments, :applications]
       feature_category :source_code_management, [:invalidate_cache]
+      feature_category :continuous_delivery, [:deploy_status_as_image]
 
-      skip_before_action :authenticate_user!, only: :overview
+      skip_before_action :authenticate_user!, only: [:overview, :deploy_status_as_image]
+
+      # The badge is embedded on pages outside this instance and answers for a
+      # project named in the path, so it looks the project up itself rather
+      # than through the before_actions -- which is also what keeps 15.11's
+      # three in-place edits to ProjectsController's `except:` lists out of
+      # this port.
+      skip_before_action :project, only: :deploy_status_as_image
+      skip_before_action :repository, only: :deploy_status_as_image
 
       # invalidate_cache is a GET that writes, so an operator can repair a
       # project by visiting a URL. Restricting it to those who could clear
       # these caches by other means keeps that convenience from being
       # something a stray link can trigger.
       before_action :authorize_admin_project!, only: :invalidate_cache
+    end
+
+    # OC Change #88 #1256 -- a public "deploy with Unfurl Cloud" badge, as an
+    # SVG for a README or an HTML document for an iframe.
+    def deploy_status_as_image
+      badge = params.permit(:namespace_id, :project_id, :type, :cloud, :count)
+
+      @project = ::Project.find_by_full_path(File.join(badge[:namespace_id], badge[:project_id]))
+      return head :not_found unless @project&.public?
+
+      @type = badge[:type].presence_in(BADGE_TYPES) || 'default'
+      @template_flags = badge.slice(:cloud, :count).to_h
+      @deployment_count = @project.blueprint_deployment_count
+
+      respond_to do |format|
+        format.svg do
+          @template = @template_flags.keys.join('-').presence || 'default'
+
+          render template: 'projects/deploy_status_as_image', formats: [:svg], layout: nil
+        end
+        format.html { render template: 'projects/deploy_status_as_image', layout: nil }
+      end
     end
 
     # A dashboard project is the oc-pages dashboard app, not a repository page.

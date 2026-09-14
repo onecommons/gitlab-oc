@@ -30,6 +30,8 @@
   link_deployment: "#{project_environments_path(@project)}/folders/review",
   readme_raw: readme&.data,
   cloudmap: cloudmap,
+  deployment_count: @project.blueprint_deployment_count,
+  badge_settings: render('projects/deployment_status/settings'),
   button_star: {
     text: star_text,
     icon: star_icon,

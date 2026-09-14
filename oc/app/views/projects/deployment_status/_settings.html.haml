@@ -1,0 +1,42 @@
+-# OC Change: #1256 unfurl deploy badge button
+:ruby
+  badge_types = [
+    ["Default", "default"],
+    ["White", "white"],
+    ["Monochrome", "monochrome"],
+    ["Mono (inverse)", "mono_inverse"]
+  ]
+  unfurl_badge_url = project_deploy_badge_url(@project, format: 'svg')
+
+= form_with url: '', html: { class: 'fieldset-form', id: 'unfurl-badge-settings' } do |f|
+  .form-group
+    %fieldset.form-group.form-select
+      = f.label :type, s_('UnfurlBadge|Select badge style')
+      = f.select :type, badge_types, {}, class: 'form-control js-uf-badge', id: 'uf-badge-type'
+
+  .form-group
+    %fieldset.form-group.form-check
+      = f.check_box :cloud, class: 'form-check-input js-uf-badge', id: 'uf-badge-cloud'
+      = f.label :cloud, 'Show cloud logos', class: 'label-bold form-check-label'
+      .text-secondary= s_('UnfurlBadge|Show cloud provider icons.')
+
+    %fieldset.form-group.form-check
+      = f.check_box :count, class: 'form-check-input js-uf-badge', id: 'uf-badge-count'
+      = f.label :count, 'Show deployments', class: 'label-bold form-check-label'
+      .text-secondary= s_('UnfurlBadge|Show the current number of blueprint deployments.')
+
+    .form-group
+      = label_tag :badge_url, 'Direct Link', class: 'label-bold'
+      .input-group
+        = text_field_tag :badge_url, unfurl_badge_url, readonly: true, class: 'form-control js-select-on-focus', id: 'js-uf-badge-link', data: { testid: 'unfurl-badge-link-field' }
+        .input-group-append
+          = clipboard_button target: '#js-uf-badge-link', title: _('Copy badge url'), placement: 'left'
+
+    .form-group
+      = label_tag :badge_embed, 'Embeddable HTML', class: 'label-bold'
+      .input-group
+        = text_field_tag :badge_embed, link_to(image_tag(unfurl_badge_url, lazy: false, alt: 'Deploy with Unfurl Cloud').html_safe, project_url(@project)), readonly: true, class: 'form-control js-select-on-focus', id: 'js-uf-badge-embed', data: { testid: 'unfurl-badge-embed-field' }
+        .input-group-append
+          = clipboard_button target: '#js-uf-badge-embed', title: _('Copy badge url'), placement: 'left'
+
+    = link_to(image_tag(unfurl_badge_url, lazy: false, alt: 'Deploy with Unfurl Cloud').html_safe, project_url(@project), id: 'js-uf-badge-img')
