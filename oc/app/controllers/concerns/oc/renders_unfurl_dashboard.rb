@@ -8,7 +8,7 @@ module OC
     extend ActiveSupport::Concern
 
     included do
-      helper_method :open_cloud_publish_request
+      helper_method :open_cloud_publish_request, :unfurl_environment_variables_data
     end
 
     private
@@ -34,6 +34,34 @@ module OC
       @js_action_name = 'oc_dashboard'
 
       render 'projects/dashboard'
+    end
+
+    # What the dashboard's environment page reads off #js-oc-ci-variables: the
+    # variables endpoint, and the cloud account the environment deploys into.
+    #
+    # The CLOUDSDK fallback is for the service-account-key method, which writes
+    # environment-scoped variables and no provider row, as it did in 15.11.
+    def unfurl_environment_variables_data
+      return {} unless @environment
+
+      provider = @environment.unfurl_provider
+
+      {
+        endpoint: project_variables_path(project),
+        project_id: project.id,
+        maskable_regex: helpers.ci_variable_maskable_regex,
+        environment_name: @environment.name,
+        primary_provider_gcp_project_id: provider&.gcp_project || scoped_variable('CLOUDSDK_CORE_PROJECT'),
+        primary_provider_gcp_zone: provider&.zone || scoped_variable('CLOUDSDK_COMPUTE_ZONE'),
+        primary_provider_aws_default_region: provider&.region,
+        primary_provider_aws_role_arn: provider&.role_arn
+      }
+    end
+
+    def scoped_variable(key)
+      project.variables.find do |variable|
+        variable.key == key && variable.environment_scope == @environment.name
+      end&.value
     end
 
     def unfurl_dashboard_readme

@@ -64,6 +64,42 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
       expect(response).to have_gitlab_http_status(:ok)
       expect(response.body).to include('js-table-component')
     end
+
+    # The dashboard replaces the HTML view only. oc-pages' delete flow reads
+    # this endpoint, so the guard that lets JSON through is worth pinning.
+    it 'passes the environments list through as JSON' do
+      get project_environments_path(project, format: :json)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(json_response).to have_key('environments')
+      expect(response.body).not_to include('js-table-component')
+    end
+
+    describe 'the environment page cloud provider box' do
+      it 'carries the provider the environment deploys into' do
+        create(:oc_environment_provider, :gcp, environment: environment, gcp_project: 'unfurl-demo')
+
+        get project_environment_path(project, environment.name)
+
+        expect(response.body).to include('js-oc-ci-variables')
+        expect(response.body).to include('unfurl-demo').and include('us-central1-a')
+      end
+
+      it 'falls back to the environment variables the key-upload method writes' do
+        create(:ci_variable, project: project, key: 'CLOUDSDK_CORE_PROJECT',
+          value: 'from-key-file', environment_scope: environment.name)
+
+        get project_environment_path(project, environment.name)
+
+        expect(response.body).to include('from-key-file')
+      end
+
+      it 'is absent from a page that is not about one environment' do
+        get project_unfurl_deployments_path(project)
+
+        expect(response.body).not_to include('js-oc-ci-variables')
+      end
+    end
   end
 
   context 'when it is an ordinary project' do

@@ -10,3 +10,8 @@
   greeting_name: current_user&.first_name.presence || current_user&.username || _('Guest'),
   open_cloud_publish: open_cloud_publish_request,
   readme: @readme_contents } }
+
+-# The environment page's Variables tab and Cloud Provider box read this one.
+-# 15.11 mounted it from its own environments form, which 19.3 deleted.
+- if @environment
+  #js-oc-ci-variables{ data: unfurl_environment_variables_data }
