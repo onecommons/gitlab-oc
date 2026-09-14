@@ -34,6 +34,21 @@ constraints(Projects::ProjectUrlConstraint.new) do
         resource :subscriptions, only: [:show, :create, :destroy]
 
         resource :work_items_sync, only: [:update], controller: :work_items_sync
+
+        # The cloud account an environment deploys into. Upstream drew the
+        # equivalent forms itself until it deleted the cluster creation page;
+        # the dashboard app draws them now and talks to this. Nothing upstream
+        # routes under environments/:environment_id/provider.
+        scope 'environments/:environment_id', controller: :environment_providers do
+          get 'provider', action: :show, as: :environment_provider
+          put 'provider', action: :update
+          patch 'provider', action: :update
+          delete 'provider', action: :destroy
+
+          get 'provider/aws/role', action: :aws_role, as: :environment_provider_aws_role
+          get 'provider/gcp/authorize', action: :gcp_authorize, as: :environment_provider_gcp_authorize
+          get 'provider/gcp/projects', action: :gcp_projects, as: :environment_provider_gcp_projects
+        end
       end
     end
   end
