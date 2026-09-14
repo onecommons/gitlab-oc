@@ -11,14 +11,33 @@ module OC
     # otherwise, which is what left the fork's sign-in page unbranded beside
     # the form. An instance that sets its own description still wins.
     def custom_sign_in_description
-      return super if current_appearance&.description?
+      return super unless oc_brand_column?
 
       tag.div(class: 'oc-brand-holder') do
         safe_join([
           tag.p(_('Welcome to'), class: 'oc-sign-in-welcome'),
+          oc_wordmark,
           tag.h2(_('The maker space for a better Internet.'), class: 'oc-sign-in-tagline')
         ])
       end
+    end
+
+    # Both variants ship and CSS picks one. A server-side choice cannot work
+    # here: signed-out visitors get the instance default, which is usually the
+    # Auto mode (`gl-system`), where the page follows prefers-color-scheme and
+    # `user_application_dark_mode?` is false however the page actually renders.
+    def oc_wordmark
+      tag.div(class: 'oc-sign-in-logo') do
+        safe_join([
+          image_tag(brand_image_path, alt: brand_title, lazy: false, class: 'oc-logo-light'),
+          image_tag('illustrations/uf-logo-white.svg', alt: '', lazy: false,
+            aria: { hidden: true }, class: 'oc-logo-dark')
+        ])
+      end
+    end
+
+    def oc_brand_column?
+      !current_appearance&.description?
     end
 
     # Upstream ships this hidden (`gl-invisible`) and lazy, and un-hides it in
@@ -32,6 +51,9 @@ module OC
     # An instance that uploads its own logo keeps upstream's behaviour.
     def brand_image
       return super if current_appearance&.logo?
+      # The fork's own column carries the wordmark inside the sentence it
+      # completes, so the layout's copy above the form would be a second one.
+      return safe_join([]) if oc_brand_column?
 
       image_tag(brand_image_path, alt: brand_title, lazy: false, class: 'gl-h-10')
     end

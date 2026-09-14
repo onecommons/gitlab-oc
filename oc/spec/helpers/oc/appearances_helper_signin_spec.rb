@@ -4,13 +4,19 @@ require 'spec_helper'
 
 RSpec.describe AppearancesHelper, feature_category: :user_profile do
   describe '#brand_image' do
-    it 'shows the logo rather than waiting on a load event that never comes' do
+    it 'leaves the logo to the brand column, which carries it in the sentence' do
+      expect(helper.brand_image).to be_blank
+    end
+
+    it 'puts it above the form when the instance supplies its own description' do
+      appearance = build_stubbed(:appearance, description: 'Our own words')
+      allow(helper).to receive(:current_appearance).and_return(appearance)
+
       tag = helper.brand_image
 
       expect(tag).to include('uf-logo')
       expect(tag).not_to include('lazy')
       expect(tag).not_to include('gl-invisible')
-      expect(tag).not_to include('js-portrait-logo-detection')
     end
   end
 
@@ -24,6 +30,10 @@ RSpec.describe AppearancesHelper, feature_category: :user_profile do
       expect(helper.custom_sign_in_description).to include('Welcome to')
         .and include('The maker space for a better Internet.')
         .and include('oc-brand-holder')
+      # The wordmark sits between the two, completing the sentence, and ships
+      # with its dark counterpart for CSS to choose between.
+      expect(helper.custom_sign_in_description).to include('uf-logo')
+        .and include('uf-logo-white')
     end
 
     it 'defers to an appearance the instance has configured' do

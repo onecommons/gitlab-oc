@@ -465,7 +465,83 @@ body {
 // OC Change -- the sign-in and sign-up pages' brand column. 19.3 renders the
 // two-column layout only when there is a description to put in it; the fork
 // supplies one, so these style what lands there.
+// Light and dark logo variants ship together and CSS picks one, because the
+// signed-out pages run in Auto mode (`gl-system`) where the server cannot know
+// which way the page will render. Covers the explicit dark class too.
+.oc-logo-dark {
+  display: none;
+}
+
+:root.gl-dark {
+  .oc-logo-light {
+    display: none;
+  }
+
+  .oc-logo-dark {
+    display: inline;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.gl-system {
+    .oc-logo-light {
+      display: none;
+    }
+
+    .oc-logo-dark {
+      display: inline;
+    }
+  }
+}
+
+.oc-devise-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+
+  .oc-footer-slogan {
+    font-weight: 600;
+    color: var(--gl-text-color-default);
+  }
+
+  img {
+    height: 34px;
+  }
+}
+
+// Upstream prints the brand title above the description. The fork's column
+// opens with "Welcome to" and the wordmark, so that heading would repeat the
+// name mid-sentence; the small-screen copy beside the form still stands in.
+/* stylelint-disable-next-line gitlab/no-has -- (1) anchored to one devise column and
+matched through two child combinators, so the traversal is a handful of nodes on one page,
+not a subtree walk; (2) the heading is a *previous* sibling of the only element this fork
+renders here, so no sibling combinator can reach it, and the layout that emits both is
+upstream's -- shadowing that whole file to drop one heading would cost a merge every
+release. */
+.col-md:has(.oc-brand-holder) > .col-sm-12 > h1 {
+  display: none;
+}
+
 .oc-brand-holder {
+  .oc-sign-in-logo {
+    margin-bottom: 1rem;
+
+    // The two variants are drawn at different intrinsic sizes (340x68 and
+    // 120x30), so the height is pinned and the width left to follow.
+    img {
+      width: auto;
+      height: 68px;
+    }
+
+    @media (max-width: 420px) {
+      img {
+        height: 48px;
+      }
+    }
+  }
+
   .oc-sign-in-welcome {
     margin-bottom: 0.5rem;
     font-size: 1.75rem;
