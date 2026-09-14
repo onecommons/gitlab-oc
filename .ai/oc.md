@@ -422,6 +422,36 @@ blueprint project to look at (`oc/db/fixtures/development/`).
   as the description is capitalised. Upstream's `.ai/git.md` forbids
   `Co-Authored-By:` trailers; this fork keeps them.
 
+### GitLab's own marketing
+
+Promotions are removed **in place**, in the upstream file, with an `OC Change`
+marker — not by an `oc/` override and not by CSS. The difference is how each
+fails when upstream moves: an in-place edit conflicts at rebase and says so, an
+`oc/` copy keeps rendering a stale duplicate after upstream changes the
+original, and a CSS rule silently stops matching when a class is renamed, which
+GitLab does every release.
+
+Most of GitLab's promotional surfaces never render here, so check before
+touching one: `Gitlab.ee?` is false, which removes every EE upsell and trial
+surface, `Gitlab.com?` is false, which removes anything gated that way (the
+third-party offers on the new project form are `|| !Gitlab.com?`), and the
+instance script sets `hide_third_party_offers`. What is left is the residue —
+CE promotions gated on neither. Removed so far: the Jira promotion on the empty
+issue list, the console hello message (call site only, in `main.js`), and the
+subscription upsell in alert settings, which was reworded rather than deleted
+because it was also the only explanation for a disabled control.
+
+An upstream jest spec that asserts a removed promotion renders is edited in
+place with a `// OC Change` comment, like any other upstream spec the fork
+invalidates. Invert it to assert the promotion is *absent* rather than deleting
+the examples: that way a rebase which reinstates the promotion fails in CI.
+
+That is also the limit of what is mechanical. The markers catch upstream
+*changing or removing* something already dealt with; nothing catches upstream
+*adding* a new promotion, and no test can, since there is no predicate for "is
+this marketing" — a text match on a vendor name hits that vendor's real
+integration UI. Finding new ones is a rebase-time audit step.
+
 ### Gotchas
 
 - **Inside `module OC`, write `::Gitlab::...`.** A bare `Gitlab::` resolves to
