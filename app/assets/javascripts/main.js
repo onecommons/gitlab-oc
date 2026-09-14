@@ -14,7 +14,6 @@ import { initRails } from '~/lib/utils/rails_ujs';
 import * as popovers from '~/popovers';
 import * as tooltips from '~/tooltips';
 import { initPrefetchLinks } from '~/lib/utils/navigation_utility';
-import { logHelloDeferred } from 'jh_else_ce/lib/logger/hello_deferred';
 import initAlertHandler from './alert_handler';
 import initLayoutNav from './layout_nav';
 import { handleLocationHash, addSelectOnFocusBehaviour } from './lib/utils/common_utils';
@@ -40,7 +39,7 @@ import 'jh_else_ce/main_jh';
 // a custom container helps us avoid performance issues from inserting tooltips as the last element on <body>
 setGlTooltipDefaultContainer('#js-tooltips-container');
 
-logHelloDeferred();
+// OC Change: GitLab's console hello message removed
 
 // expose jQuery as global (TODO: remove these)
 window.jQuery = jQuery;
