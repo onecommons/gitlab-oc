@@ -3,6 +3,47 @@
 require 'spec_helper'
 
 RSpec.describe Ci::Build, feature_category: :continuous_delivery do
+  describe '#variables' do
+    let_it_be(:project) { create(:project, :repository) }
+    let_it_be(:pipeline) { create(:ci_pipeline, project: project) }
+
+    let(:build) do
+      create(:ci_build, :with_deployment, environment: 'production', pipeline: pipeline, project: project)
+    end
+
+    it 'leaves a job without a provider environment alone' do
+      expect(build.variables.to_hash.keys).not_to include('CLOUDSDK_CORE_PROJECT')
+    end
+
+    it 'leaves a job without a deployment alone' do
+      plain = create(:ci_build, pipeline: pipeline, project: project)
+
+      expect(plain.variables.to_hash.keys).not_to include('CLOUDSDK_CORE_PROJECT')
+    end
+
+    context 'when the environment has a cloud provider' do
+      before do
+        create(:oc_environment_provider, :gcp, environment: build.deployment.environment)
+      end
+
+      it 'adds the provider variables to the upstream ones' do
+        variables = build.variables.to_hash
+
+        expect(variables).to include(
+          'CLOUDSDK_CORE_PROJECT' => 'unfurl-example',
+          'CLOUDSDK_COMPUTE_ZONE' => 'us-central1-a',
+          'CI_JOB_NAME' => build.name
+        )
+      end
+
+      it 'does not append twice when called again' do
+        first = build.variables.size
+
+        expect(build.variables.size).to eq(first)
+      end
+    end
+  end
+
   describe '#options_scheduled_at' do
     let(:build) { create(:ci_build, :created, pipeline: create(:ci_pipeline)) }
 

@@ -41,7 +41,38 @@ module OC
         access_token.present? && access_token_expires_at.present? && access_token_expires_at.future?
       end
 
+      # What a deployment job into this environment runs with. The AWS branch
+      # assumes the role, so calling this costs a request to STS.
+      def ci_variables
+        ::Gitlab::Ci::Variables::Collection.new.tap do |variables|
+          aws? ? append_aws_variables(variables) : append_gcp_variables(variables)
+        end
+      end
+
       private
+
+      def append_aws_variables(variables)
+        variables.append(key: 'AWS_DEFAULT_REGION', value: region)
+        variables.append(key: 'AWS_ROLE_ARN', value: role_arn)
+
+        session = AwsRoleCredentials.new(self).credentials
+        variables.append(key: 'AWS_ACCESS_KEY_ID', value: session.access_key_id, public: false)
+        variables.append(key: 'AWS_SECRET_ACCESS_KEY', value: session.secret_access_key, public: false, masked: true)
+        variables.append(key: 'AWS_SESSION_TOKEN', value: session.session_token, public: false, masked: true)
+      end
+
+      def append_gcp_variables(variables)
+        variables.append(key: 'CLOUDSDK_CORE_PROJECT', value: gcp_project)
+        variables.append(key: 'CLOUDSDK_COMPUTE_ZONE', value: zone)
+
+        # Expires an hour after the sign-in. Unfurl's gcp configurator spends it
+        # once, creating a service account that everything afterwards uses, so a
+        # job that starts too late is better off without it than with a token
+        # the API will reject.
+        return unless access_token_usable?
+
+        variables.append(key: 'GOOGLE_OAUTH_ACCESS_TOKEN', value: access_token, public: false, masked: true)
+      end
 
       def environment_within_project
         return if environment.nil? || project_id.nil? || environment.project_id == project_id
