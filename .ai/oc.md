@@ -186,6 +186,47 @@ running the dashboard's cypress suite against a GDK:
 - **`onecommons/ci`**, which the seed imports. A dashboard's whole
   `.gitlab-ci.yml` is an `include:` of it.
 
+### A runner for deployment jobs
+
+Deployments only *run* with a CI runner attached, which a GDK has none of by
+default. What that took, since none of it is obvious from a failure:
+
+- **Docker executor, not shell.** The pipeline declares `image: $DEPLOY_IMAGE`
+  and its script runs `unfurl`, terraform and ansible from that image; a shell
+  executor ignores `image:` and runs against the developer's own home.
+- **`extra_hosts = ["gdk.test:host-gateway"]` in the runner's `config.toml`.**
+  Without it a job container cannot resolve `gdk.test`, so the clone and every
+  callback fail. Docker on macOS proxies to the host's loopback, so the GDK
+  does **not** need rebinding off 127.0.0.1 — check before changing
+  `--ip` on `gitlab-http-router`, which would expose the instance to the
+  network for no reason.
+- **Register with a runner created server-side.** 19.x removed the legacy
+  registration-token flow, so a runner binary older than 15.10 cannot register
+  at all (a stale `gitlab-runner` on `PATH` is the trap; match the server's
+  version). Create the runner with `Ci::Runners::CreateRunnerService`
+  (`runner_type: 'instance_type'`, `run_untagged: true`) and register with its
+  token. **Instance-level**, because the cypress harness mints a fresh
+  dashboard project per run and a project runner would not cover it.
+- **`DEPLOY_IMAGE` belongs in an instance CI variable.** `onecommons/ci`
+  hardcodes `onecommons/unfurl:latest`, which is not the image to deploy with.
+  An instance variable overrides it without editing the seeded copy:
+  `Builder#scoped_variables` concatenates `job.yaml_variables` *before*
+  `user_defined_variables`, which leads with instance variables, and last wins.
+  `Gitlab::Ci::Build::Image` stores the name verbatim, so `$DEPLOY_IMAGE`
+  reaches the runner unexpanded and is expanded there from the job's variables.
+  Verified with a job whose YAML set the variable and whose trace reported the
+  instance value.
+- **Do not run two runners against one `config.toml`.** A `gitlab-runner`
+  launchd agent with no `--config` defaults to `~/.gitlab-runner/config.toml`
+  and reloads it on change, so an old service silently starts competing for
+  jobs under the same token. `brew services list` is where to look.
+
+`UNFURL_SERVICES_URL` is a red herring for this: the pipeline sets it to
+`${CI_SERVER_URL}/services`, and its only consumers are the `project-dns`
+service and an `api_root` baked into deployed API-gateway resources. Neither is
+the Unfurl server, and neither is reachable on a GDK. It does not need fixing
+for a deployment to run.
+
 Deploying also needs the user's dashboard project. `OC::User#create_dashboard_project!`
 builds it from the `unfurl_dashboard` template, but only
 `OC::RegistrationsController` enqueues the worker that calls it, so a user made
