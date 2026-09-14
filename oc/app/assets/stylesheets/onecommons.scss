@@ -461,3 +461,24 @@ body {
     height: 30px;
   }
 }
+
+// OC Change -- the sign-in and sign-up pages' brand column. 19.3 renders the
+// two-column layout only when there is a description to put in it; the fork
+// supplies one, so these style what lands there.
+.oc-brand-holder {
+  .oc-sign-in-welcome {
+    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--gl-text-color-subtle);
+  }
+
+  .oc-sign-in-tagline {
+    max-width: 18ch;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $uf-confirm-blue;
+  }
+}
