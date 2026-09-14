@@ -499,7 +499,6 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 1rem 0;
 
   .oc-footer-slogan {
     font-weight: 600;
@@ -539,6 +538,19 @@ release. */
       img {
         height: 48px;
       }
+    }
+  }
+
+  // "Welcome to" hangs to the left of the mark and the line it introduces.
+  .oc-sign-in-logo,
+  .oc-sign-in-tagline {
+    margin-left: 3.5rem;
+  }
+
+  @media (max-width: 576px) {
+    .oc-sign-in-logo,
+    .oc-sign-in-tagline {
+      margin-left: 1.25rem;
     }
   }
 

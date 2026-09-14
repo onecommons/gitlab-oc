@@ -1,9 +1,12 @@
 -# OC Change -- the fork's footer replaces upstream's Explore/Help/About links.
-%hr.footer-fixed
-.container.footer-container.oc-devise-footer
-  %span.oc-footer-slogan= _('A free and open source project by')
-  = link_to 'https://www.onecommons.org/', class: 'oc-footer-logo', target: '_blank', rel: 'noopener noreferrer' do
-    = image_tag('illustrations/onecommons-logo.svg', alt: 'OneCommons', lazy: false, class: 'oc-logo-light')
-    = image_tag('illustrations/onecommons-logo-white.svg', alt: '', lazy: false,
-      aria: { hidden: true }, class: 'oc-logo-dark')
+-# The wrapper, rule and gl-self-end are upstream's: they pin the footer to the
+-# bottom of the page's flex column.
+.footer-container.gl-w-full.gl-self-end
+  %hr.gl-m-0
+  .container.gl-py-5.oc-devise-footer
+    %span.oc-footer-slogan= _('A free and open source project by')
+    = link_to 'https://www.onecommons.org/', class: 'oc-footer-logo', target: '_blank', rel: 'noopener noreferrer' do
+      = image_tag('illustrations/onecommons-logo.svg', alt: 'OneCommons', lazy: false, class: 'oc-logo-light')
+      = image_tag('illustrations/onecommons-logo-white.svg', alt: '', lazy: false,
+        aria: { hidden: true }, class: 'oc-logo-dark')
 = footer_message
