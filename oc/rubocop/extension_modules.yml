@@ -10,6 +10,7 @@ Gitlab/BoundedContexts:
     - 'oc/app/models/oc/project.rb'
     - 'oc/app/models/oc/repository.rb'
     - 'oc/app/models/oc/user.rb'
+    - 'oc/app/graphql/oc/types/project_type.rb'
     - 'oc/app/graphql/oc/types/work_item_type.rb'
     - 'oc/app/policies/oc/issuable_policy.rb'
     - 'oc/app/policies/oc/project_policy.rb'

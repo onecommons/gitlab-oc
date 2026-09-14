@@ -27,6 +27,7 @@ query ocExploreBlueprints(
     nodes {
       ...Project
       description
+      blueprintDeploymentCount
       namespace {
         id
         fullName

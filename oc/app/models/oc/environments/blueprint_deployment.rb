@@ -18,8 +18,14 @@ module OC
       validates :finished_at, presence: true
 
       scope :for_blueprint, ->(project) { where(blueprint_project: project) }
+      scope :for_blueprints, ->(ids) { where(blueprint_project_id: ids) }
 
       BLUEPRINT_URL_VARIABLE = 'BLUEPRINT_PROJECT_URL'
+
+      # Counts for a page of blueprints in one query, for the tile grid.
+      def self.counts_for(blueprint_project_ids)
+        for_blueprints(blueprint_project_ids).group(:blueprint_project_id).count
+      end
 
       # Records a finished deployment pipeline, if it names a blueprint here.
       #

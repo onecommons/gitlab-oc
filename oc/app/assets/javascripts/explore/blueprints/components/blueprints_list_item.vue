@@ -10,6 +10,7 @@ export default {
   i18n: {
     stars: s__('ProjectOverview|Stars'),
     starrers: s__('ProjectOverview|Starrers'),
+    deploys: s__('ProjectOverview|Deploys'),
   },
   components: { GlButton, GlButtonGroup, TopicBadges },
   props: {
@@ -27,6 +28,9 @@ export default {
   computed: {
     starrersHref() {
       return projectStarrersPath(this.project.fullPath);
+    },
+    deploymentsHref() {
+      return `/${this.project.fullPath}`;
     },
     avatarUrl() {
       return this.project.avatarUrl || placeholderAvatarUrl(this.project.id);
@@ -64,7 +68,19 @@ export default {
       </a>
 
       <div class="gl-flex gl-flex-wrap gl-items-center gl-justify-end gl-gap-3">
-        <!-- The Deploys count needs a backend field this port does not have yet. -->
+        <gl-button-group class="uf-badge-height">
+          <gl-button :href="deploymentsHref" icon="rocket" size="small" class="uf-button">{{
+            $options.i18n.deploys
+          }}</gl-button>
+          <gl-button
+            :href="deploymentsHref"
+            :title="$options.i18n.deploys"
+            size="small"
+            class="uf-button"
+            >{{ project.blueprintDeploymentCount }}</gl-button
+          >
+        </gl-button-group>
+
         <gl-button-group class="uf-badge-height">
           <gl-button :href="starrersHref" icon="star-o" size="small" class="uf-button">{{
             $options.i18n.stars
