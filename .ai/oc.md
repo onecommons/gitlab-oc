@@ -186,6 +186,71 @@ running the dashboard's cypress suite against a GDK:
 - **`onecommons/ci`**, which the seed imports. A dashboard's whole
   `.gitlab-ci.yml` is an `include:` of it.
 
+### Instance settings
+
+Unfurl Cloud configures its instances from a script in a separate blueprint.
+The 19.3 form of it, which is also what a GDK wants:
+
+```ruby
+# rails console. Removed in 19.3, do not re-add: in_product_marketing_emails_enabled
+# and suggest_pipeline_enabled are gone from ApplicationSetting -- no attribute,
+# no column -- and referencing either raises before anything after it applies.
+admin = User.admins.first  # not User.first: lowest id is not necessarily an admin
+
+::ApplicationSettings::UpdateService
+  .new(ApplicationSetting.current_without_cache, admin, { home_page_url: '' })
+  .execute
+
+ApplicationSetting.current_without_cache.update!(
+  # identity
+  help_page_documentation_base_url: '',        # serve oc/doc rather than docs.gitlab.com
+  personal_access_token_prefix: 'uc-',
+
+  # accounts
+  user_default_external: true,
+  require_admin_approval_after_user_signup: false,
+  email_confirmation_setting: 'hard',
+  invisible_captcha_enabled: true,
+
+  # GitLab's own marketing, out of the UI
+  hide_third_party_offers: true,
+  whats_new_variant: 'disabled',
+  help_page_hide_commercial_content: true,     # the DevSecOps pitch and promo links on /help
+  version_check_enabled: false,                # the version badge
+  duo_features_enabled: false,                 # AI promotion throughout the UI
+  user_deactivation_emails_enabled: false,
+
+  # limits
+  max_artifacts_size: 1024,
+  default_branch_protection: ::Gitlab::Access::PROTECTION_FULL
+)
+```
+
+Four things the 15.11 version of this script got away with and 19.3 does not:
+
+- **`default_branch_protection` is now half-vestigial.** The integer column
+  survives and `Namespace#default_branch_protection` still falls back to it,
+  but `default_branch_protection_defaults` (jsonb) is what actually governs.
+  They can disagree: setting the integer to `PROTECTION_FULL` leaves
+  `allow_force_push: true` in the jsonb untouched. If force-push behaviour is
+  what you mean to set, set the jsonb. The old script also set the integer
+  twice, to `0` with a comment about allowing force pushes and then to
+  `PROTECTION_FULL`; the second won, so the comment described nothing.
+- **`sign_in_text` and `onboarding_enabled` are gone too.** The sign-in text's
+  successor is the Appearance record's `description`.
+- **Do not set an Appearance without reading `OC::AppearancesHelper` first.**
+  The fork's sign-in brand column renders through `custom_sign_in_description`,
+  which defers to `current_appearance.description` when one exists, and its
+  logo through `brand_image_path`/`brand_header_logo`, which defer to the
+  appearance's `logo`/`header_logo`. Creating an Appearance row to brand the
+  instance therefore *replaces* the fork's own branding rather than adding to
+  it. There is no Appearance row on a fresh GDK, which is why the fork's
+  branding shows.
+- **Telemetry is a separate decision from marketing.** `usage_ping_enabled`,
+  `include_optional_metrics_in_service_ping` and `service_ping_settings` are
+  data sharing rather than in-app promotion, so they are deliberately not in
+  the script above.
+
 ### A runner for deployment jobs
 
 Deployments only *run* with a CI runner attached, which a GDK has none of by
