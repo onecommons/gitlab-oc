@@ -36,6 +36,8 @@
           = user_display_name(@user)
         .gl-text-size-h2.gl-text-subtle.gl-font-normal.gl-my-0
           = @user.to_reference
+        -# OC Change
+        = render_if_exists 'users/status_level'
         - if !@user.blocked? && @user.confirmed? && @user.status&.customized?
           .gl-my-2.cover-status.gl-text-sm.gl-pt-2.gl-flex.gl-flex-col
             .gl-inline-flex.gl-gap-3.gl-items-baseline

@@ -1,0 +1,7 @@
+-# OC Change #1000 -- which interface this user has, and a way to change it.
+.gl-text-subtle.gl-mt-2{ data: { testid: 'oc-interface' } }
+  = _('Interface:')
+  %span.gl-font-bold= oc_interface_text(@user)
+  - if @user == current_user
+    &middot;
+    = link_to _('Change'), user_settings_profile_path
