@@ -3,6 +3,17 @@
 require 'spec_helper'
 
 RSpec.describe AppearancesHelper, feature_category: :user_profile do
+  describe '#brand_image' do
+    it 'shows the logo rather than waiting on a load event that never comes' do
+      tag = helper.brand_image
+
+      expect(tag).to include('uf-logo')
+      expect(tag).not_to include('lazy')
+      expect(tag).not_to include('gl-invisible')
+      expect(tag).not_to include('js-portrait-logo-detection')
+    end
+  end
+
   describe '#custom_sign_in_description' do
     before do
       # markdown_field reaches for the signed-in user; the sign-in page has none.
