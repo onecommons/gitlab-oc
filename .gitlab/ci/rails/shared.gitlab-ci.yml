@@ -339,6 +339,9 @@ include:
 .rspec-oc-integration-parallel:
   parallel: 1
 
+.rspec-oc-migration-parallel:
+  parallel: 1
+
 # https://app.snowflake.com/ys68254/gitlab/w3Y3rkdbS25v/chart
 .rspec-system-parallel:
   parallel: 32

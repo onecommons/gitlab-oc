@@ -1121,6 +1121,13 @@ rspec-oc integration pg17:
     - .rspec-oc-integration-parallel
     - .rails:rules:oc-integration
 
+rspec-oc migration pg17:
+  extends:
+    - .rspec-base-pg17
+    - .rspec-base-migration
+    - .rspec-oc-migration-parallel
+    - .rails:rules:oc-migration
+
 rspec-ee unit pg17:
   extends:
     - .rspec-ee-base-pg17

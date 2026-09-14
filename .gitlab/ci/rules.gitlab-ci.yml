@@ -3046,6 +3046,14 @@
     - <<: *if-default-refs
       changes: *frontend-graphql-patterns
 
+.rails:rules:oc-migration:
+  rules:
+    - <<: *if-fork-merge-request
+      when: never
+    - !reference [".rails:rules:ee-and-foss-default-rules", rules]
+    - <<: *if-default-refs
+      changes: *backend-patterns
+
 .rails:rules:ee-only-unit:
   rules:
     - <<: *if-not-ee
