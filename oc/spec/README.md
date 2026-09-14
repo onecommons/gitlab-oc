@@ -68,6 +68,27 @@ ENABLE_RSPACK=true bundle exec rspec oc/spec/requests
 In CI, `oc/spec` runs in the `rspec-oc unit pg17` and `rspec-oc integration
 pg17` jobs.
 
+## Specs that can reach a real Unfurl server
+
+`oc/spec/requests/projects/invalidate_cache_spec.rb` normally stubs the HTTP
+call, which proves the request the fork builds but not that a server accepts
+it. Point it at a running one for the other half:
+
+```bash
+OC_TEST_UNFURL_SERVER_URL=http://localhost:8081 \
+  bundle exec rspec oc/spec/requests/projects/invalidate_cache_spec.rb
+```
+
+Unset, that example is not collected, so neither CI nor an ordinary run
+depends on the server being up.
+
+**Watch for this trap in any spec reading `Gitlab.config.extra`.** The GDK's
+`config/gitlab.yml` sets `extra.unfurl_server_url` under `production: &base`,
+and the test environment inherits the anchor — so a spec that does not
+`stub_config(extra: {})` really will POST to `localhost:8081` and behave
+differently depending on whether you happen to have `unfurl serve` running.
+That is what made this spec fail intermittently before it was isolated.
+
 ## Regenerating the work item snapshots
 
 `oc/spec/fixtures/work_items/*.yml` record, byte for byte, what the work items
