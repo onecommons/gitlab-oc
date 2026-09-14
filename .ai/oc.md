@@ -165,9 +165,15 @@ production: &base
 UNFURL_CLOUD_SERVER=http://gdk.test:3000 unfurl serve --port 8081 --cors http://gdk.test:3000
 ```
 
-Deploying also needs the user's dashboard project, which is not ported yet.
-`bundle exec rake db:seed_fu FILTER=unfurl_blueprints` imports a blueprint
-project to look at (`oc/db/fixtures/development/`).
+Deploying also needs the user's dashboard project. `OC::User#create_dashboard_project!`
+builds it from the `unfurl_dashboard` template, but only
+`OC::RegistrationsController` enqueues the worker that calls it, so a user made
+by an admin, the API or a seed has none — deliberately, per the comment there.
+Give an existing user one with
+`OC::Onboarding::CreateDashboardProjectWorker.new.perform(user.id)`, or push a
+repository containing `unfurl.yaml`, which `computed_unfurl_type` classifies on
+its own. `bundle exec rake db:seed_fu FILTER=unfurl_blueprints` imports a
+blueprint project to look at (`oc/db/fixtures/development/`).
 
 ## Development
 
@@ -235,6 +241,9 @@ project to look at (`oc/db/fixtures/development/`).
 - **Inside `module OC`, write `::Gitlab::...`.** A bare `Gitlab::` resolves to
   `OC::Gitlab`, which exists because of `oc/lib/oc/gitlab/sidekiq_config.rb`.
   The failure looks like `uninitialized constant OC::Gitlab::Json`.
+- **A bare `Environment` inside `module OC` is `OC::Environment`,** the
+  extension module, not the upstream class. Same trap as `Gitlab::` above, and
+  it arrived with `oc/app/models/oc/environment.rb`. Write `::Environment`.
 - **The `oc/` path determines the constant, so extensions need an `oc/`
   segment.** Zeitwerk treats `oc/app/<layer>` as an autoload root, so
   `oc/app/helpers/oc/nav_helper.rb` defines `OC::NavHelper` (which
@@ -322,9 +331,19 @@ upstream adds later. What is not obvious about them:
   the model or an entry in `ignored_jsonb_columns_map` in
   `spec/db/schema_spec.rb` — an upstream file, so an entry there is a rebase
   conflict every release. A `text` column holding JSON avoids both, and
-  nothing queries inside these values anyway. For the same reason prefer real
-  foreign keys over a polymorphic pair: every column ending in `_id` needs one
-  or an entry in that file's `ignored_fk_columns_map`.
+  nothing queries inside these values anyway. **An encrypted attribute is the
+  exception:** `Gitlab/Rails/AttrEncrypted` forbids new `attr_encrypted`, and
+  `doc/development/migration_style_guide.md` says an `encrypts` attribute must
+  be `jsonb`, not `text`. Those columns carry no validator — neither do
+  upstream's own — and the example that would object is quarantined.
+- **Prefer real foreign keys over a polymorphic pair: every column ending in
+  `_id` needs one** or an entry in `ignored_fk_columns_map` in that same
+  upstream spec. Where neither is possible — the target is in a schema this one
+  may not reference, or is not a local record at all — **name the column so it
+  does not end in `_id`**, which is a fork-local decision rather than an
+  upstream edit. `oc_environment_providers` has both cases:
+  `role_external_ref` (the AWS ExternalId, denormalised from `aws_roles`, which
+  is `gitlab_main_user`) and `gcp_project` (a Google project, not a row here).
 - **Run migrations with a matching `pg_dump` on `PATH`.**
   `RAILS_ENV=test bin/rake db:migrate` applies the migration to the `main`,
   `ci` and `sec` test databases, writes `db/schema_migrations/<version>`, then

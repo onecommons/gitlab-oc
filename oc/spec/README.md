@@ -65,8 +65,13 @@ webpack's manifest name and fails with `Could not load manifest`:
 ENABLE_RSPACK=true bundle exec rspec oc/spec/requests
 ```
 
-In CI, `oc/spec` runs in the `rspec-oc unit pg17` and `rspec-oc integration
-pg17` jobs.
+In CI, `oc/spec` runs in the `rspec-oc unit pg17`, `rspec-oc integration pg17`
+and `rspec-oc migration pg17` jobs. The job name picks the folders:
+`scripts/rspec_helpers.sh` reads the `-oc` suffix for the tree and the second
+word for the level, and `tooling/quality/test_level.rb` maps that level to
+folder names. `migrations` is a level of its own, so a spec under
+`oc/spec/migrations` runs in none of the other two — its job was added with the
+first fork migration spec.
 
 ## Specs that can reach a real Unfurl server
 
