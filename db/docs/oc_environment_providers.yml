@@ -1,0 +1,14 @@
+---
+table_name: oc_environment_providers
+classes:
+- OC::Environments::Provider
+feature_categories:
+- continuous_delivery
+description: The cloud account an environment deploys into, replacing the per-environment
+  Kubernetes cluster record the fork used to store it in
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_org
+sharding_key:
+  project_id: projects
+table_size: small

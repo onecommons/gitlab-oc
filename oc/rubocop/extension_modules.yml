@@ -5,6 +5,7 @@ Gitlab/BoundedContexts:
   Exclude:
     - 'oc/app/finders/oc/projects_finder.rb'
     - 'oc/app/graphql/oc/resolvers/projects_resolver.rb'
+    - 'oc/app/models/oc/environment.rb'
     - 'oc/app/models/oc/issue.rb'
     - 'oc/app/models/oc/merge_request.rb'
     - 'oc/app/models/oc/project.rb'

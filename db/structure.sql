@@ -25654,6 +25654,36 @@ CREATE SEQUENCE oc_blueprint_deployments_id_seq
 
 ALTER SEQUENCE oc_blueprint_deployments_id_seq OWNED BY oc_blueprint_deployments.id;
 
+CREATE TABLE oc_environment_providers (
+    id bigint NOT NULL,
+    environment_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    provider smallint NOT NULL,
+    access_token_expires_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    region text,
+    role_arn text,
+    role_external_ref text,
+    zone text,
+    gcp_project text,
+    access_token jsonb,
+    CONSTRAINT check_5c9476cbc4 CHECK ((char_length(region) <= 255)),
+    CONSTRAINT check_6e7b7e98b4 CHECK ((char_length(zone) <= 255)),
+    CONSTRAINT check_737d656be2 CHECK ((char_length(role_arn) <= 2048)),
+    CONSTRAINT check_c46685a661 CHECK ((char_length(role_external_ref) <= 64)),
+    CONSTRAINT check_f4cbb04ef6 CHECK ((char_length(gcp_project) <= 63))
+);
+
+CREATE SEQUENCE oc_environment_providers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_environment_providers_id_seq OWNED BY oc_environment_providers.id;
+
 CREATE TABLE oc_replicated_work_items (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
@@ -37315,6 +37345,8 @@ ALTER TABLE ONLY observability_traces_issues_connections ALTER COLUMN id SET DEF
 
 ALTER TABLE ONLY oc_blueprint_deployments ALTER COLUMN id SET DEFAULT nextval('oc_blueprint_deployments_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_environment_providers ALTER COLUMN id SET DEFAULT nextval('oc_environment_providers_id_seq'::regclass);
+
 ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
 
 ALTER TABLE ONLY onboarding_progresses ALTER COLUMN id SET DEFAULT nextval('onboarding_progresses_id_seq'::regclass);
@@ -41079,6 +41111,9 @@ ALTER TABLE ONLY observability_traces_issues_connections
 
 ALTER TABLE ONLY oc_blueprint_deployments
     ADD CONSTRAINT oc_blueprint_deployments_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_environment_providers
+    ADD CONSTRAINT oc_environment_providers_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY oc_replicated_work_items
     ADD CONSTRAINT oc_replicated_work_items_pkey PRIMARY KEY (id);
@@ -49289,6 +49324,10 @@ CREATE INDEX index_observability_traces_issues_connections_on_project_id ON obse
 CREATE INDEX index_oc_blueprint_deployments_on_blueprint_project_id ON oc_blueprint_deployments USING btree (blueprint_project_id);
 
 CREATE UNIQUE INDEX index_oc_blueprint_deployments_on_deployed_project_and_time ON oc_blueprint_deployments USING btree (deployed_project_id, finished_at);
+
+CREATE UNIQUE INDEX index_oc_environment_providers_on_environment_id ON oc_environment_providers USING btree (environment_id);
+
+CREATE INDEX index_oc_environment_providers_on_project_id ON oc_environment_providers USING btree (project_id);
 
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_issue_id ON oc_replicated_work_items USING btree (issue_id) WHERE (issue_id IS NOT NULL);
 
@@ -60795,6 +60834,9 @@ ALTER TABLE ONLY group_ssh_certificates
 ALTER TABLE ONLY events
     ADD CONSTRAINT fk_rails_61fbf6ca48 FOREIGN KEY (group_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_environment_providers
+    ADD CONSTRAINT fk_rails_62ec725bb8 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY namespace_foundational_agent_statuses
     ADD CONSTRAINT fk_rails_62ffd76883 FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;
 
@@ -61736,6 +61778,9 @@ ALTER TABLE ONLY work_item_current_statuses
 
 ALTER TABLE ONLY group_group_links
     ADD CONSTRAINT fk_rails_d3a0488427 FOREIGN KEY (shared_group_id) REFERENCES namespaces(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY oc_environment_providers
+    ADD CONSTRAINT fk_rails_d3d181deb5 FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY vulnerability_issue_links
     ADD CONSTRAINT fk_rails_d459c19036 FOREIGN KEY (vulnerability_id) REFERENCES vulnerabilities(id) ON DELETE CASCADE;
