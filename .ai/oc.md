@@ -216,9 +216,15 @@ ApplicationSetting.current_without_cache.update!(
   hide_third_party_offers: true,
   whats_new_variant: 'disabled',
   help_page_hide_commercial_content: true,     # the DevSecOps pitch and promo links on /help
-  version_check_enabled: false,                # the version badge
+  version_check_enabled: false,                # the version badge only -- see below
   duo_features_enabled: false,                 # AI promotion throughout the UI
   user_deactivation_emails_enabled: false,
+
+  # telemetry: stop reporting to version.gitlab.com
+  usage_ping_enabled: false,
+  usage_ping_generation_enabled: false,        # both, or the worker still runs -- see below
+  include_optional_metrics_in_service_ping: false,
+  gitlab_product_usage_data_enabled: false,    # jsonb accessor on service_ping_settings
 
   # limits
   max_artifacts_size: 1024,
@@ -263,7 +269,7 @@ over git HTTP — so anything driving that account fails later, somewhere else.
 a `Regexp.new` source string, so anchor it: unanchored, any code *containing*
 the pattern is approved.
 
-Four things the 15.11 version of this script got away with and 19.3 does not:
+Things the 15.11 version of this script got away with and 19.3 does not:
 
 - **`default_branch_protection` is now half-vestigial.** The integer column
   survives and `Namespace#default_branch_protection` still falls back to it,
@@ -283,10 +289,26 @@ Four things the 15.11 version of this script got away with and 19.3 does not:
   instance therefore *replaces* the fork's own branding rather than adding to
   it. There is no Appearance row on a fresh GDK, which is why the fork's
   branding shows.
-- **Telemetry is a separate decision from marketing.** `usage_ping_enabled`,
-  `include_optional_metrics_in_service_ping` and `service_ping_settings` are
-  data sharing rather than in-app promotion, so they are deliberately not in
-  the script above.
+- **Turning service ping off takes two columns, not one.**
+  `GitlabServicePingWorker` guards on `usage_ping_generation_enabled?`, whose
+  reader is `usage_ping_enabled? || super` — an OR over a *second* column that
+  also defaults to true. Setting only `usage_ping_enabled: false` leaves the
+  worker generating and submitting, because the `return if Gitlab.com?` above
+  `SubmitService` does not fire on a self-managed instance. With both false the
+  worker returns immediately (verified: `perform` returns nil in 4ms and writes
+  no `RawUsageData` row). `include_optional_metrics_in_service_ping` is inert
+  in this edition — `usage_ping_features_enabled` only consults it under
+  `if Gitlab.ee?` — and is set only so the row is right if EE ever loads.
+  `gitlab_product_usage_data_enabled` is the separate Snowplow gate, read by
+  `Gitlab::Tracking::EventEligibilityChecker`.
+- **`version_check_enabled: false` does not stop the version check.**
+  `Gitlab::Version::VersionCheckCronWorker#perform` has no settings guard at
+  all: it GETs `version.gitlab.com` on its cron schedule regardless and caches
+  the result. The setting is read only by `VersionCheckHelper.show_version_check?`,
+  which decides whether the badge renders. Stopping the request needs the cron
+  entry gone or the worker overridden — `apply_user_overrides` in
+  `Gitlab::SidekiqConfig::CronJobs` skips nil values, so a `cron: ~` in
+  `gitlab.yml` will not do it.
 
 ### A runner for deployment jobs
 
