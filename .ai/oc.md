@@ -162,8 +162,29 @@ production: &base
 ```
 
 ```bash
-UNFURL_CLOUD_SERVER=http://gdk.test:3000 unfurl serve --port 8081 --cors http://gdk.test:3000
+UNFURL_HOME= unfurl serve --clone-root <scratch dir> --cloud-server http://gdk.test:3000 \
+  --port 8081 --cors http://gdk.test:3000
 ```
+
+`UNFURL_HOME=` matters: with a home project, a repository redirect in
+`~/.unfurl_home/local/unfurl.yaml` (`unfurl.cloud/onecommons/std` pointing
+somewhere else, say) makes every environment that imports `std` fail to export
+with `Path not allowed outside of repository or document root`, and one
+unexportable environment disables environment creation for the whole dashboard.
+unfurl-gui's own harness runs it the same way — see its README's
+`UNFURL_DEFAULT_ENV`.
+
+Two more things a *deployment* needs on a development instance, both found by
+running the dashboard's cypress suite against a GDK:
+
+- **`registry.enabled: true` in `config/gitlab.yml`.** `Gitlab::Auth.registry_scopes`
+  returns `[]` when the registry is off, so `read_registry`/`write_registry`
+  drop out of `resource_bot_scopes` and the dashboard's
+  `POST /api/v4/projects/:id/access_tokens` is a 400 — which surfaces in the
+  browser only as "Unable to create access token". The scopes are not gone
+  from 19.3; they are conditional.
+- **`onecommons/ci`**, which the seed imports. A dashboard's whole
+  `.gitlab-ci.yml` is an `include:` of it.
 
 Deploying also needs the user's dashboard project. `OC::User#create_dashboard_project!`
 builds it from the `unfurl_dashboard` template, but only
