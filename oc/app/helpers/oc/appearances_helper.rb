@@ -16,7 +16,7 @@ module OC
       tag.div(class: 'oc-brand-holder') do
         safe_join([
           tag.p(_('Welcome to'), class: 'oc-sign-in-welcome'),
-          oc_wordmark,
+          oc_wordmark('oc-sign-in-logo'),
           tag.h2(_('The maker space for a better Internet.'), class: 'oc-sign-in-tagline')
         ])
       end
@@ -26,8 +26,8 @@ module OC
     # here: signed-out visitors get the instance default, which is usually the
     # Auto mode (`gl-system`), where the page follows prefers-color-scheme and
     # `user_application_dark_mode?` is false however the page actually renders.
-    def oc_wordmark
-      tag.div(class: 'oc-sign-in-logo') do
+    def oc_wordmark(css_class)
+      tag.div(class: css_class) do
         safe_join([
           image_tag(brand_image_path, alt: brand_title, lazy: false, class: 'oc-logo-light'),
           image_tag('illustrations/uf-logo-white.svg', alt: '', lazy: false,
@@ -38,6 +38,26 @@ module OC
 
     def oc_brand_column?
       !current_appearance&.description?
+    end
+
+    # Upstream's is GitLab's own mark. Used by the sign-in header bar, the help
+    # footer, the terms page and the IDE -- not by the super topbar, which the
+    # fork brands separately.
+    def brand_header_logo(options = {})
+      return super if current_appearance&.header_logo?
+
+      oc_wordmark('oc-header-logo')
+    end
+
+    # 15.11 put a brand bar above the sign-in and sign-up pages; 19.3's devise
+    # layout dropped it. This is the only hook it still renders at the top of
+    # the body, and the bar belongs on devise pages alone -- everywhere else
+    # the topbar already carries the mark.
+    def header_message
+      return super if current_appearance&.show_header?
+      return super unless respond_to?(:devise_controller?) && devise_controller?
+
+      render 'layouts/header/empty'
     end
 
     # Upstream ships this hidden (`gl-invisible`) and lazy, and un-hides it in

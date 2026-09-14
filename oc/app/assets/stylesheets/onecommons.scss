@@ -494,6 +494,28 @@ body {
   }
 }
 
+// The brand bar above the sign-in and sign-up pages. Upstream sizes the page
+// body's content wrapper at the full viewport height, so the bar has to come
+// off that or the footer it pins to the bottom falls past the fold.
+.login-page > .gl-h-full {
+  height: calc(100% - 64px);
+}
+
+.navbar-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 0;
+  border-bottom: 1px solid var(--gl-border-color-default);
+  background-color: var(--gl-background-color-subtle);
+
+  .oc-header-logo img {
+    width: auto;
+    height: 34px;
+  }
+}
+
 .oc-devise-footer {
   display: flex;
   align-items: center;
