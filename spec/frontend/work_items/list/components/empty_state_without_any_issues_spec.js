@@ -160,18 +160,19 @@ describe('EmptyStateWithoutAnyIssues component', () => {
       });
     });
 
+    // OC Change - the fork removed the Jira promotion; assert it stays gone so a
+    // rebase that reinstates it fails here rather than in someone's browser.
     describe('Jira section', () => {
       beforeEach(() => {
         mountComponent();
       });
 
-      it('shows Jira integration information', () => {
-        const paragraphs = wrapper.findAll('p');
-        expect(paragraphs.at(1).text()).toContain('Using Jira for issue tracking?');
+      it('does not show Jira integration information', () => {
+        expect(wrapper.text()).not.toContain('Using Jira for issue tracking?');
       });
 
-      it('renders Jira integration docs link', () => {
-        expect(findJiraDocsLink().attributes('href')).toBe('/help/integration/jira/_index');
+      it('does not render a Jira integration docs link', () => {
+        expect(findJiraDocsLink().exists()).toBe(false);
       });
     });
   });

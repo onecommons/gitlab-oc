@@ -1,7 +1,6 @@
 <script>
 import emptyStateSvg from '@gitlab/svgs/dist/illustrations/empty-state/empty-issues-add-md.svg';
-import jiraCloudAppLogo from '@gitlab/svgs/dist/illustrations/third-party-logos/integrations-logos/jira_cloud_app.svg?raw';
-import { GlButton, GlEmptyState, GlLink } from '@gitlab/ui';
+import { GlButton, GlEmptyState } from '@gitlab/ui';
 import { helpPagePath } from '~/helpers/help_page_helper';
 import NewResourceDropdown from '~/vue_shared/components/new_resource_dropdown/new_resource_dropdown.vue';
 import SafeHtml from '~/vue_shared/directives/safe_html';
@@ -19,11 +18,9 @@ export default {
   },
   emptyStateSvg,
   issuesHelpPagePath: helpPagePath('user/project/issues/_index'),
-  jiraIntegrationPath: helpPagePath('integration/jira/_index'),
   components: {
     GlButton,
     GlEmptyState,
-    GlLink,
     NewResourceDropdown,
   },
   directives: {
@@ -75,7 +72,6 @@ export default {
       return data?.group?.projects?.nodes;
     },
   },
-  jiraCloudAppLogo,
   searchProjectsQuery,
 };
 </script>
@@ -126,23 +122,7 @@ export default {
           </div>
         </template>
       </gl-empty-state>
-      <hr class="gl-mb-7" />
-      <div class="gl-flex gl-justify-center">
-        <span
-          v-safe-html="$options.jiraCloudAppLogo"
-          class="jira-logo-white gl-inline-flex gl-size-6 gl-items-center gl-rounded-base gl-bg-blue-500 gl-p-1"
-        ></span>
-        <p class="gl-mb-0 gl-ml-3 gl-mt-1">
-          {{ s__('JiraService|Using Jira for issue tracking?') }}
-          <gl-link
-            :href="$options.jiraIntegrationPath"
-            :data-track-action="!isGroup && 'click_jira_int_project_issues_empty_list_page'"
-            :data-track-label="!isGroup && 'jira_int_project_issues_empty_list'"
-          >
-            {{ s__('JiraService|See integration options') }}
-          </gl-link>
-        </p>
-      </div>
+      <!-- OC Change: Jira promotion removed -->
     </div>
   </div>
 
@@ -161,9 +141,3 @@ export default {
     data-testid="issuable-empty-state"
   />
 </template>
-
-<style scoped>
-.jira-logo-white :deep(svg path) {
-  fill: white;
-}
-</style>
