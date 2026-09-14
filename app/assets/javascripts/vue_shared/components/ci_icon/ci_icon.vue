@@ -59,14 +59,19 @@ export default {
       }
       return null;
     },
+    // OC Change -- a scheduled job is upcoming to a reader; "delayed" reads as
+    // something having gone wrong.
+    statusText() {
+      return this.status?.text === 'delayed' ? s__('CICD|upcoming') : this.status?.text;
+    },
     fullText() {
       return sprintf(s__('CICD|Status: %{status}'), {
-        status: this.status?.text,
+        status: this.statusText,
       });
     },
     attributes() {
       const attributes = {
-        text: this.showStatusText ? this.status.text : null,
+        text: this.showStatusText ? this.statusText : null,
         tooltip: !this.showStatusText && this.showTooltip ? this.fullText : null,
       };
 
