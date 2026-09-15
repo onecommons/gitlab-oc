@@ -30,6 +30,13 @@ if [ -n "$sk" ]; then
   # distinguishes a retention leak from fragmentation -- 58.5M live objects
   # surviving 247 major GCs is what the 10 GB occurrence looked like, against
   # 3.4M for a freshly started process.
+  # Restart threshold, and the floor on how often a restart may happen.
+  RESTART_GB=${SIDEKIQ_RESTART_GB:-4}
+  RESTART_MIN_HOURS=${SIDEKIQ_RESTART_MIN_HOURS:-20}
+  rstamp=$HOME/Library/Logs/.gdk-oc-sidekiq-restarted
+  RCLI=/opt/homebrew/bin/redis-cli
+  SV=/opt/homebrew/bin/sv
+
   csv=$HOME/Library/Logs/gdk-oc-sidekiq-memory.csv
   [ -f "$csv" ] || echo "timestamp,pid,uptime,mem,heap_live_slots,heap_free_slots,major_gc" > "$csv"
   live=; free=; major=
@@ -47,18 +54,41 @@ if [ -n "$sk" ]; then
   printf '%s,%s,%s,%s,%s,%s,%s\n' "$(date '+%Y-%m-%d %H:%M')" "$sk" \
     "$(ps -o etime= -p "$sk" | tr -d ' ')" "$mem" "$live" "$free" "$major" >> "$csv"
 
+  # Restart once it is large. The cause is known and is not a job: development
+  # code reloading retains a whole Grape API generation per reload (103 of them
+  # reached 10 GB on 2026-09-14), and only a restart reclaims it.
+  # CACHE_CLASSES=true would prevent it, at the cost of a restart after every
+  # worker edit. Diagnosis recipe, if it ever looks different from that:
+  # ENABLE_RBTRACE=1 is already in env.runit, so `bundle exec rbtrace -p <pid>`
+  # attaches; GC.stat is O(1) and safe, count_objects_size and dump_all walk the
+  # whole heap and must be backgrounded in a Thread rather than joined.
   case "$mem" in
     *G) n=${mem%G}
-        if [ "${n%%.*}" -ge 4 ] 2>/dev/null; then
-          say "SIDEKIQ MEMORY: $mem in pid $sk"
-          echo "     Restarting reclaims it but discards the evidence, and this has"
-          echo "     already been unattributable once. To capture a heap first:"
-          echo "       bundle exec rbtrace -p $sk -e 'Thread.new{require \"objspace\"; ObjectSpace.dump_all(output: File.open(\"/tmp/sidekiq-heap.json\",\"w\"))}.join'"
-          echo "     That only works if the process was started with ENABLE_RBTRACE=1"
-          echo "     (config/initializers/rbtrace.rb gates the require on it), so it"
-          echo "     must be set in the GDK env before the process starts -- you"
-          echo "     cannot attach to a bloated process that lacks it. Set it now if"
-          echo "     you want the next occurrence to be attributable."
+        if [ "${n%%.*}" -ge "$RESTART_GB" ] 2>/dev/null; then
+          # A restart is only safe when nothing is in flight: runit sends TERM
+          # and sidekiq gives running jobs 25s before it is killed.
+          busy=0
+          if [ -x "$RCLI" ]; then
+            for proc in $("$RCLI" -s "$GDK/redis/redis.socket" -n 1 smembers processes 2>/dev/null); do
+              b=$("$RCLI" -s "$GDK/redis/redis.socket" -n 1 hget "$proc" busy 2>/dev/null)
+              busy=$((busy + ${b:-0}))
+            done
+          fi
+
+          if [ "$busy" -gt 0 ]; then
+            say "SIDEKIQ MEMORY: $mem in pid $sk -- not restarting, $busy job(s) in flight"
+          elif [ -f "$rstamp" ] && [ -z "$(find "$rstamp" -mmin +$((60 * RESTART_MIN_HOURS)) 2>/dev/null)" ]; then
+            say "SIDEKIQ MEMORY: $mem in pid $sk -- already restarted within ${RESTART_MIN_HOURS}h"
+          elif [ -x "$SV" ]; then
+            if "$SV" restart "$GDK/services/rails-background-jobs" >/dev/null 2>&1; then
+              touch "$rstamp"
+              say "SIDEKIQ RESTARTED: was $mem in pid $sk"
+            else
+              say "SIDEKIQ RESTART FAILED: $mem in pid $sk"
+            fi
+          else
+            say "SIDEKIQ MEMORY: $mem in pid $sk -- cannot restart, $SV not found"
+          fi
         fi ;;
   esac
 fi
