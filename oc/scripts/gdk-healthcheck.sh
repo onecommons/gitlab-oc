@@ -23,6 +23,30 @@ done
 sk=$(pgrep -f "sidekiq 7" | head -1)
 if [ -n "$sk" ]; then
   mem=$(top -l 1 -pid "$sk" -stats mem 2>/dev/null | tail -1 | tr -d ' ')
+
+  # Growth curve, recorded every run whether or not anything is wrong: launchd
+  # only keeps output on failure, so without this there is no history to
+  # correlate against job activity. heap_live_slots is the figure that
+  # distinguishes a retention leak from fragmentation -- 58.5M live objects
+  # surviving 247 major GCs is what the 10 GB occurrence looked like, against
+  # 3.4M for a freshly started process.
+  csv=$HOME/Library/Logs/gdk-oc-sidekiq-memory.csv
+  [ -f "$csv" ] || echo "timestamp,pid,uptime,mem,heap_live_slots,heap_free_slots,major_gc" > "$csv"
+  live=; free=; major=
+  # GC.stat is O(1); never call count_objects_size here, which walks the whole
+  # heap and takes minutes once it is large.
+  rb=$HOME/.local/share/mise/installs/ruby/3.3.11/bin
+  if [ -x "$rb/bundle" ] && [ -x /opt/homebrew/bin/timeout ]; then
+    stat=$(cd "$REPO" && PATH="$rb:$PATH" /opt/homebrew/bin/timeout 30 bundle exec rbtrace -p "$sk" \
+      -e 'g=GC.stat; "%d,%d,%d" % [g[:heap_live_slots], g[:heap_free_slots], g[:major_gc_count]]' 2>/dev/null \
+      | grep -oE '[0-9]+,[0-9]+,[0-9]+' | head -1)
+    if [ -n "$stat" ]; then
+      live=${stat%%,*}; rest=${stat#*,}; free=${rest%%,*}; major=${rest#*,}
+    fi
+  fi
+  printf '%s,%s,%s,%s,%s,%s,%s\n' "$(date '+%Y-%m-%d %H:%M')" "$sk" \
+    "$(ps -o etime= -p "$sk" | tr -d ' ')" "$mem" "$live" "$free" "$major" >> "$csv"
+
   case "$mem" in
     *G) n=${mem%G}
         if [ "${n%%.*}" -ge 4 ] 2>/dev/null; then
