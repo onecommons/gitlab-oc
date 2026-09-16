@@ -64,11 +64,23 @@ module OC
       end&.value
     end
 
+    # Rendered through GitLab's own pipeline rather than by calling
+    # gitlab-markup directly, which the fork did until 19.3. That worked: the
+    # gem carried a markdown handler up to 1.9, which 15.11 pins. 2.1 dropped
+    # it -- GitLab renders markdown through Banzai -- so the same call started
+    # returning a .md readme unchanged, and since this value goes to v-html an
+    # unrendered readme was an unsanitised one.
     def unfurl_dashboard_readme
       readme = project.repository&.tree&.readme
       return unless readme
 
-      ::GitHub::Markup.render(readme.name, readme.data)
+      ::Markup::RenderingService.new(
+        readme.data,
+        file_name: readme.name,
+        context: { project: project, text_source: :blob, requested_path: readme.path },
+        postprocess_context: { current_user: current_user, ref: project.default_branch,
+                               requested_path: readme.path }
+      ).execute
     end
 
     def open_cloud_publish_request
