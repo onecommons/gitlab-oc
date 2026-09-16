@@ -67,6 +67,28 @@ RSpec.describe 'Signing up', :with_current_organization, feature_category: :syst
 
       expect(created_user).not_to be_external
     end
+
+    # The examples above pass either way, because the test environment leaves
+    # user_default_external false and "leaves alone" then means internal. This
+    # instance sets it, so the choice has to survive an attribute default that
+    # has already made the user external before the controller runs.
+    context 'when the instance defaults users to external' do
+      before do
+        stub_application_setting(user_default_external: true)
+      end
+
+      it 'still lets a developing user in' do
+        sign_up(oc_interface: 'develop')
+
+        expect(created_user).not_to be_external
+      end
+
+      it 'keeps the default when no choice is sent' do
+        sign_up
+
+        expect(created_user).to be_external
+      end
+    end
   end
 
   describe 'invite codes' do

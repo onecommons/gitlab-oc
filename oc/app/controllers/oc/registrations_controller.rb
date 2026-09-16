@@ -30,9 +30,14 @@ module OC
 
     # The interface choice is not a User attribute, so it is set here rather
     # than permitted into sign_up_params.
+    #
+    # Assigned only when the field arrives. `external` already carries what
+    # User's attribute default took from user_default_external, which this
+    # instance sets, so assigning unconditionally would make every client that
+    # omits the field internal rather than leaving that policy alone.
     override :set_resource_fields
     def set_resource_fields
-      resource.external = true if simple_interface?
+      resource.external = simple_interface? if oc_params.key?(:oc_interface)
 
       return if approved_by_invite_code?
 
