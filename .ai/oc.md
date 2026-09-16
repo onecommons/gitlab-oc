@@ -476,6 +476,18 @@ integration UI. Finding new ones is a rebase-time audit step.
 
 ### Gotchas
 
+- **A gem the fork calls *directly* can change under an unchanged call.** The
+  port bumps every dependency, and a gem that keeps a method's signature while
+  changing what it returns fails silently: nothing raises, the diff shows
+  nothing, and no spec covers the difference. `gitlab-markup` 1.9 carried a
+  markdown handler and 2.1 dropped it, so the dashboard's
+  `GitHub::Markup.render` began returning a `.md` readme unchanged and the page
+  rendered its own source — into `v-html`, so unrendered meant unsanitised too.
+  Calls routed through GitLab's own wrappers are covered by upstream's specs;
+  it is the direct ones to audit on a version bump. There are two:
+  `GitHub::Markup`, now replaced by `Markup::RenderingService`, and Octokit in
+  `OC::Repositories::PullMirrors::Webhook::GithubService`, which survived
+  4.25 → 9.2 only because its QA spec runs against live GitHub.
 - **Inside `module OC`, write `::Gitlab::...`.** A bare `Gitlab::` resolves to
   `OC::Gitlab`, which exists because of `oc/lib/oc/gitlab/sidekiq_config.rb`.
   The failure looks like `uninitialized constant OC::Gitlab::Json`.
