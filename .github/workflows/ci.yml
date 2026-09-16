@@ -1,0 +1,62 @@
+---
+name: ci
+
+"on":
+  pull_request:
+  push:
+    branches: [v19.3.0-oc]
+
+jobs:
+  rubocop:
+    name: rubocop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          # Needed to diff against the base; the default shallow clone has no
+          # merge-base to compare with.
+          fetch-depth: 0
+
+      # Native extensions the Gemfile builds from source: pg, re2,
+      # charlock_holmes, gpgme, grpc and nokogiri. Without these the bundle
+      # fails during install rather than during the lint.
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake pkg-config libpq-dev libre2-dev libicu-dev libgpgme-dev
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.11'
+          bundler-cache: true
+
+      # Linting the whole tree would report upstream's offenses as ours. The
+      # fork's own rule is that an offense is yours if you touched the file, so
+      # this matches lefthook's rubocop hook: changed Ruby files only.
+      - name: Collect changed Ruby files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base='${{ github.event.pull_request.base.sha }}'
+          elif [ -n "${{ github.event.before }}" ] &&
+               [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            base='${{ github.event.before }}'
+          else
+            # First push of a branch reports no predecessor.
+            base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
+          fi
+          git diff --name-only --diff-filter=d "$base" '${{ github.sha }}' \
+            -- '*.rb' '*.rake' > changed.txt || true
+          echo "count=$(wc -l < changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "Changed Ruby files:"; cat changed.txt
+
+      # --force-exclusion so .rubocop.yml's Exclude lists still apply when a
+      # path is named explicitly, which is not the default.
+      - name: RuboCop
+        if: steps.changed.outputs.count != '0'
+        run: |
+          REVEAL_RUBOCOP_TODO=0 xargs < changed.txt \
+            bundle exec rubocop --parallel --force-exclusion --no-server
