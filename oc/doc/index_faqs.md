@@ -1,4 +1,6 @@
-### FAQs
+---
+title: FAQs
+---
 
 #### How is Unfurl Cloud different from other solutions?
 

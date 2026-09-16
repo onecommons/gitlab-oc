@@ -1,4 +1,6 @@
-# Work items sync
+---
+title: Work items sync
+---
 
 Work items sync keeps a copy of your project's issues, merge requests, and
 commit comments in the project's own Git repository, as plain YAML files on a

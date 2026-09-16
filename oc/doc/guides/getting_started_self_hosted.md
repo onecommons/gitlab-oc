@@ -1,4 +1,6 @@
-## Getting Started with Unfurl Cloud
+---
+title: Getting Started with Unfurl Cloud
+---
 
 **Table of Contents**
 

@@ -1,4 +1,6 @@
-## Getting Started with Unfurl Cloud: <br/> Google Cloud Platform
+---
+title: Getting Started with Unfurl Cloud on Google Cloud Platform
+---
 
 <div class="toc">
 
