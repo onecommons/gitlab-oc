@@ -1,0 +1,94 @@
+---
+name: spec
+
+"on":
+  pull_request:
+  push:
+    branches: [v19.3.0-oc]
+  workflow_dispatch:
+    inputs:
+      gdk_image:
+        required: false
+        default: ghcr.io/onecommons/gitlab-oc/gdk:latest
+
+env:
+  GDK_IMAGE: ${{ inputs.gdk_image || 'ghcr.io/onecommons/gitlab-oc/gdk:latest' }}
+  GITLAB: /gitlab-gdk/gitlab-development-kit/gitlab
+
+jobs:
+  rspec:
+    name: oc/spec
+    runs-on: ubuntu-latest
+    steps:
+      # No browser is involved -- oc/spec has no js: true examples -- so the
+      # large-packages sweep that removes chrome is fine here.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          large-packages: true
+
+      # `sleep infinity` rather than the image's own command, which runs
+      # `gdk restart` and brings up every service. Only three are needed
+      # below, and rails-web is not among them.
+      - name: Start the container
+        run: |
+          docker pull "$GDK_IMAGE"
+          docker run -d --name gdk "$GDK_IMAGE" sleep infinity
+
+      # The image bakes whatever ref it was built from; this moves it to the
+      # one under test, keeping the gems, modules and migrated database that
+      # make the image worth having.
+      - name: Check out the pushed ref
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            git fetch --depth=1 origin ${{ github.sha }} &&
+            git checkout --force FETCH_HEAD'
+
+      - name: Install any moved dependencies
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' && mise x -- bundle install --jobs 4'
+
+      # rspack because request specs under oc/spec/requests/projects render a
+      # full page and read the asset manifest from its dev server; without it
+      # Rails fails with "Could not load manifest".
+      - name: Start services
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd /gitlab-gdk/gitlab-development-kit &&
+            mise x -- gdk start postgresql redis rspack'
+
+      - name: Migrate the test database
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' && RAILS_ENV=test mise x -- bin/rake db:migrate'
+
+      # fast_spec_helper specs need neither database nor Gitaly and cannot
+      # share an invocation with spec_helper ones, so they run on their own.
+      - name: RSpec (fast_spec_helper)
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            mise x -- bundle exec rspec oc/spec/lib/gitlab_edition_spec.rb'
+
+      - name: RSpec (oc/spec)
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            export ENABLE_RSPACK=true &&
+            mise x -- bundle exec rspec oc/spec \
+              --exclude-pattern "**/gitlab_edition_spec.rb"'
+
+      # A killed run leaves a transaction open on `shards` that poisons every
+      # later suite, so a cancelled job should not leave the container behind.
+      - name: Stop the container
+        if: ${{ always() }}
+        run: docker rm -f gdk || true
