@@ -474,8 +474,45 @@ That is also the limit of what is mechanical. The markers catch upstream
 this marketing" — a text match on a vendor name hits that vendor's real
 integration UI. Finding new ones is a rebase-time audit step.
 
+### Help pages
+
+The fork's pages live under `oc/doc`, served by `OC::HelpController`, whose
+`path_to_doc` override prefers `oc/doc` and falls back to upstream's `doc/`.
+Upstream's image branch resolves through that same method, so fork screenshots
+belong at `oc/doc/img/...` and need no code to be served.
+
+- **Every page needs YAML frontmatter carrying `title:`, and no `#` heading of
+  its own.** `HelpController` finds the title with an unanchored
+  `/^title: (?<title>.+)$/` over the whole document and prepends `# <title>`.
+  With no frontmatter it matches the first `title:` anywhere: the work items
+  guide opened with the title of the example issue inside a fenced YAML block
+  on line 125. Upstream's pages are written this way too — the frontmatter
+  supplies the heading and the body has no H1 at all.
+- **That title cannot contain a colon.** The regex takes the rest of the line
+  verbatim rather than parsing YAML, so a quoted scalar renders its quotes and
+  an unquoted YAML scalar cannot hold `: `.
+- **Quantise screenshots before the first commit.** `pngquant --quality=70-95
+  --speed 1` then `oxipng -o 4 --strip safe` took the getting started set from
+  3.6 MB to 820 KB at full resolution with no visible loss on UI text.
+  Optimising in a later commit leaves the originals in history for good.
+
 ### Gotchas
 
+- **A file the fork *added* to an upstream directory is invisible to both ways
+  the fork tracks its divergence.** It has no `oc/` path, and a binary cannot
+  carry an `# OC Change` marker, so no ordinary sweep finds it. The getting
+  started screenshots sat in `doc/img/getting_started` and the port missed
+  them; the guides kept working in 15.11 only because a browser resolves their
+  `../img` paths against the `/help` URL rather than against the file. The
+  inventory is one command:
+
+  ```bash
+  git diff --diff-filter=A --name-only v15.11.13-ee..cloudmap \
+    -- ':(exclude)oc/*' ':(exclude)ee/*'
+  ```
+
+  227 files on the last run. Most are present under another path or belong to
+  something 19.3 dropped; the screenshots were the only real miss.
 - **A gem the fork calls *directly* can change under an unchanged call.** The
   port bumps every dependency, and a gem that keeps a method's signature while
   changing what it returns fails silently: nothing raises, the diff shows
