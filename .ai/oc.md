@@ -232,10 +232,10 @@ ApplicationSetting.current_without_cache.update!(
 )
 ```
 
-A GDK needs two invite codes as well, which production sets to real values.
-Mark both **protected**: in this fork that means a variable reaches no CI job
-at all, and `OC::Onboarding::InviteCodes` reads them through `all_cached`,
-which ignores the flag — so protecting them costs the signup path nothing and
+A GDK needs three instance CI variables as well, which production sets from
+its own blueprint. Mark all of them **protected**: in this fork that means a
+variable reaches no CI job at all, and every reader here goes through
+`all_cached`, which ignores the flag — so protecting them costs nothing and
 keeps them out of every tenant's pipeline.
 
 ```ruby
@@ -243,16 +243,21 @@ keeps them out of every tenant's pipeline.
 # cypress suite signs up with (OC_INVITE_CODE, with OC_USERNAME/OC_PASSWORD
 # unset so it takes the signup path, which is the only one that creates a
 # dashboard).
-invite_codes = {
+instance_vars = {
   'UNFURL_VALID_INVITE_CODES' => 'cypress-e2e',
-  'UNFURL_APPROVE_MATCHING_CODES' => '\Acypress-e2e\z'  # single-quoted: double quotes eat the backslashes
+  'UNFURL_APPROVE_MATCHING_CODES' => '\Acypress-e2e\z',  # single-quoted: double quotes eat the backslashes
+  # Fetched by the browser as-is, so it must be absolute and must match
+  # extra.unfurl_server_url -- see below.
+  'UNFURL_CLOUDMAP_JSON' =>
+    "#{::Gitlab.config.extra['unfurl_server_url']}" \
+    '/types?auth_project=onecommons%2Fstd&cloudmap=onecommons/cloudmap&file=dummy-ensemble.yaml'
 }
 
 # with_indifferent_access is not optional: the service looks the record up with
 # attributes[:id] but strips it with except('id'), because it is written for
 # ActionController::Parameters. A plain Hash misses the lookup and tries to
 # create a duplicate key.
-attributes = invite_codes.map do |key, value|
+attributes = instance_vars.map do |key, value|
   { id: ::Ci::InstanceVariable.find_by(key: key)&.id,
     key: key, value: value, protected: true, masked: false }.compact.with_indifferent_access
 end
@@ -268,6 +273,16 @@ over git HTTP — so anything driving that account fails later, somewhere else.
 `UNFURL_APPROVE_MATCHING_CODES` is what makes `skip_confirmation?` true. It is
 a `Regexp.new` source string, so anchor it: unanchored, any code *containing*
 the pattern is approved.
+
+`UNFURL_CLOUDMAP_JSON` is the cloud map's only data source:
+`PublicCloudController#cloudmap` and `_oc_project_overview.html.haml` read it,
+the view renders it as `#chart[data-cloudmap]`, and oc-pages fetches that value
+verbatim (`public_cloud/raw-data.js`). Unset, haml omits the attribute, oc-pages
+falls back to the relative `/services/unfurl-server/...` path that only
+production's Ingress serves, and the chart never draws. **Nothing substitutes a
+placeholder in it** — not the controller, not oc-pages — so it has to be an
+absolute URL naming the same server as `extra.unfurl_server_url`, which on a GDK
+is the locally run Unfurl server rather than a proxy path.
 
 Things the 15.11 version of this script got away with and 19.3 does not:
 
