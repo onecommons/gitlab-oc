@@ -1,0 +1,10 @@
+# oc/support holds scripts run through `rails runner` or a shell, never loaded
+# by the application. They define no constant for a filename to match, and the
+# queries in them have no model to move into.
+Naming/FileName:
+  Exclude:
+    - 'oc/support/**/*'
+
+CodeReuse/ActiveRecord:
+  Exclude:
+    - 'oc/support/**/*'

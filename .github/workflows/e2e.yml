@@ -1,0 +1,108 @@
+---
+name: e2e
+
+# Callable from either side of the pair, because there are two questions:
+# does this fork ref work with the oc-pages it ships (called from here, with
+# unfurl_gui_ref taken from yarn.lock), and does unfurl-gui HEAD still work
+# against the fork (called from there, with its own ref).
+"on":
+  workflow_call:
+    inputs:
+      gdk_image:
+        type: string
+        default: ghcr.io/onecommons/gitlab-oc/gdk:latest
+      unfurl_image:
+        type: string
+        description: >-
+          Unfurl server image. The :local-cloud-endpoint tag carries the rust
+          proxy and the optional python deps a pipx install would skip.
+        default: ghcr.io/onecommons/unfurl:local-cloud-endpoint
+      unfurl_gui_ref:
+        type: string
+        required: true
+      specs:
+        type: string
+        description: Comma-separated cypress specs known to pass on a GDK
+        default: >-
+          cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js
+  workflow_dispatch:
+    inputs:
+      unfurl_gui_ref:
+        required: true
+      unfurl_image:
+        required: false
+        default: ghcr.io/onecommons/unfurl:local-cloud-endpoint
+
+jobs:
+  cypress:
+    runs-on: ubuntu-latest
+    steps:
+      # large-packages would take google-chrome with it, which cypress needs.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - uses: actions/checkout@v4
+        with:
+          repository: onecommons/unfurl-gui
+          ref: ${{ inputs.unfurl_gui_ref }}
+          path: unfurl-gui
+
+      # gdk.test, never localhost: integration-test.js treats a localhost
+      # OC_URL as the standalone harness and would silently test the wrong
+      # artifact rather than the fork.
+      - name: Resolve gdk.test
+        run: echo "127.0.0.1 gdk.test" | sudo tee -a /etc/hosts
+
+      - name: Start the GDK
+        run: |
+          docker run -d --name gdk -p 3000:3000 '${{ inputs.gdk_image }}'
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
+            [ "$code" = "200" ] && { echo "up after $((i*10))s"; break; }
+            sleep 10
+          done
+          [ "$code" = "200" ] || { docker logs gdk | tail -50; exit 1; }
+
+      # Redis backs the rust proxy's queued writes; the server itself must run
+      # with a home of its own -- started against a shared one, every export
+      # inherits its defaults.connections and arrives as unusable base types.
+      - name: Start the unfurl server
+        run: |
+          docker run -d --name redis -p 6379:6379 redis:7-alpine
+          docker run -d --name unfurl --network host \
+            -e UNFURL_HOME=/tmp/unfurl-home \
+            '${{ inputs.unfurl_image }}' \
+            unfurl serve --port 8081 --cors http://gdk.test:3000 \
+              --cloud-server http://gdk.test:3000
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        working-directory: unfurl-gui
+        run: npm i -g yarn && YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+
+      # OC_USERNAME and OC_PASSWORD must stay unset: with both, create-user.js
+      # takes the admin path, which creates no dashboard. DRYRUN keeps the
+      # provider specs from talking to a real cloud.
+      - name: Cypress
+        working-directory: unfurl-gui
+        env:
+          OC_URL: http://gdk.test:3000
+          OC_INVITE_CODE: cypress-e2e
+          DRYRUN: '1'
+        run: |
+          yarn integration-test run --namespace onecommons/blueprints -- \
+            --browser chrome -s '${{ inputs.specs }}'
+
+      - name: Upload screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: unfurl-gui/cypress/screenshots
+          if-no-files-found: ignore
