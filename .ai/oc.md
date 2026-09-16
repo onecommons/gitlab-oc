@@ -226,6 +226,13 @@ ApplicationSetting.current_without_cache.update!(
   include_optional_metrics_in_service_ping: false,
   gitlab_product_usage_data_enabled: false,    # jsonb accessor on service_ping_settings
 
+  # Production has every import source its version offers, and a GDK that has
+  # been narrowed to a subset renders no GitLab export button on
+  # /projects/new#import_project, which the project-import e2e specs need.
+  # 19.3 dropped two of production's: `gitlab` (the GitLab.com importer) and
+  # `phabricator`.
+  import_sources: %w[github bitbucket bitbucket_server fogbugz git gitlab_project gitea manifest],
+
   # limits
   max_artifacts_size: 1024,
   default_branch_protection: ::Gitlab::Access::PROTECTION_FULL
