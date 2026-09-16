@@ -254,4 +254,42 @@ RSpec.describe 'work items import end to end', feature_category: :source_code_ma
       expect(OC::WorkItems::ReplicatedWorkItem.where(project_id: target.id).count).to eq(1)
     end
   end
+
+  # Tasks and incidents are Issue rows distinguished only by work_item_type, and
+  # nothing in the fork filters on type -- OC::WorkItems.syncable? answers true
+  # for every ::Issue -- so they sync by being issues rather than by decision.
+  # What carries the type is upstream's: work_item_type_id is an excluded
+  # attribute (it is a local id and means nothing here), exported_work_item_type
+  # supplies the name instead, and Issue#as_json renames it on the way out. No
+  # code under oc/ mentions any of that, so a rebase reshaping import_export.yml
+  # or the types framework could turn every task back into a plain issue with
+  # nothing else in this suite noticing.
+  it 'keeps a task a task and an incident an incident' do
+    task_iid, incident_iid, files = as_instance(instance_a) do
+      source.enable_work_items_sync!(true)
+
+      task = create(:issue, :task, project: source, author: author, title: 'A task')
+      incident = create(:issue, :incident, project: source, author: author, title: 'An incident')
+
+      OC::WorkItems::FullSyncWorker.new.perform(source.id)
+
+      [task.iid, incident.iid, branch_contents(source)]
+    end
+
+    # On the branch, by name rather than by this instance's type id.
+    expect(YAML.safe_load(files["#{instance_a}/issues/#{task_iid}.yml"])['work_item_type'])
+      .to eq('name' => 'Task')
+    expect(YAML.safe_load(files["#{instance_a}/issues/#{incident_iid}.yml"])['work_item_type'])
+      .to eq('name' => 'Incident')
+
+    as_instance(instance_b) do
+      push_to(target, declaring(files))
+      import_all(target)
+
+      rows = OC::WorkItems::ReplicatedWorkItem.where(project_id: target.id)
+
+      expect(rows.find_by(source_iid: task_iid).issue.work_item_type.name).to eq('Task')
+      expect(rows.find_by(source_iid: incident_iid).issue.work_item_type.name).to eq('Incident')
+    end
+  end
 end
