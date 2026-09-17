@@ -6,9 +6,11 @@
 # current without us maintaining a recipe. The fork's own 2021 image went stale
 # precisely because it did not inherit anything.
 #
-# What is NOT inherited: their checkout tracks gitlab master, this fork is cut
-# from 19.3, so gems, modules, schema and assets are all rebuilt below. Their
-# database cannot be migrated backwards and is dropped rather than reused.
+# What is NOT inherited: their checkout follows GitLab's development line, one
+# release ahead of ours -- 19.4.0-pre against this fork's 19.3 as of writing --
+# so schema and assets are rebuilt below and their database is dropped rather
+# than migrated, which cannot go backwards. Ruby is 3.3.11 in both, so the
+# baked gems match this fork's ABI and bundle install mostly no-ops.
 ARG GDK_BASE=registry.gitlab.com/gitlab-org/gitlab-development-kit/gitlab-gdk-in-a-box:main
 FROM ${GDK_BASE}
 
