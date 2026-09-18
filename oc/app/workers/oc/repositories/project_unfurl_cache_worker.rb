@@ -40,6 +40,25 @@ module OC
         commit = project.repository.commit(commit_id)
         return unless commit
 
+        # Whether the server may record this commit as the branch's head.
+        #
+        # It keeps that head in a key with no ancestry, so it cannot reject an
+        # older commit arriving late -- and this worker is the first unordered
+        # writer it has had: `retry: 3` can land a retried job after a later
+        # push, and one push touching several files is that many sequential
+        # calls. A late one would send watchers back to a commit the branch has
+        # already left, and they would keep being told so.
+        #
+        # The repository is right here, so the answer comes from asking it.
+        # Hoisted out of the loop deliberately: every file in one push shares
+        # this answer, and a five-file push should not ask five times. A tag is
+        # excluded because it has no moving head to report.
+        # `.present?` because branch_ref? answers with a match position or nil
+        # rather than a boolean, and the query would otherwise carry an empty
+        # `sethead=` for a tag where it means to say false.
+        sethead = ::Gitlab::Git.branch_ref?(ref).present? &&
+          project.repository.commit(ref)&.sha == commit.sha
+
         unfurl_file_diffs_for(commit).each do |diff|
           removed = diff.deleted_file? || !unfurl_file?(diff.new_path)
 
@@ -55,7 +74,8 @@ module OC
               path: removed ? diff.old_path : diff.new_path,
               latest_commit: commit.sha,
               branch: ref,
-              removed: removed
+              removed: removed,
+              sethead: sethead
             },
             allow_local_requests: true
           )
