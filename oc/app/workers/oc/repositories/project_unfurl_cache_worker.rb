@@ -85,7 +85,7 @@ module OC
       private
 
       def unfurl_server_url
-        ::Gitlab.config.extra['unfurl_server_url']
+        ::OC::Repositories::UnfurlServer.internal_url
       end
 
       def unfurl_file?(filename)

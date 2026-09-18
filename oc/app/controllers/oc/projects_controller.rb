@@ -97,7 +97,8 @@ module OC
       project.refresh_unfurl_type!
 
       cleared = clear_unfurl_server_cache
-      flash[:alert] = _('Failed to clear the Unfurl server cache.') unless cleared
+      flash[:alert] = _('Failed to clear the Unfurl server cache.') if cleared == false
+      flash[:notice] = _('No Unfurl server is configured.') if cleared.nil?
 
       respond_to do |format|
         format.html { redirect_to project_path(project) }
@@ -108,8 +109,10 @@ module OC
     private
 
     def clear_unfurl_server_cache
-      url = ::Gitlab.config.extra['unfurl_server_url']
-      return true if url.blank?
+      url = ::OC::Repositories::UnfurlServer.internal_url
+      # nil rather than true: an operator repairing a project should not be
+      # told a cache was cleared on a server nothing was sent to.
+      return if url.blank?
 
       ::Gitlab::HTTP.post(
         "#{url}/clear_project_file_cache",

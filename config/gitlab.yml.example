@@ -1677,6 +1677,14 @@ production: &base
     ## proxied at /services/unfurl-server on this host (it must allow CORS).
     # unfurl_server_url: 'https://unfurl.example.com'
 
+    ## OC Change: where GitLab itself reaches it. In production that is the
+    ## container behind the load balancer rather than the address above, so
+    ## these calls are not authenticated by it. Falls back to the URL above,
+    ## which is all a GDK or an unproxied deployment needs. The chart renders
+    ## UNFURL_SERVER_INTERNAL_URL takes precedence, for deployments that
+    ## cannot set this key.
+    # unfurl_server_internal_url: 'http://unfurl-server.internal:8080'
+
     ## Google analytics. Uncomment if you want it
     # google_analytics_id: '_your_tracking_id'
 

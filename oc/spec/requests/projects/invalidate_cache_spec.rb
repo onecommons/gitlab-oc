@@ -25,8 +25,16 @@ RSpec.describe 'Invalidating a project\'s Unfurl caches', feature_category: :sou
       get "#{path}.json"
 
       expect(response).to have_gitlab_http_status(:ok)
-      expect(Gitlab::Json::SafeParser.parse(response.body)).to eq('cleared' => true)
       expect(project.reset.recorded_unfurl_type).to eq(OC::REGULAR_PROJECT)
+    end
+
+    # The local caches above are cleared either way; only the server's copy
+    # depends on there being a server. Saying `cleared` of a request never
+    # sent would tell an operator the repair had reached further than it did.
+    it 'does not claim a cache was cleared when no server is configured' do
+      get "#{path}.json"
+
+      expect(Gitlab::Json::SafeParser.parse(response.body)).to eq('cleared' => nil)
     end
 
     it 'redirects back to the project for a browser' do
