@@ -141,8 +141,13 @@ body {
 
 // 15.11 marked the current section with a straight rule under the label and no
 // fill. Not Bootstrap's `.active`, which paints a pill behind the button.
-.uf-topbar-link {
+//
+// 15.11 also set the weight on these, from framework/header.scss's
+// .navbar-sub-nav rule. The class is doubled because gitlab-ui's own button
+// rules are, so a single class sits below them.
+.uf-topbar-link.uf-topbar-link {
   position: relative;
+  font-weight: $gl-font-weight-bold;
 }
 
 .uf-topbar-link-current::after {
