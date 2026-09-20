@@ -65,13 +65,13 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
       )
     end
 
-    it 'offers every view the dashboard app routes to' do
+    it 'offers the dashboard views that have a page behind them' do
       context = Sidebars::Projects::Context.new(
         current_user: user, container: project, current_ref: project.repository.root_ref
       )
       items = dashboard_menu.new(context).renderable_items.map(&:title)
 
-      expect(items).to eq(%w[Overview Environments Deployments Applications])
+      expect(items).to eq(%w[Overview Environments Deployments])
     end
   end
 

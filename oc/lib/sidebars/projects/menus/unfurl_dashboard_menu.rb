@@ -33,8 +33,6 @@ module Sidebars
             { controller: 'projects/environments' }, :oc_environments))
           add_item(item(_('Deployments'), project_unfurl_deployments_path(context.project),
             { path: 'projects#deployments' }, :oc_deployments))
-          add_item(item(_('Applications'), project_unfurl_applications_path(context.project),
-            { path: 'projects#applications' }, :oc_applications))
 
           true
         end
