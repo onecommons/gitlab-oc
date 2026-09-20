@@ -10,9 +10,12 @@
   :plain
     #{schema_breadcrumb_json}
 
-#js-vue-page-breadcrumbs-wrapper{ data: { testid: 'breadcrumb-links' } }
-  #js-vue-page-breadcrumbs{ data: { breadcrumbs_json: breadcrumbs_as_json } }
-  #js-injected-page-breadcrumbs
-#js-page-breadcrumbs-extra
+-# OC Change #428 -- the schema.org trail above stays; the visible row goes,
+-# because oc-pages draws its own on the pages that set this.
+- unless @hide_breadcrumbs
+  #js-vue-page-breadcrumbs-wrapper{ data: { testid: 'breadcrumb-links' } }
+    #js-vue-page-breadcrumbs{ data: { breadcrumbs_json: breadcrumbs_as_json } }
+    #js-injected-page-breadcrumbs
+  #js-page-breadcrumbs-extra
 
 = dispensable_render "layouts/nav/classification_level_banner"
