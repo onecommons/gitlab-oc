@@ -56,16 +56,27 @@ module OC
       end
     end
 
-    # A dashboard project is the oc-pages dashboard app, not a repository page.
+    # A project's own page is whatever its unfurl type says: a dashboard shows
+    # the oc-pages dashboard app, a blueprint its overview, anything else the
+    # repository landing page.
     override :show
     def show
-      return super unless unfurl_dashboard_project?
+      return super unless request.format.html?
 
-      return redirect_to project_import_path(@project, custom_import_params) if @project.import_in_progress?
+      # unfurl_type_without_recording rather than the predicates: classifying
+      # writes, and this runs on a GET.
+      case project&.unfurl_type_without_recording
+      when ::OC::UNFURL_DASHBOARD
+        return redirect_to project_import_path(@project, custom_import_params) if @project.import_in_progress?
 
-      @project = @project.present(current_user: current_user)
+        @project = @project.present(current_user: current_user)
 
-      render_unfurl_dashboard
+        render_unfurl_dashboard
+      when ::OC::UNFURL_BLUEPRINT
+        render_blueprint_overview
+      else
+        super
+      end
     end
 
     # The dashboard app's own views, which only a dashboard has. Both are
@@ -79,14 +90,9 @@ module OC
     end
 
     # The Unfurl Cloud blueprint page, a Vue app from the oc-pages package.
+    # Serves the client-side routes under it as well as the page itself.
     def overview
-      @id = @ref = repository_root
-      @path = ''
-      @ref_type = 'heads'
-      @project = @project.present(current_user: current_user)
-      @live_preview_url = live_preview_url
-
-      render 'projects/overview'
+      render_blueprint_overview
     end
 
     # Forgets everything cached about a project's Unfurl files: the repository
@@ -123,6 +129,16 @@ module OC
       true
     rescue *::Gitlab::HTTP::HTTP_ERRORS
       false
+    end
+
+    def render_blueprint_overview
+      @id = @ref = repository_root
+      @path = ''
+      @ref_type = 'heads'
+      @project = @project.present(current_user: current_user)
+      @live_preview_url = live_preview_url
+
+      render 'projects/overview'
     end
 
     def render_dashboard_section

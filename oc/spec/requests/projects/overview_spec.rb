@@ -58,4 +58,33 @@ RSpec.describe 'Project blueprint overview', feature_category: :source_code_mana
       expect(response.body).not_to include('gon.unfurl_server_url')
     end
   end
+
+  describe 'GET /:namespace/:project' do
+    let_it_be(:blueprint) do
+      create(:project, :public, :repository).tap do |blueprint|
+        blueprint.custom_attributes.create!(key: 'unfurl_type', value: OC::UNFURL_BLUEPRINT)
+      end
+    end
+
+    it 'renders the overview from the blueprint project itself' do
+      get project_path(blueprint)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(mount_point['data-project-path']).to eq(blueprint.full_path)
+    end
+
+    it 'leaves an ordinary project on its repository landing page' do
+      get project_path(project)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(mount_point).to be_nil
+    end
+
+    it 'still answers the atom feed, which is not a page at all' do
+      get project_path(blueprint, format: :atom)
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(response.media_type).to eq('application/atom+xml')
+    end
+  end
 end
