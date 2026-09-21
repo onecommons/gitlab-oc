@@ -1,5 +1,6 @@
 = _('Hi %{username}!') % { username: sanitize_name(@user.name) }
 
+-# OC Change
 = _('%{brand} detected an attempt to sign in to your %{host} account using an incorrect verification code from the following IP address: %{ip}, at %{time}') % { brand: brand_title, host: Gitlab.config.gitlab.host, ip: @ip, time: @time }
 
 = _('If you recently tried to sign in, but mistakenly entered an incorrect verification code, you can ignore this email.')

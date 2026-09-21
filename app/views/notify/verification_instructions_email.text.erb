@@ -4,5 +4,6 @@
 
 <%= @token %>
 
+<%# OC Change -%>
 <%= format(s_('IdentityVerification|If you have not recently tried to sign into %{brand}, we recommend changing your password and setting up Two-Factor Authentication to keep your account safe.'), brand: brand_title) %>
 <%= s_('IdentityVerification|Your verification code expires after %{expires_in_minutes} minutes.') % { expires_in_minutes: @expires_in_minutes } %>
