@@ -1,5 +1,8 @@
--# OC Change #1256 -- only a blueprint has anything to deploy from
-- return unless @project.unfurl_blueprint?
+-# OC Change #1256 -- only a blueprint has anything to deploy from.
+-# unfurl_type_without_recording, not unfurl_blueprint?: the latter classifies,
+-# and classifying writes a custom attribute, which a settings page render must
+-# not do.
+- return unless @project.unfurl_type_without_recording == ::OC::UNFURL_BLUEPRINT
 
 = render ::Layouts::SettingsBlockComponent.new(s_('ProjectSettings|Unfurl Deploy Button'),
   id: 'js-unfurl-badge-settings',
