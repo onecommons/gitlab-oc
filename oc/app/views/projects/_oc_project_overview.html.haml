@@ -15,8 +15,12 @@
 - readme = @repository.readme if can?(current_user, :read_code, @project)
 - cloudmap = ::Ci::InstanceVariable.all_cached.find { |variable| variable.key == 'UNFURL_CLOUDMAP_JSON' }&.value
 
+-# oc-pages copies this img's src into the page's hero. Not the avatar
+-# component: it renders a div for a project with no avatar, and its img is
+-# lazy-loaded, which never resolves inside a hidden element.
 #oc-project-overview-icon{ style: 'display: none;' }
-  = render Pajamas::AvatarComponent.new(@project, alt: @project.name, size: 96, avatar_options: { itemprop: 'image' })
+  %img.gl-avatar.gl-avatar-s96{ src: @project.avatar_url || oc_placeholder_avatar_path(@project),
+    alt: @project.name, itemprop: 'image' }
 
 #js-oc-project-overview{ data: {
   project_path: @project.full_path,
@@ -29,6 +33,7 @@
   live_preview: @live_preview_url,
   link_deployment: "#{project_environments_path(@project)}/folders/review",
   readme_raw: readme&.data,
+  readme: @readme_contents,
   cloudmap: cloudmap,
   deployment_count: @project.blueprint_deployment_count,
   badge_settings: render('projects/deployment_status/settings'),

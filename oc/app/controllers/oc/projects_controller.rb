@@ -137,6 +137,8 @@ module OC
       @ref_type = 'heads'
       @project = @project.present(current_user: current_user)
       @live_preview_url = live_preview_url
+      # oc-pages puts this through v-html, so it has to arrive rendered.
+      @readme_contents = unfurl_rendered_readme if can?(current_user, :read_code, project)
 
       render 'projects/overview'
     end

@@ -26,6 +26,32 @@ RSpec.describe 'Project blueprint overview', feature_category: :source_code_mana
       expect(mount_point).to be_present
     end
 
+    it 'renders the README, which oc-pages puts through v-html' do
+      get project_overview_path(project)
+
+      expect(mount_point['data-readme']).to include('<')
+      expect(mount_point['data-readme']).not_to eq(project.repository.readme.data)
+    end
+
+    # oc-pages reads this img's src, so a lazy-loaded one -- which never resolves
+    # inside a hidden element -- leaves the page's hero empty.
+    it 'gives a project with no avatar the Unfurl placeholder, not an identicon' do
+      get project_overview_path(project)
+
+      icon = Nokogiri::HTML(response.body).at_css('#oc-project-overview-icon img')
+      expect(icon['src']).to match(%r{/-/oc/assets/images/uf-avatar-placeholder-\d\.svg})
+    end
+
+    it "serves a project's own avatar from the same place" do
+      avatared = create(:project, :public, :repository,
+        avatar: fixture_file_upload('spec/fixtures/dk.png', 'image/png'))
+
+      get project_overview_path(avatared)
+
+      icon = Nokogiri::HTML(response.body).at_css('#oc-project-overview-icon img')
+      expect(icon['src']).to eq(avatared.avatar_url)
+    end
+
     it 'leaves the README out when the visitor cannot read code' do
       get project_overview_path(create(:project, :public, :repository, :repository_private))
 

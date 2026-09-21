@@ -28,7 +28,7 @@ module OC
     end
 
     def render_unfurl_dashboard
-      @readme_contents = unfurl_dashboard_readme
+      @readme_contents = unfurl_rendered_readme
 
       # oc-pages' share-resource-toggle reads this off gon, not off the mount
       # point's dataset. Set here rather than in add_gon_variables so an
@@ -77,7 +77,7 @@ module OC
     # it -- GitLab renders markdown through Banzai -- so the same call started
     # returning a .md readme unchanged, and since this value goes to v-html an
     # unrendered readme was an unsanitised one.
-    def unfurl_dashboard_readme
+    def unfurl_rendered_readme
       readme = project.repository&.tree&.readme
       return unless readme
 
