@@ -69,6 +69,17 @@ jobs:
             eval "$(~/.local/bin/mise activate bash)" &&
             cd '"$GITLAB"' && RAILS_ENV=test mise x -- bin/rake db:migrate'
 
+      # Override.verify! raises when a method an `override` names has gone from
+      # upstream -- the first thing a rebase breaks, and silent otherwise
+      # because the fork's method simply stops being called. Runs before the
+      # suites: it is quick and its failure explains theirs.
+      - name: Static verification
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            mise x -- bundle exec rake lint:static_verification'
+
       # fast_spec_helper specs need neither database nor Gitaly and cannot
       # share an invocation with spec_helper ones, so they run on their own.
       - name: RSpec (fast_spec_helper)
