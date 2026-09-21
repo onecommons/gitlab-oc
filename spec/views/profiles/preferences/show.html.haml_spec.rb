@@ -22,6 +22,24 @@ RSpec.describe 'profiles/preferences/show', feature_category: :user_profile do
     end
   end
 
+  # OC Change -- no accent theme picker, and the hidden field is what keeps
+  # profile_preferences.vue's save path from dereferencing a missing theme.
+  describe 'application theme' do
+    before do
+      render
+    end
+
+    it 'offers no theme picker' do
+      expect(rendered).not_to have_css('#application-theme')
+    end
+
+    it 'still submits the theme the user already has' do
+      expect(rendered).to have_field(
+        'user[theme_id]', type: :hidden, with: Gitlab::Themes.for_user(user).id.to_s
+      )
+    end
+  end
+
   describe 'syntax highlighting theme' do
     before do
       render
