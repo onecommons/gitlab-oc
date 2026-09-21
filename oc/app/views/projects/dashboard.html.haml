@@ -9,6 +9,7 @@
   project_id: @project.id,
   environment_id: @environment&.id,
   greeting_name: current_user&.first_name.presence || current_user&.username || _('Guest'),
+  project_avatar: @project.avatar_url,
   open_cloud_publish: open_cloud_publish_request,
   readme: @readme_contents } }
 

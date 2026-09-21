@@ -36,6 +36,15 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
       expect(response).to have_gitlab_http_status(:ok)
     end
 
+    it 'hands the breadcrumb the project avatar, which it used to scrape' do
+      project.update!(avatar: fixture_file_upload('spec/fixtures/dk.png', 'image/png'))
+
+      get project_path(project)
+
+      mount_point = Nokogiri::HTML(response.body).at_css('#js-table-component')
+      expect(mount_point['data-project-avatar']).to eq(project.avatar_url)
+    end
+
     it 'serves the applications view the same way' do
       get project_unfurl_applications_path(project)
 
