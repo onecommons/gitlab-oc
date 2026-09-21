@@ -392,7 +392,10 @@ RSpec.describe Projects::CreateService, '#execute', feature_category: :groups_an
 
       it 'cannot create a project' do
         expect(project.errors.errors.length).to eq 1
-        expect(project.errors.messages[:limit_reached].first).to eq(_('You cannot create projects in your personal namespace. Contact your GitLab administrator.'))
+        # OC Change -- Project#check_personal_projects_limit sends people to
+        # the interface setting rather than to an administrator.
+        expect(project.errors.messages[:limit_reached].first)
+          .to eq(_('To create projects, set Interface to Develop applications in your profile settings.'))
       end
     end
 

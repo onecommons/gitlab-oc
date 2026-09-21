@@ -5,6 +5,9 @@ name: spec
   pull_request:
   push:
     branches: [v19.3.0-oc]
+  # The heavy upstream specs, which are too slow for every push.
+  schedule:
+    - cron: '41 3 * * *'
   workflow_dispatch:
     inputs:
       gdk_image:
@@ -87,7 +90,8 @@ jobs:
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
             cd '"$GITLAB"' &&
-            mise x -- bundle exec rspec oc/spec/lib/gitlab_edition_spec.rb'
+            mise x -- bundle exec rspec oc/spec/lib/gitlab_edition_spec.rb \
+              $(mise x -- ruby oc/scripts/upstream_specs.rb --fast | tr "\n" " ")'
 
       - name: RSpec (oc/spec)
         run: |
@@ -97,6 +101,31 @@ jobs:
             export ENABLE_RSPACK=true &&
             mise x -- bundle exec rspec oc/spec \
               --exclude-pattern "**/gitlab_edition_spec.rb"'
+
+      # The upstream examples covering files the fork edits in place. oc/spec
+      # cannot see these: it tests the fork's own code, while these assert what
+      # upstream expects of code the fork changed underneath it. The list is
+      # derived from the `# OC Change` markers, so it follows the edits; the
+      # fast_spec_helper ones ran in the step above, which boots no Rails.
+      - name: RSpec (upstream specs the fork edits)
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            export ENABLE_RSPACK=true &&
+            mise x -- bundle exec rspec $(mise x -- ruby oc/scripts/upstream_specs.rb | tr "\n" " ")'
+
+      # Four files are most of half an hour, because the fork edits big
+      # upstream classes. Nightly rather than per-push, so a regression in them
+      # surfaces within a day instead of holding up every merge.
+      - name: RSpec (heavy upstream specs)
+        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          docker exec -u gdk gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd '"$GITLAB"' &&
+            export ENABLE_RSPACK=true &&
+            mise x -- bundle exec rspec $(mise x -- ruby oc/scripts/upstream_specs.rb --heavy | tr "\n" " ")'
 
       # A killed run leaves a transaction open on `shards` that poisons every
       # later suite, so a cancelled job should not leave the container behind.

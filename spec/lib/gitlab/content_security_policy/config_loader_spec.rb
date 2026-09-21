@@ -462,6 +462,8 @@ RSpec.describe Gitlab::ContentSecurityPolicy::ConfigLoader, feature_category: :s
             'http://localhost/assets/',
             'http://localhost/-/speedscope/index.html',
             'http://localhost/-/sandbox/',
+            # OC Change -- oc-pages frames the relay to reach the Unfurl server
+            'http://localhost/-/oc/assets/crossorigin-xhr.html',
             customer_portal_url
           ].join(' ')
         end
@@ -483,7 +485,9 @@ RSpec.describe Gitlab::ContentSecurityPolicy::ConfigLoader, feature_category: :s
             'http://localhost/admin/',
             'http://localhost/assets/',
             'http://localhost/-/speedscope/index.html',
-            'http://localhost/-/sandbox/'
+            'http://localhost/-/sandbox/',
+            # OC Change -- oc-pages frames the relay to reach the Unfurl server
+            'http://localhost/-/oc/assets/crossorigin-xhr.html'
           ].join(' ')
         end
 
