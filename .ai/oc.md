@@ -161,17 +161,63 @@ production: &base
     unfurl_server_url: 'http://localhost:8081'
 ```
 
+A GDK service supervises the server, so it starts with everything else and its
+log is where every other service's is. Install it once:
+
 ```bash
-UNFURL_HOME= unfurl serve --clone-root <scratch dir> --cloud-server http://gdk.test:3000 \
-  --port 8081 --cors http://gdk.test:3000
+sh oc/scripts/install_gdk_unfurl.sh   # --skip-cloudmap for the server alone
+gdk start unfurl
+gdk tail unfurl          # or $GDK_ROOT/log/unfurl/current
 ```
 
-`UNFURL_HOME=` matters: with a home project, a repository redirect in
-`~/.unfurl_home/local/unfurl.yaml` (`unfurl.cloud/onecommons/std` pointing
-somewhere else, say) makes every environment that imports `std` fail to export
-with `Path not allowed outside of repository or document root`, and one
-unexportable environment disables environment creation for the whole dashboard.
-unfurl-gui's own harness runs it the same way — see its README's
+The script copies `oc/scripts/unfurl.rb` into `$GDK_ROOT/lib/gdk/services/`,
+clones `onecommons/cloudmap` to `$GDK_ROOT/tmp/cloudmap` and creates the
+`unfurl_cloudmap` database; re-running it is safe, and each step is skipped
+when it is already done. The definition lives in this repo because the GDK
+checkout is upstream's, where the file would be untracked and a `gdk update`
+would eventually lose it. GDK finds services by reflection over
+`GDK::Services`, so the copy is the whole registration, and `gdk start` renders
+the run script itself — which is why none of this wants `gdk reconfigure`, and
+that matters, because reconfigure would overwrite the `config/gitlab.yml`
+above.
+
+The cloudmap half is optional. `--skip-cloudmap` leaves it out, and without a
+clone the service omits both cloudmap variables, so `/cloudmap` is proxied to
+Python as it was before. A GDK that is not answering is not a reason to stop
+either: the script clones the public copy instead and points `origin` back at
+the GDK, so one `git pull` later it is the seeded repository.
+
+`unfurl-git-sync` migrates its own tables on first start but never issues
+`CREATE DATABASE`, which is what the `createdb` step is for, and `createdb`
+fails outright on a database that already exists. To point the index somewhere
+else, set `UNFURL_CLOUDMAP_DB_URL` in `$GDK_ROOT/env.runit` — the run script
+sources it after the service's own exports, so it wins — and give `createdb`
+the matching name, because the wrong database is not an error, just an empty
+index. `UNFURL_CLOUDMAP_REPO` is a
+working tree, not a URL — the server exits non-zero when the path is not one —
+and the clone is a snapshot, so a push to `onecommons/cloudmap` reaches the
+index only after a pull and a restart.
+
+What the service sets, and why:
+
+- **`UNFURL_HOME=`** — with a home project, a repository redirect in
+  `~/.unfurl_home/local/unfurl.yaml` (`unfurl.cloud/onecommons/std` pointing
+  somewhere else, say) makes every environment that imports `std` fail to
+  export with `Path not allowed outside of repository or document root`, and
+  one unexportable environment disables environment creation for the whole
+  dashboard.
+- **`UNFURL_PACKAGE_RULES`** — whitespace-separated pairs, resolving both
+  `gitlab.com/onecommons/*` and `unfurl.cloud/onecommons/*` to this GDK.
+- **`CACHE_REDIS_URL`** — GDK's redis on its socket, since the redis component
+  (`components/redis/GDK.rb`) exposes no port, at db 6 because 0-5 are
+  GitLab's in development. Setting it at all also puts the Rust proxy in front
+  of waitress: the proxy takes 8081 and the Python backend moves to 8082.
+- **`UNFURL_CLOUDMAP_REPO` and `UNFURL_CLOUDMAP_DB_URL`** — set only when the
+  clone is there, so the pair is never half-given: with one of them the server
+  says which is missing and serves neither. With both, `GET /cloudmap` comes
+  from the index rather than being proxied to Python.
+
+unfurl-gui's own harness runs the server directly — see its README's
 `UNFURL_DEFAULT_ENV`.
 
 Two more things a *deployment* needs on a development instance, both found by
