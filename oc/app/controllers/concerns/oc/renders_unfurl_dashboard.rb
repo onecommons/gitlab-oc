@@ -13,11 +13,18 @@ module OC
 
     private
 
+    # A request whose Accept is a bare */* negotiates to Mime::ALL, which
+    # respond_to still serves from its format.html block. Mime#html? is false
+    # for it, and so is Mime#all? -- that type carries no symbol.
+    def html_page_request?
+      request.format.html? || request.format == Mime::ALL
+    end
+
     # unfurl_type_without_recording rather than unfurl_dashboard?: classifying
     # writes, and these all run on GET. It still answers for a project the
     # classifier has not reached, which a freshly pushed dashboard is.
     def unfurl_dashboard_project?
-      request.format.html? && project&.unfurl_type_without_recording == ::OC::UNFURL_DASHBOARD
+      html_page_request? && project&.unfurl_type_without_recording == ::OC::UNFURL_DASHBOARD
     end
 
     def render_unfurl_dashboard

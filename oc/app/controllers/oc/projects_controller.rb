@@ -61,7 +61,7 @@ module OC
     # repository landing page.
     override :show
     def show
-      return super unless request.format.html?
+      return super unless html_page_request?
 
       # unfurl_type_without_recording rather than the predicates: classifying
       # writes, and this runs on a GET.

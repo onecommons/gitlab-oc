@@ -80,6 +80,13 @@ RSpec.describe 'Project blueprint overview', feature_category: :source_code_mana
       expect(mount_point).to be_nil
     end
 
+    it 'renders it for a client that sends no Accept but */*' do
+      get project_path(blueprint), headers: { 'Accept' => '*/*' }
+
+      expect(response).to have_gitlab_http_status(:ok)
+      expect(mount_point).to be_present
+    end
+
     it 'still answers the atom feed, which is not a page at all' do
       get project_path(blueprint, format: :atom)
 
