@@ -807,27 +807,22 @@ Where tests belong:
 an in-place `# OC Change` that breaks an upstream example goes unnoticed, and
 they accumulate. Run the files you touch by hand.
 
-Known failures on a clean checkout, surveyed on 2026-09-21. Nine of them share
-one shape -- a mail body that does not contain the link or text the example
-expects -- and none is about branding:
+A survey on 2026-09-21 found fifteen, all of them upstream examples nothing had
+run since the fork diverged. Fourteen are fixed; what is left is
+`spec/views/notify/pipeline_fixed_email.html.haml_spec.rb`, which deadlocks on
+`merge_request_commits_metadata` beside other suites and passes alone --
+concurrency, not a fault.
 
-- `spec/mailers/devise_mailer_spec.rb`, four examples asserting a CTA link
-  (`Confirm your account`, `Confirm your email address`, `Reset password`,
-  `Unlock account`), each `have_link ... but there were no matches`.
-- `spec/mailers/members/`, five in `AboutToExpireMailer`,
-  `AccessRequestedMailer` and `ExpirationDateUpdatedMailer` -- a missing
-  members-page link, and a body that does not contain `day.`.
+Two causes, both worth recognising again:
 
-  The templates build their links with `unlock_url` where the specs expect
-  `user_unlock_url`, so the route drawing this fork patches is the first place
-  to look for all nine.
-
-- `spec/views/notify/pipeline_fixed_email.html.haml_spec.rb` deadlocks on
-  `merge_request_commits_metadata` when it runs beside other suites; it passes
-  alone, so that one is concurrency, not a fault.
-
-Six more were found in the same survey and fixed with the mail branding: two in
-`spec/mailers/devise_mailer_spec.rb` and four in `spec/helpers/emails_helper_spec.rb`,
-all of them upstream examples asserting copy that `OC::EmailsHelper` had already
-changed. That is the failure this section is about -- an override lands, the
-upstream example that covers it is never run, and nobody hears about it.
+- Six asserted copy that `OC::EmailsHelper` had already changed -- an override
+  lands, the example covering it never runs, nobody hears about it. That is
+  what this section is about.
+- Nine failed with `have_link ... but there were no matches`, in
+  `devise_mailer_spec` and `spec/mailers/members/`. Not the links: Sprockets
+  appends a ~5 KB base64 source map to the compiled mailer stylesheet, the
+  layout inlines it, and one line over RFC 5322's 998 characters makes Mail
+  encode the whole HTML part quoted-printable -- so `href="..."` is assembled
+  as `href=3D"..."`. `OC::ApplicationHelper#asset_to_string` strips the map.
+  Worth remembering the shape: a body that provably contains what the example
+  wants, while the assembled message does not.
