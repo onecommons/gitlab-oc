@@ -3,5 +3,6 @@
 \----
 
 %p
-  = s_("Notify|Don't want to receive updates from GitLab administrators?")
+  -# OC Change
+  = format(s_("Notify|Don't want to receive updates from %{brand}?"), brand: brand_title)
   = link_to _('Unsubscribe'), @unsubscribe_url

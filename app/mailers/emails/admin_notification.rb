@@ -13,7 +13,10 @@ module Emails
     def send_unsubscribed_notification(user_id)
       user = User.find(user_id)
       email = user.notification_email_or_default
-      email_with_layout to: email, subject: subject("Unsubscribed from GitLab administrator notifications")
+      # OC Change
+      subject_text = format(_("Unsubscribed from %{brand} notifications"), brand: ::OC.brand_title)
+
+      email_with_layout to: email, subject: subject(subject_text)
     end
   end
 end

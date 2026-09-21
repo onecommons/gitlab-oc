@@ -28,7 +28,7 @@ RSpec.describe Members::InviteReminderMailer, feature_category: :groups_and_proj
       it_behaves_like 'a user cannot unsubscribe through footer link'
 
       it 'contains all the useful information' do
-        is_expected.to have_subject "#{inviter.name}'s invitation to GitLab is pending"
+        is_expected.to have_subject "#{inviter.name}'s invitation to Unfurl Cloud is pending"
         is_expected.to have_body_text group.human_name
         is_expected.to have_body_text group_member.human_access.downcase
         is_expected.to have_body_text invite_url(group_member.invite_token)
@@ -44,7 +44,7 @@ RSpec.describe Members::InviteReminderMailer, feature_category: :groups_and_proj
       it_behaves_like 'a user cannot unsubscribe through footer link'
 
       it 'contains all the useful information' do
-        is_expected.to have_subject "#{inviter.name} is waiting for you to join GitLab"
+        is_expected.to have_subject "#{inviter.name} is waiting for you to join Unfurl Cloud"
         is_expected.to have_body_text group.human_name
         is_expected.to have_body_text group_member.human_access.downcase
         is_expected.to have_body_text invite_url(group_member.invite_token)
@@ -60,7 +60,7 @@ RSpec.describe Members::InviteReminderMailer, feature_category: :groups_and_proj
       it_behaves_like 'a user cannot unsubscribe through footer link'
 
       it 'contains all the useful information' do
-        is_expected.to have_subject "#{inviter.name} is still waiting for you to join GitLab"
+        is_expected.to have_subject "#{inviter.name} is still waiting for you to join Unfurl Cloud"
         is_expected.to have_body_text group.human_name
         is_expected.to have_body_text group_member.human_access.downcase
         is_expected.to have_body_text invite_url(group_member.invite_token)

@@ -1,7 +1,8 @@
 = email_default_heading(say_hi(@resource))
 
 %p
-  = _('Your GitLab account request has been approved!')
+  -# OC Change
+  = format(_('Your %{brand} account request has been approved!'), brand: brand_title)
 %p
   = _('Your username is %{username}.') % { username: @resource.username }
 %p

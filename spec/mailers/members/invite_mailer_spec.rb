@@ -73,7 +73,7 @@ RSpec.describe Members::InviteMailer, feature_category: :groups_and_projects do
           stub_config_setting(email_subject_suffix: '_email_suffix_')
         end
 
-        it { is_expected.to have_subject "#{owner.name} invited you to join GitLab | _email_suffix_" }
+        it { is_expected.to have_subject "#{owner.name} invited you to join Unfurl Cloud | _email_suffix_" }
       end
 
       context 'when invite email sent is tracked', :snowplow do
@@ -157,7 +157,7 @@ RSpec.describe Members::InviteMailer, feature_category: :groups_and_projects do
 
       context 'when there is an inviter' do
         it 'contains inviter information' do
-          is_expected.to have_subject "#{owner.name} invited you to join GitLab"
+          is_expected.to have_subject "#{owner.name} invited you to join Unfurl Cloud"
         end
       end
 
@@ -189,7 +189,7 @@ RSpec.describe Members::InviteMailer, feature_category: :groups_and_projects do
 
       context 'when there is an inviter' do
         it 'contains inviter information' do
-          is_expected.to have_subject "#{maintainer.name} invited you to join GitLab"
+          is_expected.to have_subject "#{maintainer.name} invited you to join Unfurl Cloud"
         end
       end
 

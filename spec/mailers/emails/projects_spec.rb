@@ -220,7 +220,7 @@ RSpec.describe Emails::Projects do
       is_expected.to have_body_text("Due to inactivity, the #{project_link} project is scheduled to be deleted " \
         "on <b>2022-01-10</b>")
       is_expected.to have_body_text("To ensure #{project_link} is unscheduled for deletion, check that activity has " \
-        "been logged by GitLab")
+        "been logged by Unfurl Cloud")
       is_expected.to have_body_text("This email supersedes any previous emails about scheduled deletion you may " \
         "have received for #{project_link}.")
     end

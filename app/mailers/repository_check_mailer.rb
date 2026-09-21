@@ -15,7 +15,7 @@ class RepositoryCheckMailer < ApplicationMailer
 
     mail_with_locale(
       to: recipient,
-      subject: "GitLab Admin | #{@message}"
+      subject: "#{::OC.brand_title} Admin | #{@message}" # OC Change
     )
   end
 end

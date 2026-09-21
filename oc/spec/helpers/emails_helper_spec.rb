@@ -10,7 +10,7 @@ RSpec.describe EmailsHelper, feature_category: :notifications do
       end
 
       it 'serves the fork logo, named by the brand' do
-        expect(helper.header_logo).to include('unfurl_logo', 'alt="Unfurl"')
+        expect(helper.header_logo).to include('unfurl_logo', 'alt="Unfurl Cloud"')
       end
     end
 
@@ -30,16 +30,16 @@ RSpec.describe EmailsHelper, feature_category: :notifications do
   describe 'account notices' do
     it 'names the fork rather than the edition it was cut from' do
       expect(helper.two_factor_authentication_disabled_text).to eq(
-        'Two-factor authentication has been disabled for your Unfurl account.'
+        'Two-factor authentication has been disabled for your Unfurl Cloud account.'
       )
       expect(helper.new_email_address_added_text('a@example.com')).to eq(
-        'A new email address has been added to your Unfurl account: a@example.com'
+        'A new email address has been added to your Unfurl Cloud account: a@example.com'
       )
       expect(helper.admin_changed_password_text).to start_with(
-        'An administrator changed the password for your Unfurl account on'
+        'An administrator changed the password for your Unfurl Cloud account on'
       )
       expect(helper.instance_access_request_text(build_stubbed(:user, name: 'Bob'))).to start_with(
-        'Bob has asked for a Unfurl account on your instance'
+        'Bob has asked for a Unfurl Cloud account on your instance'
       )
     end
 

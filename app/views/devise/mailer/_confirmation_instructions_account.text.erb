@@ -3,7 +3,8 @@
 <%= _('Use the link below to confirm your email address.') %>
 <% else %>
   <% if Gitlab.com? %>
-<%= _('Thanks for signing up to GitLab!') %>
+<%# OC Change %>
+<%= format(_('Thanks for signing up to %{brand}!'), brand: brand_title) %>
   <% else %>
 <%= _("Welcome, %{name}!") % { name: @resource.name } %>
   <% end %>

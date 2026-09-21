@@ -208,8 +208,9 @@ RSpec.describe EmailsHelper, feature_category: :shared do
 
   describe '#two_factor_authentication_disabled_text' do
     it 'returns the message that 2FA is disabled' do
+      # OC Change -- OC::EmailsHelper brands this
       expect(two_factor_authentication_disabled_text).to eq(
-        _('Two-factor authentication has been disabled for your GitLab account.')
+        _('Two-factor authentication has been disabled for your Unfurl Cloud account.')
       )
     end
   end
@@ -275,7 +276,7 @@ RSpec.describe EmailsHelper, feature_category: :shared do
     context 'format is html' do
       it 'returns HTML' do
         expect(admin_changed_password_text(format: :html)).to eq(
-          "An administrator changed the password for your GitLab account on " \
+          "An administrator changed the password for your Unfurl Cloud account on " \
           "#{link_to(Gitlab.config.gitlab.url, Gitlab.config.gitlab.url, target: :_blank, rel: 'noopener noreferrer')}."
         )
       end
@@ -284,7 +285,7 @@ RSpec.describe EmailsHelper, feature_category: :shared do
     context 'format is not specified' do
       it 'returns text' do
         expect(admin_changed_password_text).to eq(
-          "An administrator changed the password for your GitLab account on #{Gitlab.config.gitlab.url}."
+          "An administrator changed the password for your Unfurl Cloud account on #{Gitlab.config.gitlab.url}."
         )
       end
     end

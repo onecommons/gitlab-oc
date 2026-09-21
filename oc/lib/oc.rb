@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 module OC
+  BRAND_TITLE = 'Unfurl Cloud'
+
+  # What a mailer subject calls. Mirrors AppearancesHelper#brand_title, which
+  # is a view helper and so unreachable from a mailer class.
+  def self.brand_title
+    ::Appearance.current&.title.presence || BRAND_TITLE
+  end
+
   CACHE_KEY = 'unfurl'
   DEPLOY_META_FILE_NAME = 'unfurl.json'
 

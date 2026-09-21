@@ -8,7 +8,7 @@
 <%= _("- Push code to the repository.") %>
 <%= _("- Add or remove a user.") %>
 
-<%= _("To ensure %{project_name} is unscheduled for deletion, check that activity has been logged by GitLab. For example:") % { project_name: @project.name } %>
+<%= _("To ensure %{project_name} is unscheduled for deletion, check that activity has been logged by %{brand}. For example:") % { brand: brand_title, project_name: @project.name } %>
 
 <%= _("- Go to the Activity page for %{project_name}.") % { project_name: @project.name } %>
 <%= _("- View the last_activity_at attribute for %{project_name} using the Project API %{projects_api_link}.") % { project_name: @project.name, projects_api_link: help_page_url('api/projects.md') } %>

@@ -27,7 +27,7 @@ RSpec.describe Emails::AdminNotification do
     subject { Notify.send_unsubscribed_notification(recipient.id) }
 
     it 'sends an email' do
-      expect(subject).to have_subject 'Unsubscribed from GitLab administrator notifications'
+      expect(subject).to have_subject 'Unsubscribed from Unfurl Cloud notifications'
       expect(subject).to have_body_text 'You have been unsubscribed'
     end
 

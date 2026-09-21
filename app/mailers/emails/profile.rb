@@ -17,7 +17,7 @@ module Emails
 
       email_with_layout(
         to: recipient.notification_email_or_default,
-        subject: subject(_("GitLab Account Request")))
+        subject: subject(format(_("%{brand} Account Request"), brand: ::OC.brand_title))) # OC Change
     end
 
     def user_admin_rejection_email(name, email)
@@ -25,7 +25,7 @@ module Emails
 
       email_with_layout(
         to: email,
-        subject: subject(_("GitLab account request rejected")))
+        subject: subject(format(_("%{brand} account request rejected"), brand: ::OC.brand_title))) # OC Change
     end
 
     def user_deactivated_email(name, email)

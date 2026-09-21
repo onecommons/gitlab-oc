@@ -54,7 +54,7 @@ RSpec.describe Emails::PagesDomains do
       it 'notifies user that domain will be removed automatically' do
         aggregate_failures do
           is_expected.to have_body_text domain.remove_at.strftime('%F %T')
-          is_expected.to have_body_text "it will be removed from your GitLab project"
+          is_expected.to have_body_text "it will be removed from your Unfurl Cloud project"
         end
       end
     end

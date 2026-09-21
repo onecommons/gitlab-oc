@@ -4,7 +4,8 @@
   - if Gitlab::CurrentSettings.allow_signup?
     = s_('Notify|Your account has been created successfully.')
   - else
-    = s_('Notify|The Administrator created an account for you. Now you are a member of the company GitLab application.')
+    -# OC Change
+    = format(s_('Notify|The Administrator created an account for you. Now you are a member of %{brand}.'), brand: brand_title)
 %p
   = s_('Notify|login..........................................')
   %code= @user['email']

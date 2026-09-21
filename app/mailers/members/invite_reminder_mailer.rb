@@ -20,7 +20,8 @@ module Members
 
       @email_instance = email_klass[reminder_index].new
 
-      subject_line = format(email_instance.subject, inviter: member.created_by.name)
+      # OC Change -- the subjects name the fork
+      subject_line = format(email_instance.subject, inviter: member.created_by.name, brand: ::OC.brand_title)
 
       mail_with_locale(
         to: member.invite_email,
@@ -58,7 +59,7 @@ module Members
 
     class FirstEmail
       def subject
-        s_("InviteReminderEmail|%{inviter}'s invitation to GitLab is pending")
+        s_("InviteReminderEmail|%{inviter}'s invitation to %{brand} is pending") # OC Change
       end
 
       def salutation
@@ -83,7 +84,7 @@ module Members
       include SafeFormatHelper
 
       def subject
-        s_('InviteReminderEmail|%{inviter} is waiting for you to join GitLab')
+        s_('InviteReminderEmail|%{inviter} is waiting for you to join %{brand}') # OC Change
       end
 
       def salutation
@@ -109,7 +110,7 @@ module Members
 
     class LastEmail
       def subject
-        s_('InviteReminderEmail|%{inviter} is still waiting for you to join GitLab')
+        s_('InviteReminderEmail|%{inviter} is still waiting for you to join %{brand}') # OC Change
       end
 
       def salutation

@@ -113,7 +113,8 @@ RSpec.describe DeviseMailer, feature_category: :user_management do
     end
 
     it 'includes the correct content' do
-      is_expected.to have_body_text(/An administrator changed the password for your GitLab account/)
+      # OC Change -- OC::EmailsHelper#admin_changed_password_text brands this
+      is_expected.to have_body_text(/An administrator changed the password for your Unfurl Cloud account/)
     end
 
     it 'includes a link to GitLab' do
@@ -144,7 +145,8 @@ RSpec.describe DeviseMailer, feature_category: :user_management do
     end
 
     it 'includes the correct content' do
-      is_expected.to have_body_text(/Your GitLab account request has been approved!/)
+      # OC Change
+      is_expected.to have_body_text(/Your Unfurl Cloud account request has been approved!/)
     end
 
     it 'includes a link to GitLab' do
@@ -177,7 +179,7 @@ RSpec.describe DeviseMailer, feature_category: :user_management do
     end
 
     it 'includes the correct content' do
-      is_expected.to have_text(/Someone, hopefully you, has requested to reset the password for your GitLab account on #{Gitlab.config.gitlab.url}/)
+      is_expected.to have_text(/Someone, hopefully you, has requested to reset the password for your Unfurl Cloud account on #{Gitlab.config.gitlab.url}/)
       is_expected.to have_body_text(/If you did not perform this request, you can safely ignore this email./)
       is_expected.to have_body_text(/Otherwise, click the link below to complete the process./)
     end
@@ -248,7 +250,7 @@ RSpec.describe DeviseMailer, feature_category: :user_management do
   describe '#unlock_instructions' do
     let_it_be_with_reload(:user) { create(:user) }
     let(:unlock_text) do
-      "Your GitLab account has been locked due to an excessive number of unsuccessful sign in attempts. You can wait for your account to automatically unlock in 12 minutes or you can click the link below to unlock now."
+      "Your Unfurl Cloud account has been locked due to an excessive number of unsuccessful sign in attempts. You can wait for your account to automatically unlock in 12 minutes or you can click the link below to unlock now."
     end
 
     subject { described_class.unlock_instructions(user, 'faketoken', opts) }

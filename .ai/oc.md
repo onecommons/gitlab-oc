@@ -789,8 +789,8 @@ Where tests belong:
   `.gitlab/ci/rails.gitlab-ci.yml` mirrored in `oc/spec/README.md`) has not
   been re-created in this port; add it with the first such file. Edits to an
   *untagged* upstream example (for instance adding an `# OC Change` entry to
-  an existing expectation) need no list entry — the normal FOSS RSpec shards
-  already run that file.
+  an existing expectation) need no list entry — but see below: nothing in this
+  fork's CI runs that file either.
 - `qa/qa/specs/features/oc/**` — end-to-end, separate `qa/` bundle. Written
   with the `create(:project)` factories (`QA/FabricateUsage`) and a
   `feature_category`, not `product_group`. No CI job runs them yet.
@@ -800,3 +800,34 @@ Where tests belong:
   (`# OC Change` in `rubocop/cop/gitlab/documentation_links/link.rb`).
   markdownlint applies as to `doc/`: labelled fences, `Git` not `git`,
   headings one level at a time.
+
+**Nothing runs the upstream `spec/` tree.** `.github/workflows/spec.yml` runs
+`oc/spec` and `oc/spec/lib/gitlab_edition_spec.rb`, and that is all;
+`.gitlab/ci` describes GitLab's own pipelines, which this fork does not use. So
+an in-place `# OC Change` that breaks an upstream example goes unnoticed, and
+they accumulate. Run the files you touch by hand.
+
+Known failures on a clean checkout, surveyed on 2026-09-21. Nine of them share
+one shape -- a mail body that does not contain the link or text the example
+expects -- and none is about branding:
+
+- `spec/mailers/devise_mailer_spec.rb`, four examples asserting a CTA link
+  (`Confirm your account`, `Confirm your email address`, `Reset password`,
+  `Unlock account`), each `have_link ... but there were no matches`.
+- `spec/mailers/members/`, five in `AboutToExpireMailer`,
+  `AccessRequestedMailer` and `ExpirationDateUpdatedMailer` -- a missing
+  members-page link, and a body that does not contain `day.`.
+
+  The templates build their links with `unlock_url` where the specs expect
+  `user_unlock_url`, so the route drawing this fork patches is the first place
+  to look for all nine.
+
+- `spec/views/notify/pipeline_fixed_email.html.haml_spec.rb` deadlocks on
+  `merge_request_commits_metadata` when it runs beside other suites; it passes
+  alone, so that one is concurrency, not a fault.
+
+Six more were found in the same survey and fixed with the mail branding: two in
+`spec/mailers/devise_mailer_spec.rb` and four in `spec/helpers/emails_helper_spec.rb`,
+all of them upstream examples asserting copy that `OC::EmailsHelper` had already
+changed. That is the failure this section is about -- an override lands, the
+upstream example that covers it is never run, and nobody hears about it.

@@ -5,7 +5,7 @@ require 'spec_helper'
 RSpec.describe AppearancesHelper, feature_category: :navigation do
   describe '#default_brand_title' do
     it 'names the fork, not the edition it was cut from' do
-      expect(helper.default_brand_title).to eq('Unfurl')
+      expect(helper.default_brand_title).to eq('Unfurl Cloud')
     end
   end
 

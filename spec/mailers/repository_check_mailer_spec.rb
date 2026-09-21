@@ -17,7 +17,7 @@ RSpec.describe RepositoryCheckMailer do
     it 'renders the subject for multiple failed checks' do
       mail = described_class.notify(3, 'admin@example.com')
 
-      expect(mail).to have_subject 'GitLab Admin | 3 projects failed their last repository check'
+      expect(mail).to have_subject 'Unfurl Cloud Admin | 3 projects failed their last repository check'
     end
 
     context 'with footer and header' do

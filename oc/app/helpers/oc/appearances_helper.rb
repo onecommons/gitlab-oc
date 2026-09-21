@@ -3,7 +3,7 @@
 module OC
   module AppearancesHelper
     def default_brand_title
-      'Unfurl'
+      ::OC::BRAND_TITLE
     end
 
     # The sign-in page's left column. 19.3 renders one only when the instance

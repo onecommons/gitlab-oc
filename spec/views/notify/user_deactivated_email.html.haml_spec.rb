@@ -46,7 +46,9 @@ RSpec.describe 'notify/user_deactivated_email.html.haml', feature_category: :use
     it 'does not display any additional text' do
       render
 
-      expect(rendered).to have_content(/Please contact your GitLab administrator if you think this is an error\.$/)
+      expect(rendered).to have_content(
+        /Please contact Unfurl Cloud support if you think this is an error\.$/
+      )
     end
   end
 end

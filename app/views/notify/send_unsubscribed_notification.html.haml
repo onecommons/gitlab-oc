@@ -1,2 +1,3 @@
 %p
-  = s_('Notify|You have been unsubscribed from receiving GitLab administrator notifications.')
+  -# OC Change
+  = format(s_('Notify|You have been unsubscribed from receiving %{brand} notifications.'), brand: brand_title)

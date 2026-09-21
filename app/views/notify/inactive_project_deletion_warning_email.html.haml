@@ -16,7 +16,7 @@
     %li= _("Add or remove a user.")
 
 %p
-  = html_escape(_("To ensure %{project_link} is unscheduled for deletion, check that activity has been logged by GitLab. For example:")) %{project_link: project_link.html_safe}
+  = html_escape(_("To ensure %{project_link} is unscheduled for deletion, check that activity has been logged by %{brand}. For example:")) %{brand: brand_title, project_link: project_link.html_safe}
 
 %p
   %ul

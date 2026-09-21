@@ -40,8 +40,9 @@ module Members
     def email_subject_text
       if member.created_by
         safe_format(
-          s_('MemberInviteEmail|%{member_name} invited you to join GitLab'),
-          member_name: member.created_by.name)
+          # OC Change
+          s_('MemberInviteEmail|%{member_name} invited you to join %{brand}'),
+          member_name: member.created_by.name, brand: ::OC.brand_title)
 
       else
         safe_format(

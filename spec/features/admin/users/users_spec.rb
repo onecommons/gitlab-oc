@@ -320,7 +320,8 @@ RSpec.describe 'Admin::Users', feature_category: :user_management do
 
         welcome_email = ActionMailer::Base.deliveries.find { |m| m.subject == 'Welcome to GitLab!' }
         expect(welcome_email.to).to eq([user.email])
-        expect(welcome_email.text_part.body).to have_content('Your GitLab account request has been approved!')
+        # OC Change
+        expect(welcome_email.text_part.body).to have_content('Your Unfurl Cloud account request has been approved!')
 
         password_reset_email = ActionMailer::Base.deliveries.find { |m| m.subject == 'Account was created for you' }
         expect(password_reset_email.to).to eq([user.email])

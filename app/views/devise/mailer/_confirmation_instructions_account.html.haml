@@ -10,7 +10,8 @@
 - else
   #content
     - if Gitlab.com?
-      = email_default_heading(_('Thanks for signing up to GitLab!'))
+      -# OC Change
+      = email_default_heading(format(_('Thanks for signing up to %{brand}!'), brand: brand_title))
     - else
       = email_default_heading(_("Welcome, %{name}!") % { name: @resource.name })
     %p= _("To get started, click the link below to confirm your account.")

@@ -142,7 +142,7 @@ RSpec.shared_examples 'an email starting a new thread with reply-by-email enable
   include_examples 'a new thread email with reply-by-email enabled'
 
   it 'includes "Reply to this email directly or <View it on GitLab>"' do
-    expect(subject.default_part.body).to include(%(Reply to this email directly or <a href="#{Gitlab::UrlBuilder.build(model)}">view it on GitLab</a>.))
+    expect(subject.default_part.body).to include(%(Reply to this email directly or <a href="#{Gitlab::UrlBuilder.build(model)}">view it on Unfurl Cloud</a>.))
   end
 
   context 'when reply-by-email is enabled with incoming address with %{key}' do
@@ -372,8 +372,9 @@ RSpec.shared_examples 'email with default notification reason' do
 end
 
 RSpec.shared_examples 'email with link to issue' do
+  # OC Change -- the notify layout brands this footer
   it do
-    is_expected.to have_body_text(%(<a href="#{Gitlab::UrlBuilder.build(issue)}">view it on GitLab</a>))
-    is_expected.to have_plain_text_content("view it on GitLab: #{Gitlab::UrlBuilder.build(issue)}")
+    is_expected.to have_body_text(%(<a href="#{Gitlab::UrlBuilder.build(issue)}">view it on Unfurl Cloud</a>))
+    is_expected.to have_plain_text_content("view it on Unfurl Cloud: #{Gitlab::UrlBuilder.build(issue)}")
   end
 end

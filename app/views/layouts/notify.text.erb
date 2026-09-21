@@ -14,10 +14,11 @@
 <%=   "This project does not include diff previews in email notifications.\n" -%>
 <%  end -%>
 <%  if @target_url -%>
+<%# OC Change -- both branches %>
 <%    if @reply_by_email -%>
-<%=     "Reply to this email directly or view it on GitLab: #{@target_url}" -%>
+<%=     "Reply to this email directly or view it on #{brand_title}: #{@target_url}" -%>
 <%    else -%>
-<%=     "View it on GitLab: #{@target_url}" -%>
+<%=     "View it on #{brand_title}: #{@target_url}" -%>
 <%    end -%>
 <%  end -%>
 
