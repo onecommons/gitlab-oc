@@ -56,6 +56,11 @@ ApplicationSetting.current_without_cache.update!(
   default_branch_protection: ::Gitlab::Access::PROTECTION_FULL
 )
 
+unfurl_server_url =
+  ::OC::Repositories::UnfurlServer.browser_url ||
+  abort('Neither UNFURL_SERVER_URL nor extra.unfurl_server_url is set; ' \
+    'UNFURL_CLOUDMAP_JSON would be a relative path the browser resolves against GitLab.')
+
 # rails console, continuing from above. 'cypress-e2e' is what the fork's
 # cypress suite signs up with (OC_INVITE_CODE, with OC_USERNAME/OC_PASSWORD
 # unset so it takes the signup path, which is the only one that creates a
@@ -63,10 +68,12 @@ ApplicationSetting.current_without_cache.update!(
 instance_vars = {
   'UNFURL_VALID_INVITE_CODES' => 'cypress-e2e',
   'UNFURL_APPROVE_MATCHING_CODES' => '\Acypress-e2e\z', # single-quoted: double quotes eat the backslashes
-  # Fetched by the browser as-is, so it must be absolute and must match
-  # extra.unfurl_server_url -- see below.
+  # Fetched by the browser as-is, so it must be absolute. extra.unfurl_server_url
+  # is empty while the image builds -- GDK generates config/gitlab.yml and this
+  # runs before anything could add to it -- so UNFURL_SERVER_URL carries it in
+  # and the interpolation is no longer silently relative.
   'UNFURL_CLOUDMAP_JSON' =>
-    "#{::Gitlab.config.extra['unfurl_server_url']}" \
+    "#{unfurl_server_url}" \
     '/types?auth_project=onecommons%2Fstd&cloudmap=onecommons/cloudmap&file=dummy-ensemble.yaml'
 }
 

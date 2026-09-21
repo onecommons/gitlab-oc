@@ -10,7 +10,7 @@ module OC
         super
 
         # oc-pages talks to the same-origin /services/unfurl-server path unless told otherwise.
-        unfurl_server_url = ::Gitlab.config.extra['unfurl_server_url']
+        unfurl_server_url = ::OC::Repositories::UnfurlServer.browser_url
         gon.unfurl_server_url = unfurl_server_url if unfurl_server_url.present?
       end
     end

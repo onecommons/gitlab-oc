@@ -12,6 +12,7 @@ module OC
     # wherever nothing sits in front of the server.
     module UnfurlServer
       ENV_KEY = 'UNFURL_SERVER_INTERNAL_URL'
+      BROWSER_ENV_KEY = 'UNFURL_SERVER_URL'
 
       class << self
         def internal_url
@@ -20,13 +21,13 @@ module OC
             browser_url
         end
 
-        private
-
         # What gon hands oc-pages. Unset when the page uses the same-origin
         # proxy path, which is the ordinary production case.
         def browser_url
-          config['unfurl_server_url'].presence
+          ENV[BROWSER_ENV_KEY].presence || config['unfurl_server_url'].presence
         end
+
+        private
 
         def config
           ::Gitlab.config.extra

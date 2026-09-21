@@ -53,7 +53,8 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     && RAILS_ENV=development bin/rake db:migrate \
     && RAILS_ENV=development bin/rake db:seed_fu \
     && RAILS_ENV=development bin/rake db:seed_fu FILTER=unfurl_blueprints \
-    && RAILS_ENV=development bin/rails runner oc/support/ci/instance_settings.rb \
+    && RAILS_ENV=development UNFURL_SERVER_URL=http://gdk.test:8081 \
+       bin/rails runner oc/support/ci/instance_settings.rb \
     && mise x -- gdk stop || true
 
 # The test databases are separate from development and rspec will not create
@@ -68,6 +69,19 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
     && yarn build
+
+# The GDK's redis listens on a unix socket and nothing else -- its template is
+# three lines and the first is `port 0` -- so nothing outside the container can
+# reach it. Appending wins over the earlier directive, which keeps this working
+# whatever the base image's template says. Both files, because a `gdk
+# reconfigure` at startup would rewrite the generated one from the template.
+#
+# Reachable from the host only: the container publishes this port and is thrown
+# away with the job.
+RUN printf '\n# OC Change -- reachable from the e2e unfurl server\nport 6379\nbind 0.0.0.0\nprotected-mode no\n' > /tmp/redis-oc \
+    && cat /tmp/redis-oc >> components/redis/redis.conf.erb \
+    && if [ -f redis/redis.conf ]; then cat /tmp/redis-oc >> redis/redis.conf; fi \
+    && rm /tmp/redis-oc
 
 # Most of a developer GDK's 18 GB is disposable: logs regrow at ~1.4 GB/day,
 # the Yarn cache has done its job, and .gem archives and rdoc are never read.

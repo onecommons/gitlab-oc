@@ -20,6 +20,10 @@ name: e2e
       unfurl_gui_ref:
         type: string
         required: true
+      save_logs:
+        type: boolean
+        default: false
+        description: Upload the GDK and unfurl logs even when the run passes
       specs:
         type: string
         description: Comma-separated cypress specs known to pass on a GDK
@@ -32,6 +36,9 @@ name: e2e
       unfurl_image:
         required: false
         default: ghcr.io/onecommons/unfurl:local-cloud-endpoint
+      save_logs:
+        type: boolean
+        default: false
 
 jobs:
   cypress:
@@ -56,9 +63,20 @@ jobs:
       - name: Resolve gdk.test
         run: echo "127.0.0.1 gdk.test" | sudo tee -a /etc/hosts
 
+      # Bind mounts rather than `docker logs`, so a crashed container still
+      # leaves its files behind and one artifact carries every side of the run.
+      # World-writable because each image runs as its own user, and none of them
+      # is the runner's uid.
+      - name: Prepare log directories
+        run: mkdir -p logs/gdk-services logs/gdk-rails logs/unfurl && chmod -R 777 logs
+
       - name: Start the GDK
         run: |
-          docker run -d --name gdk -p 3000:3000 '${{ inputs.gdk_image }}'
+          docker run -d --name gdk -p 3000:3000 -p 6379:6379 \
+            -e UNFURL_SERVER_URL=http://gdk.test:8081 \
+            -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
+            -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \
+            '${{ inputs.gdk_image }}'
           for i in $(seq 1 60); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
             [ "$code" = "200" ] && { echo "up after $((i*10))s"; break; }
@@ -66,17 +84,30 @@ jobs:
           done
           [ "$code" = "200" ] || { docker logs gdk | tail -50; exit 1; }
 
-      # Redis backs the rust proxy's queued writes; the server itself must run
-      # with a home of its own -- started against a shared one, every export
-      # inherits its defaults.connections and arrives as unusable base types.
+      # The GDK's own redis, published above, rather than a second container:
+      # the image appends a TCP listener to its config for exactly this. db 6
+      # because GitLab holds 0-5 in development, per GDK's redis component.
+      #
+      # --add-host because --network host shares the network namespace but not
+      # /etc/hosts: gdk.test is resolvable on the runner and not in here.
+      #
+      # UNFURL_HOME empty, not a path. With a home at all, a repository
+      # redirect in its unfurl.yaml makes every environment importing std fail
+      # to export, and one unexportable environment disables environment
+      # creation for the whole dashboard.
       - name: Start the unfurl server
         run: |
-          docker run -d --name redis -p 6379:6379 redis:7-alpine
           docker run -d --name unfurl --network host \
-            -e UNFURL_HOME=/tmp/unfurl-home \
+            --add-host gdk.test:127.0.0.1 \
+            -v "$PWD/logs/unfurl:/logs" \
+            -e UNFURL_HOME= \
+            -e UNFURL_LOGGING=trace \
+            -e UNFURL_LOGFILE=/logs/unfurl.log \
+            -e CACHE_REDIS_URL=redis://127.0.0.1:6379/6 \
+            -e UNFURL_PACKAGE_RULES='gitlab.com/onecommons/* unfurl.cloud/onecommons/* unfurl.cloud/onecommons/* http://gdk.test:3000/onecommons/*' \
             '${{ inputs.unfurl_image }}' \
             unfurl serve --port 8081 --cors http://gdk.test:3000 \
-              --cloud-server http://gdk.test:3000
+              --cloud-server http://gdk.test:3000 --clone-root /tmp/unfurl-repos
 
       - uses: actions/setup-node@v4
         with:
@@ -98,6 +129,14 @@ jobs:
         run: |
           yarn integration-test run --namespace onecommons/blueprints -- \
             --browser chrome -s '${{ inputs.specs }}'
+
+      - name: Upload logs
+        if: ${{ failure() || inputs.save_logs }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: logs
+          if-no-files-found: ignore
 
       - name: Upload screenshots
         if: ${{ !cancelled() }}
