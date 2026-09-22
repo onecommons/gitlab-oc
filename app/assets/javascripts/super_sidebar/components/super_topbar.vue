@@ -6,6 +6,7 @@ import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
 import BrandLogo from 'jh_else_ce/super_sidebar/components/brand_logo.vue';
 // OC Change
 import EditionTopbarLinks from 'oc_else_ce/super_sidebar/components/edition_topbar_links.vue';
+import PromoMenu from 'oc_else_ce/super_sidebar/components/promo_menu.vue';
 import { parseBoolean } from '~/lib/utils/common_utils';
 import { EVENT_OPEN_GLOBAL_SEARCH } from '~/vue_shared/global_search/constants';
 import { staticBreadcrumbs } from '~/lib/utils/breadcrumbs_state';
@@ -16,7 +17,6 @@ import SuperSidebarToggle from './super_sidebar_toggle.vue';
 import CreateMenu from './create_menu.vue';
 import UserMenu from './user_menu.vue';
 import UserCounts from './user_counts.vue';
-import PromoMenu from './promo_menu.vue';
 import { SEARCH_MODAL_ID } from './global_search/constants';
 
 export default {

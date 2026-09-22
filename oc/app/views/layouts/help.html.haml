@@ -1,0 +1,12 @@
+-# OC Change -- the fork serves its own help centre from oc/doc, so the sidebar
+-# carries its table of contents and the breadcrumb row would only repeat the
+-# panel header. The schema.org trail below still needs the two titles.
+- @breadcrumb_title = _("Help")
+- page_title    _("Help")
+- header_title  _("Help"), help_path
+- nav           "help"
+- @hide_breadcrumbs = true
+- content_for :meta_tags do
+  %meta{ name: "robots", content: "noindex, nofollow" }
+
+= render template: "layouts/application"

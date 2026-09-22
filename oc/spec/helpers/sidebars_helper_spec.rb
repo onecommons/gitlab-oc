@@ -24,6 +24,18 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
     end
   end
 
+  describe '#super_sidebar_nav_panel' do
+    it 'serves the help centre its own panel' do
+      expect(helper.super_sidebar_nav_panel(nav: 'help', user: nil))
+        .to be_a(::Sidebars::Help::Panel)
+    end
+
+    it 'leaves every other section to upstream' do
+      expect(helper.super_sidebar_nav_panel(nav: 'explore', user: nil))
+        .to be_a(::Sidebars::Explore::Panel)
+    end
+  end
+
   describe '#super_sidebar_context' do
     let_it_be(:user) { build_stubbed(:user) }
     let(:project) { nil }

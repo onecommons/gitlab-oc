@@ -106,9 +106,22 @@ Gitlab::Seeder.quiet do
       namespace_id: find_or_create_group.call(group_path).id,
       path: project_path,
       name: 'Support',
-      description: 'Report a problem with this instance.',
+      description: <<~DESCRIPTION,
+        Please submit any issues you have. We will get back to you within 24 hours!
+
+        [Create an issue ticket](https://unfurl.cloud/onecommons/support/-/issues/new?issue%5Bconfidential%5D=true) or [send us an email](mailto:support@unfurl.cloud).
+      DESCRIPTION
       visibility_level: Gitlab::VisibilityLevel::PUBLIC
     ).execute
+
+    # Issues only, as the real project is.
+    if project.persisted?
+      levels = (::ProjectFeature::FEATURES - [:issues]).to_h do |feature|
+        [:"#{feature}_access_level", ::ProjectFeature::DISABLED]
+      end
+
+      project.project_feature.update!(levels.merge(issues_access_level: ::ProjectFeature::ENABLED))
+    end
 
     print project.persisted? ? '.' : "F(#{project.errors.full_messages.join(', ')})"
   end

@@ -12,6 +12,19 @@
   }
 }
 
+// An inline <svg> sits on the text baseline, so a descender's worth of space
+// follows it -- 6px in the topbar, which leaves the wordmark's centre 3px above
+// everything beside it. Blockifying the span brand_logo.vue inlines it into
+// drops the gap.
+.brand-logo {
+  display: flex;
+  align-items: center;
+
+  .unfurl-logo {
+    display: block;
+  }
+}
+
 // Brand accents the fork applied through .btn-* and .gl-tab-nav-item-active-indigo
 // overrides in 15.11; 19.3 exposes them as tokens.
 :root {
@@ -157,6 +170,50 @@ body {
   bottom: 0;
   left: 0;
   border-bottom: 2px solid $uf-primary-teal;
+}
+
+// OC Change -- the help centre's own typography, which 15.11 set on
+// body[data-page^='help'] .md. The page's h2/h3/h4 are the landing template's
+// title and the two heading levels its markdown uses.
+:root {
+  --uf-help-heading: #{$uf-dark-blue};
+  --uf-help-rule: var(--uf-help-heading);
+}
+
+[data-page^='help'] {
+  .md-container {
+    max-width: 750px;
+    margin: 5% 0 0 5%;
+  }
+
+  .md {
+    h1,
+    h2,
+    h3,
+    h4 {
+      color: var(--uf-help-heading);
+    }
+
+    h2 {
+      border-bottom: 0;
+      font-size: 40px;
+      font-weight: $gl-font-weight-bold;
+      line-height: 60px;
+    }
+
+    h3 {
+      margin: 24px 0 16px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--uf-help-rule);
+      font-size: 30px;
+      font-weight: $gl-font-weight-bold;
+    }
+
+    h4 {
+      margin: 24px 0 16px;
+      font-size: 1.2em;
+    }
+  }
 }
 
 // Blueprint discovery. Upstream lists projects as rows; the fork's public

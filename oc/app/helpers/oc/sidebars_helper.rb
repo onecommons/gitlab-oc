@@ -11,6 +11,22 @@ module OC
       super.merge(display_whats_new: false, show_version_check: false)
     end
 
+    # Upstream has no help panel, so /help fell through to the fallback -- Your
+    # Work signed in, Explore signed out. 15.11 gave it its own sidebar.
+    override :super_sidebar_nav_panel
+    def super_sidebar_nav_panel(nav: nil, user: nil, **)
+      return super unless nav == 'help'
+
+      ::Sidebars::Help::Panel.new(
+        ::Sidebars::Context.new(
+          current_user: user,
+          container: nil,
+          route_is_active: method(:active_nav_link?),
+          is_super_sidebar: true
+        )
+      )
+    end
+
     # 15.11 had Dashboard | Blueprints | Cloud beside the logo in
     # layouts/header/_default.html.haml, which 19.3 replaced with the topbar.
     override :super_sidebar_context

@@ -8,6 +8,8 @@ import { keysFor, TOGGLE_SUPER_SIDEBAR } from '~/behaviors/shortcuts/keybindings
 import { s__ } from '~/locale';
 import Tracking from '~/tracking';
 import glFeatureFlagsMixin from '~/vue_shared/mixins/gl_feature_flags_mixin';
+// OC Change
+import HelpCenter from 'oc_else_ce/super_sidebar/components/help_center.vue';
 import { JS_TOGGLE_EXPAND_CLASS, SETTINGS_DISCLOSURE_PORTAL_NAME } from '../constants';
 import { sidebarState } from '../state';
 import {
@@ -18,7 +20,6 @@ import {
 import { trackContextAccess } from '../utils';
 import SidebarPortalTarget from './sidebar_portal_target.vue';
 import IconOnlyToggle from './icon_only_toggle.vue';
-import HelpCenter from './help_center.vue';
 import SidebarMenu from './sidebar_menu.vue';
 import ScrollScrim from './scroll_scrim.vue';
 

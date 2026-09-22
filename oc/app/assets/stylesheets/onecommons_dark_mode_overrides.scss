@@ -13,6 +13,10 @@
   --gl-control-indicator-color-selected: var(--gl-color-neutral-0);
   // 15.11 dropped the card fill in dark mode and kept only its border. The
   // avatar area stays light: the logos on it are drawn for a light ground.
+  // The help centre's navy is unreadable here, and 15.11 dropped the heading
+  // colour out of its rule too.
+  --uf-help-heading: var(--gl-text-color-heading);
+  --uf-help-rule: #{$uf-darkgrey};
   --uf-tile-background: transparent;
   --uf-tile-border: #{$darkmode-grey};
   --uf-tile-detail: #{$darkmode-black};
