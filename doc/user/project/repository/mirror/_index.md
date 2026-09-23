@@ -6,21 +6,15 @@ description: Use repository mirroring to push or pull the contents of a Git repo
 title: Repository mirroring
 ---
 
-{{< details >}}
-
-- Tier: Free, Premium, Ultimate
-- Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated
-
-{{< /details >}}
+<!-- OC Change -- one edition, and pull means live mirroring from GitHub. -->
 
 You can mirror a repository to and from external sources. You can select which repository
 serves as the source. Branches, tags, and commits are synced automatically.
 
-Several mirroring methods exist:
+Two mirroring methods exist:
 
 - [Push](push.md): Mirror a repository from GitLab to another location.
-- [Pull](pull.md): Mirror a repository from another location. Available in the Premium and Ultimate tier.
-- [Bidirectional](bidirectional.md) mirroring is also available, but can cause conflicts.
+- [Pull](github_sync.md): Connect to GitHub repositories for live mirroring from GitHub to Unfurl Cloud.
 
 Mirror a repository when:
 
@@ -28,11 +22,9 @@ Mirror a repository when:
   copy of your project at its previous home, configure your GitLab repository as a
   [push mirror](push.md). Changes you make to your GitLab repository are copied to
   the old location.
-- Your GitLab instance is private, but you want to open-source some projects.
-- You migrated to GitLab, but the canonical version of your project is somewhere else.
-  Configure your GitLab repository as a [pull mirror](pull.md) of the other project.
-  Your GitLab repository pulls copies of the commits, tags, and branches of project.
-  They become available to use on GitLab.
+- The canonical version of your project is on GitHub but you want to deploy on
+  Unfurl Cloud. Your Unfurl Cloud mirror receives copies of the commits, tags,
+  and branches of the project.
 
 The following is not supported:
 
@@ -56,7 +48,7 @@ Prerequisites:
 1. Expand **Mirroring repositories**.
 1. Select **Add new**.
 1. Enter a **Git repository URL**. The repository must be accessible over `http://`, `https://`, `ssh://`, or `git://`.
-1. Select a **Mirror direction**. For more information, see [pull mirroring](pull.md) and [push mirroring](push.md).
+1. Select a **Mirror direction**. Only push is currently supported. <!-- OC Change -->
 1. If you entered an `ssh://` URL, select either:
    - **Detect host keys**: GitLab fetches the host keys from the server and displays the fingerprints.
    - **Input host keys manually**, and enter the host key into **SSH host key**.
@@ -97,7 +89,7 @@ To mirror a repository with SSH authentication:
    > SCP-style URLs (`git@host:path/to/repo.git`). Replace the colon (`:`)
    > with a slash (`/`) and add the `ssh://` prefix.
 
-1. Select a **Mirror direction**. For more information, see [pull mirroring](pull.md) and [push mirroring](push.md).
+1. Select a **Mirror direction**. Only push is currently supported. <!-- OC Change -->
 1. Select either **Detect host keys** or **Input host keys manually**.
 1. In the **Authentication method** field, select **SSH public key**
 1. In the **Username** field, add `git`.

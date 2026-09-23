@@ -6,12 +6,7 @@ description: Create a push mirror to passively receive changes from an upstream 
 title: Push mirroring
 ---
 
-{{< details >}}
-
-- Tier: Free, Premium, Ultimate
-- Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated
-
-{{< /details >}}
+<!-- OC Change -- one edition, and the fork has no pull mirroring. -->
 
 A _push mirror_ is a downstream repository that [mirrors](_index.md) the commits made
 to the upstream repository. Push mirrors passively receive copies of the commits made to the
@@ -19,10 +14,9 @@ upstream repository. To prevent the mirror from diverging from the upstream
 repository, don't push commits directly to the downstream mirror. Push commits to
 the upstream repository instead.
 
-While [pull mirroring](pull.md) periodically retrieves updates from the upstream repository,
-push mirrors only receive changes when:
+Push mirrors only receive changes when:
 
-- Commits are pushed to the upstream GitLab repository.
+- Commits are pushed to the upstream repository.
 - An administrator [force-updates the mirror](_index.md#force-an-update).
 
 When you push a change to the upstream repository, the push mirror receives it in five minutes, or

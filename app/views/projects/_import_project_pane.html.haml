@@ -10,9 +10,11 @@
         alert_options: { class: 'gl-my-3' },
         dismissible: false) do |c|
         - c.with_body do
-          - docs_link_url = help_page_path('user/group/import/_index.md')
-          - docs_link = '<a href="%{url}" target="_blank" rel="noopener noreferrer" aria-label="%{aria_label}">'.html_safe % { url: docs_link_url, aria_label: _('Learn more about importing GitLab projects by using direct transfer') }
-          = html_escape(_("Migrating GitLab projects? Migrating projects when you migrate groups by using direct transfer is recommended. %{link_start}What is direct transfer%{link_end}?")) % { link_start: docs_link, link_end: '</a>'.html_safe }
+          -# OC Change -- the fork mirrors from GitHub rather than migrating
+          -# GitLab groups by direct transfer.
+          - docs_link_url = help_page_path('user/project/repository/mirror/github_sync.md')
+          - docs_link = '<a href="%{url}" target="_blank" rel="noopener noreferrer" aria-label="%{aria_label}">'.html_safe % { url: docs_link_url, aria_label: _('Learn more about live mirroring from GitHub') }
+          = html_escape(_("Enable real-time pushes from GitHub. %{link_start}Learn more.%{link_end}")) % { link_start: docs_link, link_end: '</a>'.html_safe }
     .import-buttons
       - if gitlab_project_import_enabled?
         .import_gitlab_project.has-tooltip{ data: { container: 'body', testid: 'gitlab-import-button' } }
