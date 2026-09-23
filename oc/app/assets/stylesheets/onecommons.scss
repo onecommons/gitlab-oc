@@ -173,8 +173,9 @@ body {
 }
 
 // OC Change -- the help centre's own typography, which 15.11 set on
-// body[data-page^='help'] .md. The page's h2/h3/h4 are the landing template's
-// title and the two heading levels its markdown uses.
+// body[data-page^='help'] .md, one level down: its landing template opened
+// with an h2 and upstream's pages open with an h1 built from their frontmatter
+// title, which left h1 smaller than the h2 and h3 under it.
 :root {
   --uf-help-heading: #{$uf-dark-blue};
   --uf-help-rule: var(--uf-help-heading);
@@ -194,14 +195,14 @@ body {
       color: var(--uf-help-heading);
     }
 
-    h2 {
+    h1 {
       border-bottom: 0;
       font-size: 40px;
       font-weight: $gl-font-weight-bold;
-      line-height: 60px;
+      line-height: 1.2;
     }
 
-    h3 {
+    h2 {
       margin: 24px 0 16px;
       padding-bottom: 7px;
       border-bottom: 1px solid var(--uf-help-rule);
@@ -209,9 +210,15 @@ body {
       font-weight: $gl-font-weight-bold;
     }
 
+    h3 {
+      margin: 24px 0 16px;
+      border-bottom: 0;
+      font-size: 1.2em;
+    }
+
     h4 {
       margin: 24px 0 16px;
-      font-size: 1.2em;
+      font-size: 1.05em;
     }
   }
 }

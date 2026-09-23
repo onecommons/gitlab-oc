@@ -1,8 +1,6 @@
----
-title: FAQs
----
+## FAQs
 
-#### How is Unfurl Cloud different from other solutions?
+### How is Unfurl Cloud different from other solutions?
 
 **Reducing Cloud Lock-In.** 
 
@@ -16,7 +14,7 @@ We are partnering with open source projects to offer a robust catalog of ready-t
 
 Our application blueprints are stand-alone Git projects that you can fork and customize or you can build your own. And you deploy anywhere using our open command line tool.<br><br>
 
-#### What cloud providers do you support?
+### What cloud providers do you support?
 We currently support Amazon Web Services and Google Cloud Platform with support for DigitalOcean and Kubernetes clusters available for selected application blueprints.<br><br>
-#### How much does Unfurl Cloud cost?
+### How much does Unfurl Cloud cost?
 It is currently free to all users.<br><br>

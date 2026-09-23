@@ -84,10 +84,6 @@
     color: $darkmode-white !important;
   }
 
-  .md h3 {
-    border-bottom: 1px solid $uf-darkgrey;
-  }
-
   .md :is(h1, h2, h3, h4, h5, h6) a.anchor::after {
     filter: brightness(0.4) invert(1);
   }

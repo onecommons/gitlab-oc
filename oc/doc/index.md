@@ -1,6 +1,6 @@
-### Introduction
+## Introduction
 
-#### What is Unfurl Cloud?
+### What is Unfurl Cloud?
 
 Unfurl Cloud is a platform for collaboratively developing cloud applications -- from code to deployment.
 
@@ -8,7 +8,7 @@ We’ve tightly integrated the best open source development tools into our platf
 
 Unfurl Cloud is our first step toward building a free and open cloud. Join a [Testbed project](/onecommons/testbeds) and let's build an open cloud together!
 
-#### Why Unfurl Cloud?
+### Why Unfurl Cloud?
 
 **Accelerate development and minimize tedious setup**
 
@@ -31,7 +31,7 @@ Your deployment history and all the configuration changes you make in our UI are
   - Deploy using your own cloud accounts.
   - Our architecture is loosely coupled and follows our open cloud vision. For example, you can run our command-line tool locally without any dependencies on our service.
   - Our entire stack is [open source](https://github.com/onecommons).
-### User Guides
+## User Guides
 
 If you want to deploy pre-built application blueprints on to your own cloud accounts these guides are for you.
 
