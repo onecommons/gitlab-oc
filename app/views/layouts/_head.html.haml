@@ -1,5 +1,6 @@
 - page_description brand_title unless page_description
-- site_name = _('GitLab')
+-# OC Change
+- site_name = _('Unfurl Cloud')
 - omit_og = sign_in_with_redirect?
 
 -# This is a temporary place for the page specific style migrations to be included on all pages like page_specific_files
@@ -108,7 +109,8 @@
   = appearance_apple_touch_icon
 
   -# OpenSearch
-  %link{ href: search_opensearch_path(format: :xml), rel: 'search', title: 'Search GitLab', type: 'application/opensearchdescription+xml' }
+  -# OC Change
+  %link{ href: search_opensearch_path(format: :xml), rel: 'search', title: 'Search Unfurl Cloud', type: 'application/opensearchdescription+xml' }
 
   = yield :meta_tags
 

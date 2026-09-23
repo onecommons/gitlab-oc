@@ -121,8 +121,9 @@ RSpec.describe PageLayoutHelper do
   end
 
   describe 'page_image' do
-    it 'defaults to the GitLab logo' do
-      expect(helper.page_image).to match_asset_path 'assets/twitter_card.jpg'
+    # OC Change -- the card image is the fork's mark, not GitLab's.
+    it 'defaults to the Unfurl Cloud logo' do
+      expect(helper.page_image).to match_asset_path 'assets/uf-logo.png'
     end
 
     %w[project user group].each do |type|
@@ -143,14 +144,14 @@ RSpec.describe PageLayoutHelper do
           let(:trait) { nil }
 
           it 'falls back to the default when avatar_url is nil' do
-            expect(helper.page_image).to match_asset_path 'assets/twitter_card.jpg'
+            expect(helper.page_image).to match_asset_path 'assets/uf-logo.png' # OC Change
           end
         end
       end
 
       context "with no assignments" do
         it 'falls back to the default' do
-          expect(helper.page_image).to match_asset_path 'assets/twitter_card.jpg'
+          expect(helper.page_image).to match_asset_path 'assets/uf-logo.png' # OC Change
         end
       end
     end
