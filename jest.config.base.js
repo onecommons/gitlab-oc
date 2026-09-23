@@ -245,6 +245,13 @@ module.exports = (path, options = {}) => {
   };
 
   const transformIgnoreNodeModules = [
+    // OC Change: d3 7 is ESM-only, where d3 5 shipped a CJS build jest could
+    // require as-is. 'd3' is unanchored so it covers the d3-* family; the rest
+    // are its ESM-only transitive deps, which the prefix does not reach.
+    'd3',
+    'internmap',
+    'delaunator',
+    'robust-predicates',
     'vue-test-utils-compat',
     'vue-demi',
     '@gitlab/svgs',
