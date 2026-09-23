@@ -99,6 +99,17 @@ RSpec.describe 'Project blueprint overview', feature_category: :source_code_mana
       expect(mount_point['data-project-path']).to eq(blueprint.full_path)
     end
 
+    # The action is still `show`, so without an explicit js_action_name the page
+    # asks for pages.projects.show and the mount point above is never filled.
+    it 'asks for the overview bundle rather than the landing page one' do
+      get project_path(blueprint)
+
+      scripts = Nokogiri::HTML(response.body).css('script[src]').map { |tag| tag['src'] }
+
+      expect(scripts).to include(a_string_matching(%r{pages\.projects\.overview}))
+      expect(scripts).not_to include(a_string_matching(%r{pages\.projects\.show}))
+    end
+
     it 'leaves an ordinary project on its repository landing page' do
       get project_path(project)
 

@@ -140,6 +140,11 @@ module OC
       # oc-pages puts this through v-html, so it has to arrive rendered.
       @readme_contents = unfurl_rendered_readme if can?(current_user, :read_code, project)
 
+      # As for the dashboard: the action is still `show`, so without this
+      # _head.html.haml asks for pages.projects.show and the overview's own
+      # entry never runs, leaving the mount point empty.
+      @js_action_name = 'overview'
+
       render 'projects/overview'
     end
 
