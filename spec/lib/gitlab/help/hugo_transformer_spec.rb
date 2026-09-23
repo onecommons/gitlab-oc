@@ -53,6 +53,7 @@ RSpec.describe Gitlab::Help::HugoTransformer, feature_category: :gitlab_docs do
           {{< /history >}}
         MARKDOWN
 
+        # OC Change -- the history blocks go, heading and all.
         expected_content = <<~MARKDOWN
           # Main heading
 
@@ -62,16 +63,7 @@ RSpec.describe Gitlab::Help::HugoTransformer, feature_category: :gitlab_docs do
 
           More content here.
 
-          ### Version history
-
-          - Introduced in xyz
-          - Deprecated in abc
-
           ### Another heading
-
-          #### Version history
-
-          - Another history item
         MARKDOWN
 
         expect(transformer.transform(content).strip).to eq(expected_content.strip)
@@ -160,16 +152,13 @@ RSpec.describe Gitlab::Help::HugoTransformer, feature_category: :gitlab_docs do
           {{< /details >}}
         MARKDOWN
 
+        # OC Change -- the details block goes, body and all.
         expected_content = <<~MARKDOWN
           # Documentation
 
           Some note content
 
           Regular content
-
-          - Tier: some tiers
-          - Offering: some offerings
-          - Status: Experiment
         MARKDOWN
 
         expect(transformer.transform(content).strip).to eq(expected_content.strip)

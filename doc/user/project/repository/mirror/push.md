@@ -6,7 +6,14 @@ description: Create a push mirror to passively receive changes from an upstream 
 title: Push mirroring
 ---
 
-<!-- OC Change -- one edition, and the fork has no pull mirroring. -->
+{{< details >}}
+
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated
+
+{{< /details >}}
+
+<!-- OC Change -- the fork has no pull mirroring. -->
 
 A _push mirror_ is a downstream repository that [mirrors](_index.md) the commits made
 to the upstream repository. Push mirrors passively receive copies of the commits made to the

@@ -210,3 +210,5 @@ module Gitlab
     end
   end
 end
+
+::Gitlab::Help::HugoTransformer.prepend_mod # OC Change

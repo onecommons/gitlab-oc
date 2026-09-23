@@ -6,7 +6,14 @@ description: Use repository mirroring to push or pull the contents of a Git repo
 title: Repository mirroring
 ---
 
-<!-- OC Change -- one edition, and pull means live mirroring from GitHub. -->
+{{< details >}}
+
+- Tier: Free, Premium, Ultimate
+- Offering: GitLab.com, GitLab Self-Managed, GitLab Dedicated
+
+{{< /details >}}
+
+<!-- OC Change -- pull means live mirroring from GitHub here. -->
 
 You can mirror a repository to and from external sources. You can select which repository
 serves as the source. Branches, tags, and commits are synced automatically.
