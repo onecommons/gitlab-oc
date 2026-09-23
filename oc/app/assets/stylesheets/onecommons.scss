@@ -290,7 +290,10 @@ body {
 
 .uf-project-detail {
   height: 180px;
-  padding: 10px 30px 15px;
+  // 15px, not the 30px 15.11 declared: every row inside it was a Bootstrap
+  // `.row`, whose -15px margins took half of it back. At the declared 30px the
+  // content box is 213px and the two badge groups need 224, so they wrap.
+  padding: 10px 15px 15px;
   overflow: hidden;
   background: var(--uf-tile-detail);
   border-radius: 0 0 11px 11px;

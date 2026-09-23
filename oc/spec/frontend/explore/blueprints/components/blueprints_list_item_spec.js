@@ -1,4 +1,4 @@
-import { GlButton, GlButtonGroup } from '@gitlab/ui';
+import { GlButton, GlButtonGroup, GlLink } from '@gitlab/ui';
 import { mountExtended } from 'helpers/vue_test_utils_helper';
 import TopicBadges from '~/vue_shared/components/topic_badges.vue';
 import BlueprintsListItem from 'oc/explore/blueprints/components/blueprints_list_item.vue';
@@ -26,8 +26,8 @@ describe('BlueprintsListItem', () => {
 
   const findNamespace = () => wrapper.find('h5');
   const findBadgeGroups = () => wrapper.findAllComponents(GlButtonGroup);
-  const findDeployButtons = () => findBadgeGroups().at(0).findAllComponents(GlButton);
-  const findStarButtons = () => findBadgeGroups().at(1).findAllComponents(GlButton);
+  const findDeploys = () => wrapper.findComponent(GlLink);
+  const findStarButtons = () => findBadgeGroups().at(0).findAllComponents(GlButton);
 
   it('leads with the project avatar', () => {
     createComponent();
@@ -57,19 +57,19 @@ describe('BlueprintsListItem', () => {
     expect(findNamespace().exists()).toBe(false);
   });
 
-  it('shows the deploy count, ahead of the stars', () => {
+  // 15.11 pilled the stars alone and left the deploy count a plain link.
+  it('shows the deploy count as a link, with only the stars pilled', () => {
     createComponent();
 
-    expect(findBadgeGroups()).toHaveLength(2);
-    expect(findDeployButtons()).toHaveLength(2);
-    expect(findDeployButtons().at(0).text()).toBe('Deploys');
-    expect(findDeployButtons().at(1).text()).toBe('12');
+    expect(findBadgeGroups()).toHaveLength(1);
+    expect(findDeploys().text()).toBe('12 Deploys');
+    expect(findDeploys().attributes('href')).toBe('/onecommons/blueprints/minecraft');
   });
 
-  it('shows a zero deploy count rather than hiding the badge', () => {
+  it('shows a zero deploy count rather than hiding it', () => {
     createComponent({ project: { ...project, blueprintDeploymentCount: 0 } });
 
-    expect(findDeployButtons().at(1).text()).toBe('0');
+    expect(findDeploys().text()).toBe('0 Deploys');
   });
 
   it('points both halves of the star badge at the starrers', () => {
