@@ -1,36 +1,47 @@
+---
+stage: Create
+group: Source Code
+description: Install a webhook that pushes changes from a GitHub repository to Unfurl Cloud.
+title: Live mirroring from GitHub
+---
+
 <!-- OC Change -- a fork page: upstream has no GitHub live mirroring.
      Beside the pages that link to it, so the docs link check can resolve it. -->
 
-# Live mirroring from Github
+Unfurl Cloud can install a webhook that automatically pushes changes from a GitHub
+repository to Unfurl Cloud.
 
-Unfurl Cloud can install a webhook that will automatically push changes from a repository on Github to Unfurl Cloud.
+## Import from GitHub
 
-### Import From Github
+To import a repository from GitHub, go to the **New project** page and select
+[**Import project**](../../../../../projects/new#import_project):
 
-You need to import the repository from Github. Select **New project**, then **Import project**, then **GitHub**.
+1. Select **GitHub**.
 
-![Choose Github](img/import_project.png)
+   ![Import project page with GitHub listed as an import source.](img/import_project.png){width=640}
 
-If you haven't already connected your Unfurl Cloud account to Github, Github will ask for authorization.
+1. If GitHub asks you to authorize Unfurl Cloud, authorize the connection.
 
-![Authorize with Github](img/github_auth.png)
+   ![GitHub authorization page for Unfurl Cloud by OneCommons.](img/github_auth.png){width=640}
 
-Project imports can include issues, pull requests, labels, etc. See  [prerequisites](../../import/github.md#prerequisites) for guidance on preparing the import.
+1. Select the repositories and data you want to import.
+   Imports can include issues, pull requests, labels, and other data.
+   To prepare for the import, review the [prerequisites](../../import/github.md#prerequisites).
 
-![Import from Github](img/import_from_github.png)
+   ![GitHub repository import page with repository and data import options.](img/import_from_github.png){width=640}
 
-Imported projects with live mirroring enabled will display a banner at top:
+1. After the import completes, confirm that the project displays the live mirroring banner.
 
-![Mirror Banner](img/mirror_banner.png)
+   ![Project banner that identifies the upstream GitHub mirror.](img/mirror_banner.png){width=640}
 
-### Live mirror Settings
+## Configure live mirroring
 
-After the project has been imported, visit **Settings > Repository** to control live mirroring.
+To configure live mirroring after the import:
 
-![Mirror Settings](img/mirror_settings.png)
+1. In the project, select **Settings** > **Repository**.
 
-Check or uncheck the **Enable continuous mirroring** checkbox to enable or disable live mirroring of the upstream repository.
+   ![Repository settings with manual sync and continuous mirroring controls.](img/mirror_settings.png){width=640}
 
-The **Sync Manually** button will trigger a fetch of the latest changes to the upstream git repository on Github.
+1. To enable or disable live mirroring, select or clear **Enable continuous mirroring**.
 
-
+1. To fetch the latest changes from the upstream GitHub repository, select **Sync Manually**.

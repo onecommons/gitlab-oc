@@ -223,6 +223,10 @@ body {
   }
 }
 
+.uf-help-page-user-project-repository-mirror-github-sync .md ol {
+  font-size: var(--gl-font-size-500);
+}
+
 // Blueprint discovery. Upstream lists projects as rows; the fork's public
 // discovery page is a grid of cards, as it was in 15.11.
 :root {

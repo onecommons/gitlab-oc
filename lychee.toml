@@ -1,0 +1,18 @@
+# OC Change -- lychee configuration for the docs link check
+# (scripts/lint-docs-link-check.sh, and the same invocation in CI).
+#
+# Links into the GitLab application itself rather than the docs site. They
+# resolve correctly in a rendered help page -- /help/... is five levels deep,
+# so ../../../../../projects/new lands on /projects/new -- but no file backs an
+# app route, so lychee reports "File not found".
+#
+# Patterns match the *resolved* URI, so a relative link arrives here as
+# file://<checkout>/projects/new. Anchoring on "^/projects" would never match;
+# anchoring on file:// keeps the rule to local resolution, so a remote https
+# URL containing the same path is still checked.
+#
+# Root-relative links (/projects/new) are not an option: Vale rejects them
+# outright via gitlab_docs.InternalLinkFormat.
+exclude = [
+  "^file://.*/projects/new",
+]

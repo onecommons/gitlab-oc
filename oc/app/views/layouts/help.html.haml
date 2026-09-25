@@ -6,6 +6,7 @@
 - header_title  _("Help"), help_path
 - nav           "help"
 - @hide_breadcrumbs = true
+- @body_class = [@body_class, ("uf-help-page-#{@path.tr('/_', '-').parameterize}" if @path)].compact.join(" ")
 - content_for :meta_tags do
   %meta{ name: "robots", content: "noindex, nofollow" }
 
