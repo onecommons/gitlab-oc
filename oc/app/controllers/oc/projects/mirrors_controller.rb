@@ -35,13 +35,26 @@ module OC
         project.repository.fetch_as_mirror(project.unsafe_import_url, forced: true)
         new_head = project.repository.commit(ref)&.id
 
-        CreatePipelineWorker.perform_async(project.id, project.owner.id, ref, :push) if new_head != old_head
+        if new_head != old_head
+          CreatePipelineWorker.perform_async(project.id, project.owner.id, ref, :push)
+          announce_mirror_sync(ref, old_head, new_head)
+        end
 
         flash[:notice] = _('Repository updated successfully.')
         redirect_to_repository_settings(project, anchor: 'js-push-remote-settings')
       end
 
       private
+
+      # A mirror pull announces itself nowhere else: it fires no hook and
+      # creates no Event row. See OC::Repositories::MirrorSyncedEvent.
+      def announce_mirror_sync(ref, old_sha, new_sha)
+        ::Gitlab::EventStore.publish(
+          ::OC::Repositories::MirrorSyncedEvent.new(data: {
+            project_id: project.id, ref: ref, old_sha: old_sha, new_sha: new_sha
+          }.compact)
+        )
+      end
 
       # The checkbox is bound to the predicate, so the field is named for it.
       def mirror_enabled_param

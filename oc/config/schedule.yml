@@ -11,3 +11,9 @@ oc_work_items_reconcile_worker:
 oc_work_items_sweep_worker:
   class: OC::WorkItems::SweepWorker
   cron: "15 3 * * 0"
+
+# Hourly, so each run has little to do; see the worker for why the cutoff is
+# an age rather than a consumer's cursor.
+oc_projects_prune_cloudmap_events_worker:
+  class: OC::Projects::PruneCloudmapEventsWorker
+  cron: "35 * * * *"

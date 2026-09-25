@@ -25654,6 +25654,26 @@ CREATE SEQUENCE oc_blueprint_deployments_id_seq
 
 ALTER SEQUENCE oc_blueprint_deployments_id_seq OWNED BY oc_blueprint_deployments.id;
 
+CREATE TABLE oc_cloudmap_events (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    project_id bigint,
+    kind smallint NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    project_path text NOT NULL,
+    payload jsonb,
+    CONSTRAINT check_a59d804f90 CHECK ((char_length(project_path) <= 1024))
+);
+
+CREATE SEQUENCE oc_cloudmap_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_cloudmap_events_id_seq OWNED BY oc_cloudmap_events.id;
+
 CREATE TABLE oc_environment_providers (
     id bigint NOT NULL,
     environment_id bigint NOT NULL,
@@ -37343,6 +37363,8 @@ ALTER TABLE ONLY observability_traces_issues_connections ALTER COLUMN id SET DEF
 
 ALTER TABLE ONLY oc_blueprint_deployments ALTER COLUMN id SET DEFAULT nextval('oc_blueprint_deployments_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_cloudmap_events ALTER COLUMN id SET DEFAULT nextval('oc_cloudmap_events_id_seq'::regclass);
+
 ALTER TABLE ONLY oc_environment_providers ALTER COLUMN id SET DEFAULT nextval('oc_environment_providers_id_seq'::regclass);
 
 ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
@@ -41109,6 +41131,9 @@ ALTER TABLE ONLY observability_traces_issues_connections
 
 ALTER TABLE ONLY oc_blueprint_deployments
     ADD CONSTRAINT oc_blueprint_deployments_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_cloudmap_events
+    ADD CONSTRAINT oc_cloudmap_events_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY oc_environment_providers
     ADD CONSTRAINT oc_environment_providers_pkey PRIMARY KEY (id);
@@ -49322,6 +49347,10 @@ CREATE INDEX index_observability_traces_issues_connections_on_project_id ON obse
 CREATE INDEX index_oc_blueprint_deployments_on_blueprint_project_id ON oc_blueprint_deployments USING btree (blueprint_project_id);
 
 CREATE UNIQUE INDEX index_oc_blueprint_deployments_on_deployed_project_and_time ON oc_blueprint_deployments USING btree (deployed_project_id, finished_at);
+
+CREATE INDEX index_oc_cloudmap_events_on_occurred_at ON oc_cloudmap_events USING btree (occurred_at);
+
+CREATE INDEX index_oc_cloudmap_events_on_organization_id_and_id ON oc_cloudmap_events USING btree (organization_id, id);
 
 CREATE UNIQUE INDEX index_oc_environment_providers_on_environment_id ON oc_environment_providers USING btree (environment_id);
 
@@ -60385,6 +60414,9 @@ ALTER TABLE ONLY packages_terraform_module_metadata
 ALTER TABLE ONLY container_registry_protection_tag_rules
     ADD CONSTRAINT fk_rails_343879fca2 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_cloudmap_events
+    ADD CONSTRAINT fk_rails_346085320b FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
+
 ALTER TABLE merge_requests_merge_data
     ADD CONSTRAINT fk_rails_34941e4a91 FOREIGN KEY (merge_user_id) REFERENCES users(id) ON DELETE SET NULL;
 
@@ -61116,6 +61148,9 @@ ALTER TABLE ONLY dependency_list_export_parts
 
 ALTER TABLE ONLY security_scan_profile_project_statuses
     ADD CONSTRAINT fk_rails_840795ce98 FOREIGN KEY (security_scan_profile_id) REFERENCES security_scan_profiles(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY oc_cloudmap_events
+    ADD CONSTRAINT fk_rails_8412246766 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY zentao_tracker_data
     ADD CONSTRAINT fk_rails_84efda7be0 FOREIGN KEY (integration_id) REFERENCES integrations(id) ON DELETE CASCADE;

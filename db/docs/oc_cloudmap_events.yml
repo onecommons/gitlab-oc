@@ -1,0 +1,14 @@
+---
+table_name: oc_cloudmap_events
+classes:
+- OC::Projects::CloudmapEvent
+feature_categories:
+- source_code_management
+description: An ordered feed of the project changes that move no timestamp on
+  projects, so the cloudmap sync can find them with a cursor instead of a crawl
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_org
+sharding_key:
+  organization_id: organizations
+table_size: small

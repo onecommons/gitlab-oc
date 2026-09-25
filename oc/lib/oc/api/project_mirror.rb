@@ -133,6 +133,15 @@ module OC
           # the same webhook more than once, so do not create another pipeline
           # when this fetch left that branch at the same commit.
           if old_ref_commit != new_ref_commit
+            # A mirror pull announces itself nowhere else: it fires no hook and
+            # creates no Event row. See OC::Repositories::MirrorSyncedEvent.
+            ::Gitlab::EventStore.publish(
+              ::OC::Repositories::MirrorSyncedEvent.new(data: {
+                project_id: project.id, ref: updated_ref,
+                old_sha: old_ref_commit, new_sha: new_ref_commit
+              }.compact)
+            )
+
             begin
               CreatePipelineWorker.perform_async(project.id, project.owner.id, updated_ref, :push)
             rescue StandardError

@@ -841,6 +841,8 @@
 # OC Change: the oc edition's queues; the generator only runs in EE mode
 - - oc_onboarding_create_dashboard_project
   - 1
+- - oc_projects_record_cloudmap_event
+  - 1
 - - oc_repositories_project_unfurl_cache
   - 1
 - - oc_work_items_commit_notes_sync

@@ -3,6 +3,16 @@
 #
 # Do not edit it manually!
 ---
+- :name: cronjob:oc_projects_prune_cloudmap_events
+  :worker_name: OC::Projects::PruneCloudmapEventsWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: false
+  :tags: []
+  :queue_namespace: :cronjob
 - :name: cronjob:oc_work_items_reconcile
   :worker_name: OC::WorkItems::ReconcileWorker
   :feature_category: :source_code_management
@@ -46,6 +56,16 @@
 - :name: oc_onboarding_create_dashboard_project
   :worker_name: OC::Onboarding::CreateDashboardProjectWorker
   :feature_category: :groups_and_projects
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
+- :name: oc_projects_record_cloudmap_event
+  :worker_name: OC::Projects::RecordCloudmapEventWorker
+  :feature_category: :source_code_management
   :has_external_dependencies: false
   :urgency: :low
   :resource_boundary: :unknown

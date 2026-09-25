@@ -1,0 +1,41 @@
+# The fork's EventStore events, and why they are not CloudEvents yet.
+#
+# Gitlab/EventStoreCloudEventInheritance wants new events to inherit
+# Gitlab::EventStore::CloudEvent. Its own grace-period list
+# (.rubocop_todo/gitlab/event_store_cloud_event_inheritance.yml) still holds
+# every CE event these sit beside -- Packages::PackageCreatedEvent,
+# Ci::PipelineFinishedEvent, Projects::ProjectVisibilityChangedEvent -- all of
+# which one fork worker subscribes to alongside these two.
+#
+# CloudEvent#data is the CloudEvents envelope, not the payload; the payload is
+# CloudEvent#event_data. So converting two of the five events that worker
+# handles would push a `event.is_a?(CloudEvent) ? event_data : data` branch
+# into its dispatch, as ee/app/workers/search/expire_finder_cache_worker.rb
+# already carries, and buy nothing until something consumes the envelope.
+#
+# Follow upstream when it finishes migrating, and delete this file.
+#
+# Here rather than in .rubocop_todo/, which is upstream's and would conflict
+# every release.
+Gitlab/EventStoreCloudEventInheritance:
+  Exclude:
+    - 'oc/app/events/oc/container_registry/image_changed_event.rb'
+    - 'oc/app/events/oc/repositories/mirror_synced_event.rb'
+
+# The fork's events are not in GitLab's event index either.
+#
+# Gitlab/EventStoreDocRequired wants data/events/<path>.yml per event, and
+# those YAML files are the input to doc/development/eventstore/events.md,
+# which `rake gitlab:docs:compile_events` generates and
+# `gitlab:docs:check_events` guards. That index is upstream's developer
+# documentation of upstream's events; adding ours would mean committing a
+# regenerated upstream file, and a rebase conflict every release, to document
+# events no GitLab developer can publish or subscribe to.
+#
+# These two are documented where their consumer looks: the payload contract on
+# OC::Projects::CloudmapEvent, and the publishing conditions in the event
+# classes themselves.
+Gitlab/EventStoreDocRequired:
+  Exclude:
+    - 'oc/app/events/oc/container_registry/image_changed_event.rb'
+    - 'oc/app/events/oc/repositories/mirror_synced_event.rb'

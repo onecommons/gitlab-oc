@@ -616,6 +616,7 @@ RSpec.describe 'Database schema',
         "Geo::Event" => %w[payload],
         "GeoNodeStatus" => %w[status],
         "GitlabSubscriptions::UserAddOnAssignmentVersion" => %w[object], # Managed by paper_trail gem
+        "OC::Projects::CloudmapEvent" => %w[payload], # OC Change
         "OC::WorkItems::ReplicatedWorkItem" => %w[identity_map unresolved_refs], # OC Change
         "Operations::FeatureFlagScope" => %w[strategies],
         "Operations::FeatureFlags::Strategy" => %w[parameters],

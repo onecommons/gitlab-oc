@@ -14,6 +14,17 @@ module Gitlab
           store.subscribe ::Ci::RecordBlueprintDeploymentWorker,
             to: ::Ci::PipelineFinishedEvent,
             if: ->(event) { event.data[:status] == 'success' }
+
+          # Unfiltered, unlike the two above: the cloudmap records a run's
+          # status as a property of the run, so a failure is a change too.
+          store.subscribe ::OC::Projects::RecordCloudmapEventWorker,
+            to: [
+              ::Projects::ProjectVisibilityChangedEvent,
+              ::Ci::PipelineFinishedEvent,
+              ::Packages::PackageCreatedEvent,
+              ::OC::ContainerRegistry::ImageChangedEvent,
+              ::OC::Repositories::MirrorSyncedEvent
+            ]
         end
       end
     end

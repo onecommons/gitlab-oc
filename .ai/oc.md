@@ -585,6 +585,19 @@ belong at `oc/doc/img/...` and need no code to be served.
   the *same* constant as upstream. CE paths are registered first, so a file
   like that is silently shadowed: never loaded, no error, no effect. If an
   override seems to do nothing, check the path before debugging the code.
+- **A fork-owned class must not be named after an upstream class that ends in
+  `prepend_mod_with`.** That is the same collision from the other side, and it
+  is noisier but harder to place. `app/models/event.rb` ends with
+  `Event.prepend_mod_with('Event')`, so `OC::Event` is upstream's extension
+  slot: define a *class* there and `Module#prepend` is handed a Class, which
+  raises `TypeError: wrong argument type Class (expected Module)` from
+  `config/initializers/0_inject_enterprise_edition_module.rb:45` — reported
+  against whichever file first loads the constant, which was `lib/api/events.rb`
+  and had nothing to do with it. Grep for `prepend_mod_with('<Name>')` before
+  taking a name, and beware that a fork table named after an upstream table
+  makes the colliding name the obvious one: `oc_events` is what made
+  `OC::Event` tempting, so the table became `oc_cloudmap_events` and the model
+  `OC::Projects::CloudmapEvent`.
 - **The first namespace after `OC::` must be a bounded context.** The
   `Gitlab/BoundedContexts` cop strips a leading `OC::` and requires the next
   module to be listed in `config/bounded_contexts.yml`, an upstream file. Put
