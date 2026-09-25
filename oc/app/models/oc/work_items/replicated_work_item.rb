@@ -112,23 +112,12 @@ module OC
       # or a matching username, and it is lost the moment the importer returns.
       # The reference file publishes it so a reader of the branch can line the
       # two directories up.
-      #
-      # JSON in a text column rather than jsonb: a jsonb column has to carry a
-      # JSON schema validator or be listed in spec/db/schema_spec.rb's
-      # ignored_jsonb_columns_map, which is upstream's file. Nothing queries
-      # inside this value anyway.
       def identities
-        return {} if identity_map.blank?
-
-        parsed = ::Gitlab::Json::SafeParser.parse(identity_map)
-        parsed.is_a?(::Hash) ? parsed : {}
-      rescue ::JSON::ParserError
-        {}
+        identity_map.is_a?(::Hash) ? identity_map : {}
       end
 
       def identities=(map)
-        map = map.presence
-        self.identity_map = map && ::Gitlab::Json.dump(map)
+        self.identity_map = map.presence
       end
 
       # Source iids this item referred to that had no local record when it was
@@ -141,17 +130,11 @@ module OC
       # corner -- a deferred item builds in a later run than whatever referred
       # to it, by definition.
       def unresolved
-        return [] if unresolved_refs.blank?
-
-        parsed = ::Gitlab::Json::SafeParser.parse(unresolved_refs)
-        parsed.is_a?(::Array) ? parsed.map(&:to_i) : []
-      rescue ::JSON::ParserError
-        []
+        unresolved_refs.is_a?(::Array) ? unresolved_refs.map(&:to_i) : []
       end
 
       def unresolved=(iids)
-        iids = ::Array.wrap(iids).map(&:to_i).uniq.sort.presence
-        self.unresolved_refs = iids && ::Gitlab::Json.dump(iids)
+        self.unresolved_refs = ::Array.wrap(iids).map(&:to_i).uniq.sort.presence
       end
 
       scope :with_unresolved, -> { where.not(unresolved_refs: nil) }

@@ -25699,13 +25699,11 @@ CREATE TABLE oc_replicated_work_items (
     source_blob_oid text NOT NULL,
     source_web_url text,
     reason text,
-    identity_map text,
-    unresolved_refs text,
-    CONSTRAINT check_2b938c224c CHECK ((char_length(identity_map) <= 65536)),
+    identity_map jsonb,
+    unresolved_refs jsonb,
     CONSTRAINT check_30bb7c25b6 CHECK ((char_length(source_instance_uuid) <= 255)),
     CONSTRAINT check_44dfdc7132 CHECK ((char_length(reason) <= 255)),
     CONSTRAINT check_482cc4e276 CHECK ((char_length(source_web_url) <= 2048)),
-    CONSTRAINT check_485409d61e CHECK ((char_length(unresolved_refs) <= 8192)),
     CONSTRAINT check_a0a33051ea CHECK ((char_length(source_blob_oid) <= 64)),
     CONSTRAINT check_bf7f2bbaf0 CHECK ((char_length(source_path) <= 1024))
 );

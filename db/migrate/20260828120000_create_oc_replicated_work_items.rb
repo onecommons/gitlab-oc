@@ -28,11 +28,8 @@ class CreateOCReplicatedWorkItems < Gitlab::Database::Migration[2.3]
       t.text :source_blob_oid, null: false, limit: 64
       t.text :source_web_url, limit: 2048
       t.text :reason, limit: 255
-      # JSON in text rather than jsonb: see OC::WorkItems::ReplicatedWorkItem.
-      # rubocop:disable Migration/PreventLargeBlobInDatabase -- written once per import and read once when the reference file is published; a project-wide identity map does not fit in 4096 characters
-      t.text :identity_map, limit: 65_536
-      t.text :unresolved_refs, limit: 8192
-      # rubocop:enable Migration/PreventLargeBlobInDatabase
+      t.jsonb :identity_map
+      t.jsonb :unresolved_refs
 
       t.index %i[project_id source_instance_uuid source_path], unique: true,
         name: 'index_oc_replicated_work_items_on_source'

@@ -660,15 +660,18 @@ upstream adds later. What is not obvious about them:
   `sharding_key: { project_id: projects }`. The schemas and what may
   reference what are defined in `db/gitlab_schemas/*.yaml` and explained in
   `doc/development/cells/_index.md`.
-- **Avoid a `jsonb` column** unless you also want a `JsonSchemaValidator` on
-  the model or an entry in `ignored_jsonb_columns_map` in
-  `spec/db/schema_spec.rb` — an upstream file, so an entry there is a rebase
-  conflict every release. A `text` column holding JSON avoids both, and
-  nothing queries inside these values anyway. **An encrypted attribute is the
-  exception:** `Gitlab/Rails/AttrEncrypted` forbids new `attr_encrypted`, and
-  `doc/development/migration_style_guide.md` says an `encrypts` attribute must
-  be `jsonb`, not `text`. Those columns carry no validator — neither do
-  upstream's own — and the example that would object is quarantined.
+- **Use `jsonb` for a structured value**, not JSON in a `text` column.
+  `spec/db/schema_spec.rb`'s jsonb example wants a `JsonSchemaValidator` on
+  the model, which is satisfied either by one line in its
+  `ignored_jsonb_columns_map` or by a validator of our own —
+  `validates :col, json_schema: { filename: '...' }` with the schema under
+  `app/validators/json_schemas/`, a new file that conflicts with nothing.
+  Prefer the ignore-map line: that example already fails in this edition for
+  reasons of its own (see the guard-specs bullet below), so writing a
+  validator buys no green build. `encrypts` attributes have no choice
+  either way — `Gitlab/Rails/AttrEncrypted` forbids new `attr_encrypted` and
+  `doc/development/migration_style_guide.md` requires the replacement to be
+  `jsonb`; upstream's own such columns carry no validator.
 - **Prefer real foreign keys over a polymorphic pair: every column ending in
   `_id` needs one** or an entry in `ignored_fk_columns_map` in that same
   upstream spec. Where neither is possible — the target is in a schema this one
@@ -683,34 +686,44 @@ upstream adds later. What is not obvious about them:
   dumps `db/structure.sql`; a `pg_dump` of another major version (Homebrew's,
   say) aborts that last step after the migration has run. Reverting is per
   database: `db:migrate:down:main VERSION=<version>`, then `ci` and `sec`.
-- **Commit the dump as written — do not hand-pick statements.** An earlier
-  revision of this bullet said Postgres 17's `pg_dump` reorders partitioned
-  tables and moves hundreds of unrelated lines, so you had to insert your
-  statements by hand. Measured on 2026-09-13 that is not what happens:
-  `oc_blueprint_deployments` produced 31 insertions in 6 regions and nothing
-  else. The whole diff was the new table, its sequence, its default, its
-  primary key, its two indexes and its two foreign keys.
+- **Dump to find out what the migration produces, then check whether the
+  diff is a pure move.** `db:schema:dump` dumps a *database*, not your
+  migrations, so it must read the **test** databases — they are built by
+  loading `structure.sql`, so they hold the committed schema plus your
+  migration. The *development* database is the wrong input: this GDK's was
+  created on `master` before the branch was cut and carries migrations that
+  do not exist here.
 
-  The reason is what the dump reads. `db:schema:dump` dumps a *database*, not
-  your migrations, and the **test** databases are built by loading
-  `structure.sql`, so their contents are the committed schema plus your
-  migration — exactly the right input. The *development* database is not:
-  this GDK's was created on `master` before the branch was cut, so it carries
-  167 migrations that do not exist on the branch, and dumping it produces a
-  diff full of things you did not do. That is what made this look
-  non-deterministic. It is not; the input was simply wrong.
-
-  So, with mise's `postgres` bin on `PATH` for a matching `pg_dump`:
+  With mise's `postgres` bin on `PATH` for a matching `pg_dump`:
 
   ```bash
   RAILS_ENV=test bin/rake db:migrate db:schema:dump
-  git diff --stat db/structure.sql   # expect only your table
+  git --no-pager diff --stat db/structure.sql
   ```
 
-  Check the diff before committing it. If it does contain unrelated churn,
-  the test databases have drifted from `structure.sql` — rebuild them with
-  `RAILS_ENV=test bin/rake db:drop db:create db:schema:load` rather than
-  editing the file by hand.
+  If that is only your table, commit it. If it is hundreds of lines, **do not
+  assume the test databases have drifted** — an earlier revision of this
+  bullet said to rebuild them with `db:drop db:create db:schema:load`, and
+  measured on 2026-09-25 that changes nothing. Postgres 17's `pg_dump` orders
+  partitioned tables differently from the committed file, which is a pure
+  block move: the same lines leave one place and arrive in another. Changing
+  two columns of `oc_replicated_work_items` produced 878 changed lines, of
+  which 6 were the change.
+
+  Tell the two apart by the line sets rather than by reading the diff:
+
+  ```bash
+  git --no-pager diff -U0 db/structure.sql > /tmp/s.diff
+  grep '^-' /tmp/s.diff | grep -v '^---' | sed 's/^-//' | sort > /tmp/removed
+  grep '^+' /tmp/s.diff | grep -v '^+++' | sed 's/^+//' | sort > /tmp/added
+  comm -3 /tmp/removed /tmp/added   # what actually changed, both directions
+  ```
+
+  If the only differences are yours, copy the dump aside, `git checkout --
+  db/structure.sql`, apply those lines by hand, and confirm with
+  `diff <(sort dump-copy.sql) <(sort db/structure.sql)` that both files hold
+  the same lines. That keeps the reordering out of a file which conflicts on
+  every rebase, and the sorted comparison is what makes the hand edit safe.
 
 - **Two upstream guard specs cannot pass in this edition, and neither is
   about your table.** `spec/db/schema_spec.rb`'s jsonb-validator example fails
