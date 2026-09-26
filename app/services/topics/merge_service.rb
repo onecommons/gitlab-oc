@@ -74,3 +74,5 @@ module Topics
     # rubocop: enable CodeReuse/ActiveRecord
   end
 end
+
+Topics::MergeService.prepend_mod # OC Change
