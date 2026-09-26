@@ -20,7 +20,9 @@ module OC
         # A branch deletion has no commits to read.
         return if limited_commits.empty?
 
-        ::OC::Repositories::ProjectUnfurlCacheWorker.perform_async(project.id, ref, limited_commits.last.id)
+        # The whole range, so the worker sees a file changed anywhere in the
+        # push; newrev is its last commit.
+        ::OC::Repositories::ProjectUnfurlCacheWorker.perform_async(project.id, ref, oldrev, newrev)
       end
 
       # The work items sync branch is machine-managed: never run pipelines

@@ -49,7 +49,12 @@ module Gitlab
       environments_json: 'environments.json',
       deployment_json: %r{\A*deployment\.json\z},
       unfurl_types_json: 'unfurl-types.json',
-      unfurl_yaml: %r{\Aunfurl\.yaml\z}
+      unfurl_yaml: %r{\Aunfurl\.yaml\z},
+      # Matched in a subdirectory as well as at the root: a nested service
+      # template is an import the root export is built from, so a change to one
+      # stales the same cache entries as a change at the root.
+      service_template_yaml: %r{(?:\A|/)service_template\.yaml\z},
+      service_template_py: %r{(?:\A|/)service_template\.py\z}
     }.freeze
 
     # Returns an Array of file types based on the given paths.
