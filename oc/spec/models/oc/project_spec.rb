@@ -244,4 +244,106 @@ RSpec.describe Project, feature_category: :groups_and_projects do
       end
     end
   end
+
+  describe 'recording a cloudmap metadata change' do
+    let_it_be(:group) { create(:group, :public) }
+    let!(:project) { create(:project, :public, namespace: group) }
+
+    def recorded
+      OC::Projects::CloudmapEvent.metadata_changed.where(project: project)
+    end
+
+    where(:attributes, :changed) do
+      [
+        [{ name: 'Renamed' }, %w[name]],
+        [{ path: 'renamed' }, %w[path]],
+        [{ description: 'New description' }, %w[description]],
+        [{ visibility_level: Gitlab::VisibilityLevel::PRIVATE }, %w[visibility_level]],
+        [{ archived: true }, %w[archived]],
+        [{ marked_for_deletion_at: Date.current }, %w[marked_for_deletion_at]]
+      ]
+    end
+
+    with_them do
+      it 'records what changed' do
+        project.update!(attributes)
+
+        expect(recorded.sole.payload).to include(
+          'visibility' => project.visibility, 'web_url' => project.web_url, 'changed' => changed)
+      end
+    end
+
+    it 'records a transfer with the path it had' do
+      old_path = project.full_path
+      target = create(:group)
+
+      project.update!(namespace: target)
+
+      expect(recorded.sole.payload).to include('changed' => %w[namespace_id], 'old_path' => old_path)
+      expect(recorded.sole.project_path).to eq("#{target.full_path}/#{project.path}")
+    end
+
+    it 'records a rename with the path it had' do
+      old_path = project.full_path
+
+      project.update!(path: 'renamed')
+
+      expect(recorded.sole.payload['old_path']).to eq(old_path)
+    end
+
+    it 'records a transfer through the service' do
+      old_path = project.full_path
+      target = create(:group)
+      owner = create(:user, owner_of: [group, target])
+
+      ::Projects::TransferService.new(project, owner).execute(target)
+
+      expect(recorded.sole.payload).to include('old_path' => old_path)
+    end
+
+    it 'does not record a push' do
+      project.update_columns(last_activity_at: 2.hours.ago, last_repository_updated_at: 2.hours.ago)
+
+      expect { create(:push_event, project: project) }
+        .to change { project.reload.last_repository_updated_at }
+      expect(recorded).to be_empty
+    end
+
+    it 'does not record a touch' do
+      project.touch
+
+      expect(recorded).to be_empty
+    end
+
+    it 'does not record a change the cloudmap does not read' do
+      project.update!(merge_requests_ff_only_enabled: true)
+
+      expect(recorded).to be_empty
+    end
+
+    it 'records nothing for a change that rolls back' do
+      Project.transaction do
+        project.update!(name: 'Renamed')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(recorded).to be_empty
+    end
+
+    it 'still saves when recording raises' do
+      allow(OC::Projects::CloudmapEvent).to receive(:record_for).and_raise(ActiveRecord::StatementInvalid)
+
+      expect { project.update!(name: 'Renamed') }.not_to raise_error
+      expect(project.reload.name).to eq('Renamed')
+    end
+
+    # A project can become a blueprint or dashboard after its last metadata
+    # change, and it only qualifies from then on.
+    it 'records a change to the recorded unfurl type, once' do
+      project.record_unfurl_type!(OC::UNFURL_BLUEPRINT)
+      project.record_unfurl_type!(OC::UNFURL_BLUEPRINT)
+
+      expect(recorded.sole.payload['changed']).to eq(%w[unfurl_type])
+    end
+  end
 end

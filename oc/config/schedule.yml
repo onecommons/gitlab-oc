@@ -17,3 +17,9 @@ oc_work_items_sweep_worker:
 oc_projects_prune_cloudmap_events_worker:
   class: OC::Projects::PruneCloudmapEventsWorker
   cron: "35 * * * *"
+
+# Every minute, so a metadata change reaches the cloudmap promptly; a run with
+# nothing queued costs one Redis call.
+oc_projects_cloudmap_refresh_worker:
+  class: OC::Projects::CloudmapRefreshWorker
+  cron: "* * * * *"

@@ -16,6 +16,37 @@ module OC
         foreign_key: :upstream_project_id, inverse_of: :upstream_project
       has_many :downstream_projects, class_name: 'Project', through: :downstream_project_subscriptions,
         source: :downstream_project, disable_joins: true
+
+      # rubocop: disable CodeReuse/ActiveRecord -- custom attributes are the project's own key/value store
+      scope :with_unfurl_type, ->(types) do
+        joins(:custom_attributes).where(project_custom_attributes: { key: 'unfurl_type', value: types })
+      end
+      # rubocop: enable CodeReuse/ActiveRecord
+
+      after_update -> { record_cloudmap_metadata_change(cloudmap_metadata_changes, old_path: cloudmap_old_path) },
+        if: -> { cloudmap_metadata_changes.any? }
+    end
+
+    # The columns the cloudmap's repository record reads from the GitLab host
+    # (unfurl/cloudmap/gitlab.py). Timestamps are left out on purpose: a push
+    # touches last_activity_at and last_repository_updated_at, and with them
+    # updated_at, and a push is not a metadata change.
+    #
+    # Topics are not a column; OC::Projects::UpdateService and
+    # OC::Topics::MergeService record those.
+    CLOUDMAP_METADATA_ATTRIBUTES = %w[
+      name path namespace_id description visibility_level avatar archived marked_for_deletion_at
+    ].freeze
+
+    # After commit, so a reader of the feed cannot see the row before the
+    # change it describes, and a rolled-back change leaves none.
+    def record_cloudmap_metadata_change(changed, old_path: nil)
+      run_after_commit_or_now do
+        ::OC::Projects::CloudmapEvent.quietly(:metadata_changed, project_id: id) do
+          ::OC::Projects::CloudmapEvent.record_for(self, kind: :metadata_changed,
+            payload: { visibility: visibility, web_url: web_url, changed: changed, old_path: old_path }.compact)
+        end
+      end
     end
 
     # What the repository says the project is, without recording it.
@@ -46,10 +77,37 @@ module OC
 
     # A project whose files are not there yet -- a template import runs in a
     # worker -- has to be told what it is.
+    #
+    # Recorded in the cloudmap feed when the type changes, since that can make
+    # a project newly qualify for a refresh.
     def record_unfurl_type!(type)
-      custom_attributes.find_or_create_by(key: 'unfurl_type').update!(value: type)
+      attribute = custom_attributes.find_or_create_by(key: 'unfurl_type')
+      attribute.update!(value: type)
+      return unless attribute.previously_new_record? || attribute.saved_change_to_value?
+
+      record_cloudmap_metadata_change(%w[unfurl_type])
     end
     # rubocop: enable CodeReuse/ActiveRecord
+
+    def cloudmap_metadata_changes
+      saved_changes.keys & CLOUDMAP_METADATA_ATTRIBUTES
+    end
+
+    # The full path before a rename or transfer, read while the change is
+    # still in saved_changes. Not upstream's full_path_before_last_save, which
+    # joins the old path to the *current* namespace and so is wrong for a
+    # transfer.
+    def cloudmap_old_path
+      return unless saved_change_to_path? || saved_change_to_namespace_id?
+
+      old_namespace = if saved_change_to_namespace_id?
+                        ::Namespace.find_by_id(namespace_id_before_last_save)
+                      else
+                        namespace
+                      end
+
+      [old_namespace&.full_path, path_before_last_save].compact.join('/')
+    end
 
     def unfurl_blueprint?
       unfurl_type == OC::UNFURL_BLUEPRINT

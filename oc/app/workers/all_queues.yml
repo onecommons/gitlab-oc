@@ -3,6 +3,16 @@
 #
 # Do not edit it manually!
 ---
+- :name: cronjob:oc_projects_cloudmap_refresh
+  :worker_name: OC::Projects::CloudmapRefreshWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: false
+  :tags: []
+  :queue_namespace: :cronjob
 - :name: cronjob:oc_projects_prune_cloudmap_events
   :worker_name: OC::Projects::PruneCloudmapEventsWorker
   :feature_category: :source_code_management

@@ -14,7 +14,9 @@ module OC
     #
     # Both land here instead, keyed by an autoincrement id the sync reads as a
     # cursor -- so unlike the timestamp poll there is no throttle to
-    # compensate for and no overlap window to re-scan.
+    # compensate for. An id is assigned at insert but visible at commit, so a
+    # reader still holds back from the newest rows; see
+    # OC::Projects::CloudmapRefreshWorker::LAG.
     #
     # Not OC::Event, and the table is not oc_events: upstream's activity-feed
     # model ends with `Event.prepend_mod_with('Event')`, so that constant is
@@ -106,6 +108,19 @@ module OC
     #
     # The id lists are unbounded; a large hierarchy makes a large row.
     #
+    # `metadata_changed`
+    #   visibility       the project's
+    #   web_url          the project's
+    #   changed          what changed: project column names, or `topics` or
+    #                    `unfurl_type`, neither of which is a column
+    #   old_path         the full path before a rename or transfer; absent
+    #                    otherwise
+    #
+    # Unlike every other kind, this one is also visible to a poll of
+    # `projects.updated_at` -- except topics and unfurl_type -- but a push
+    # moves that timestamp too, and these rows are only for what the
+    # cloudmap's repository record reads.
+    #
     # Keys read back as strings -- jsonb round-trips through JSON -- and a key
     # whose value was nil is dropped rather than stored as null.
     class CloudmapEvent < ApplicationRecord
@@ -119,7 +134,8 @@ module OC
         visibility_changed: 0, project_deleted: 1, pipeline_finished: 2,
         package_published: 3, image_pushed: 4, image_tag_deleted: 5,
         image_deleted: 6, mirror_synced: 7, group_archived: 8,
-        group_unarchived: 9, namespace_moved: 10, group_deleted: 11
+        group_unarchived: 9, namespace_moved: 10, group_deleted: 11,
+        metadata_changed: 12
       }
 
       belongs_to :organization, class_name: '::Organizations::Organization'
@@ -131,6 +147,13 @@ module OC
 
       scope :after_cursor, ->(id) { where(arel_table[:id].gt(id)).order(:id) }
       scope :occurred_before, ->(time) { where(arel_table[:occurred_at].lt(time)) }
+
+      # Where a consumer with no stored cursor starts: just before the first
+      # row since `time`, or after the last row if there is none.
+      def self.cursor_since(time)
+        first = where(arel_table[:occurred_at].gteq(time)).minimum(:id)
+        first ? first - 1 : maximum(:id).to_i
+      end
 
       class << self
         # Records a change to a project that still exists.
@@ -158,16 +181,40 @@ module OC
           )
         end
 
+        def record_for_namespace_quietly(snapshot, kind:)
+          quietly(kind, namespace_id: snapshot.dig(:payload, :namespace_id)) do
+            record_for_namespace(snapshot, kind: kind)
+          end
+        end
+
+        # One row per project, in one insert, for a change made to many
+        # projects at once without saving any of them.
+        def record_metadata_changes(projects, changed:)
+          now = Time.current
+          rows = projects.map do |project|
+            {
+              kind: kinds[:metadata_changed],
+              organization_id: project.organization_id,
+              project_id: project.id,
+              project_path: project.full_path,
+              payload: { visibility: project.visibility, web_url: project.web_url, changed: changed },
+              occurred_at: now
+            }
+          end
+
+          insert_all(rows) if rows.any?
+        end
+
         # For callers recording a change that has already happened: a failure
         # here must not turn it into a failed one, so the feed loses a row
         # instead.
-        def record_for_namespace_quietly(snapshot, kind:)
-          record_for_namespace(snapshot, kind: kind)
+        def quietly(kind, **context)
+          yield
         rescue ::StandardError => error
           ::Gitlab::AppLogger.warn(
-            message: 'cloudmap namespace event could not be recorded',
+            message: 'cloudmap event could not be recorded',
             kind: kind,
-            namespace_id: snapshot.dig(:payload, :namespace_id),
+            **context,
             error_class: error.class.name,
             error_message: error.message)
           nil

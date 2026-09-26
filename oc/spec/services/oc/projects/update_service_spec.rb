@@ -83,4 +83,28 @@ RSpec.describe Projects::UpdateService, feature_category: :source_code_managemen
       expect(project.reload).to be_private
     end
   end
+
+  # Topics live in a join table, so the model's hook on the project's own
+  # columns does not see them.
+  describe 'recording a cloudmap metadata change for topics' do
+    let!(:project) { create(:project, :public, namespace: owner.namespace) }
+
+    def recorded_topic_changes
+      OC::Projects::CloudmapEvent.metadata_changed.where(project: project)
+        .select { |row| row.payload['changed'] == %w[topics] }
+    end
+
+    it 'records the project when its topics change' do
+      update_project(project, topics: 'cloud, blueprint')
+
+      expect(recorded_topic_changes.size).to eq(1)
+    end
+
+    it 'does not record the same topics given again' do
+      update_project(project, topics: 'cloud')
+      update_project(project, topics: 'cloud')
+
+      expect(recorded_topic_changes.size).to eq(1)
+    end
+  end
 end

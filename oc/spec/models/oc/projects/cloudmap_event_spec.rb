@@ -93,6 +93,35 @@ RSpec.describe OC::Projects::CloudmapEvent, feature_category: :source_code_manag
     end
   end
 
+  describe '.record_metadata_changes' do
+    it 'writes one row per project in one insert' do
+      other = create(:project)
+
+      described_class.record_metadata_changes([project, other], changed: %w[topics])
+
+      rows = described_class.metadata_changed.order(:id)
+      expect(rows.map(&:project_id)).to eq([project.id, other.id])
+      expect(rows.first.project_path).to eq(project.full_path)
+      expect(rows.first.payload).to eq(
+        'visibility' => project.visibility, 'web_url' => project.web_url, 'changed' => %w[topics])
+    end
+  end
+
+  describe '.cursor_since' do
+    it 'starts just before the first row since the time given' do
+      create(:oc_cloudmap_event, project: project, occurred_at: 2.days.ago)
+      recent = create(:oc_cloudmap_event, project: project, occurred_at: 1.hour.ago)
+
+      expect(described_class.cursor_since(1.day.ago)).to eq(recent.id - 1)
+    end
+
+    it 'starts after the last row when none is that recent' do
+      old = create(:oc_cloudmap_event, project: project, occurred_at: 2.days.ago)
+
+      expect(described_class.cursor_since(1.day.ago)).to eq(old.id)
+    end
+  end
+
   describe '.after_cursor' do
     it 'returns later rows in id order' do
       first = create(:oc_cloudmap_event, project: project)
