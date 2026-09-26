@@ -83,6 +83,29 @@ module OC
     # One ref only, and no deletions: force mode removes local-only branches
     # without reporting them.
     #
+    # `group_archived` / `group_unarchived` / `group_deleted` /
+    # `namespace_moved`
+    #   A change to a namespace that alters every project beneath it without
+    #   writing any of their rows. One row for the namespace, not one per
+    #   project: project_path holds the *namespace's* full path and project
+    #   is nil.
+    #   visibility       the namespace's
+    #   web_url          the namespace's
+    #   namespace_id
+    #   project_ids      every project beneath it, at any depth
+    #   subgroup_ids     every group beneath it, at any depth; not project
+    #                    namespaces. Absent for a user's namespace
+    #
+    # `namespace_moved` is a group rename or transfer, or a username change,
+    # recorded after it commits, so project_path is the new path. It adds:
+    #   namespace_type   Group or User
+    #   old_path         the full path before the move
+    #
+    # `group_deleted` lists what the hierarchy held before the destroy. Each of
+    # those projects also leaves its own `project_deleted` row.
+    #
+    # The id lists are unbounded; a large hierarchy makes a large row.
+    #
     # Keys read back as strings -- jsonb round-trips through JSON -- and a key
     # whose value was nil is dropped rather than stored as null.
     class CloudmapEvent < ApplicationRecord
@@ -95,7 +118,8 @@ module OC
       enum :kind, {
         visibility_changed: 0, project_deleted: 1, pipeline_finished: 2,
         package_published: 3, image_pushed: 4, image_tag_deleted: 5,
-        image_deleted: 6, mirror_synced: 7
+        image_deleted: 6, mirror_synced: 7, group_archived: 8,
+        group_unarchived: 9, namespace_moved: 10, group_deleted: 11
       }
 
       belongs_to :organization, class_name: '::Organizations::Organization'
@@ -120,6 +144,53 @@ module OC
             occurred_at: Time.current
           )
         end
+
+        # Takes a snapshot from .namespace_snapshot rather than the namespace,
+        # so a deletion can be read before the destroy and recorded after it.
+        def record_for_namespace(snapshot, kind:)
+          create!(
+            kind: kind,
+            organization_id: snapshot[:organization_id],
+            project: nil,
+            project_path: snapshot[:full_path],
+            payload: snapshot[:payload].compact,
+            occurred_at: Time.current
+          )
+        end
+
+        # For callers recording a change that has already happened: a failure
+        # here must not turn it into a failed one, so the feed loses a row
+        # instead.
+        def record_for_namespace_quietly(snapshot, kind:)
+          record_for_namespace(snapshot, kind: kind)
+        rescue ::StandardError => error
+          ::Gitlab::AppLogger.warn(
+            message: 'cloudmap namespace event could not be recorded',
+            kind: kind,
+            namespace_id: snapshot.dig(:payload, :namespace_id),
+            error_class: error.class.name,
+            error_message: error.message)
+          nil
+        end
+
+        # Plucked rather than left as relations, which would be evaluated
+        # after a destroy and come back empty. Unlimited because the lists are
+        # the payload, not the input to an IN clause.
+        # rubocop:disable Database/AvoidUsingPluckWithoutLimit -- see above
+        def namespace_snapshot(namespace, **extra)
+          {
+            full_path: namespace.full_path,
+            organization_id: namespace.organization_id,
+            payload: {
+              visibility: namespace.visibility,
+              web_url: namespace.web_url,
+              namespace_id: namespace.id,
+              project_ids: namespace.all_projects.order(:id).pluck(:id),
+              subgroup_ids: (namespace.descendants.order(:id).pluck(:id) if namespace.group_namespace?)
+            }.merge(extra)
+          }
+        end
+        # rubocop:enable Database/AvoidUsingPluckWithoutLimit
 
         # Records a project that has just been destroyed. Takes the path and
         # the organization rather than the record, because by the time a

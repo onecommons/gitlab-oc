@@ -46,6 +46,53 @@ RSpec.describe OC::Projects::CloudmapEvent, feature_category: :source_code_manag
     end
   end
 
+  describe '.namespace_snapshot' do
+    let_it_be(:group) { create(:group) }
+    let_it_be(:subgroup) { create(:group, parent: group) }
+    let_it_be(:nested_project) { create(:project, namespace: subgroup) }
+
+    it 'lists the whole hierarchy of a group' do
+      snapshot = described_class.namespace_snapshot(group)
+
+      expect(snapshot).to include(full_path: group.full_path, organization_id: group.organization_id)
+      # Each project has a namespace of its own; only groups are listed.
+      expect(snapshot[:payload]).to include(
+        namespace_id: group.id, project_ids: [nested_project.id], subgroup_ids: [subgroup.id])
+    end
+
+    it 'has no subgroup list for a user namespace' do
+      user = create(:user, :with_namespace)
+      project = create(:project, namespace: user.namespace)
+
+      payload = described_class.namespace_snapshot(user.namespace)[:payload]
+
+      expect(payload).to include(project_ids: [project.id], subgroup_ids: nil)
+    end
+  end
+
+  describe '.record_for_namespace' do
+    let_it_be(:group) { create(:group) }
+
+    it 'keys the row on the namespace with no project' do
+      event = described_class.record_for_namespace(
+        described_class.namespace_snapshot(group), kind: :group_archived)
+
+      expect(event.project).to be_nil
+      expect(event.project_path).to eq(group.full_path)
+      expect(event.organization_id).to eq(group.organization_id)
+      expect(event.payload).to include('namespace_id' => group.id, 'project_ids' => [], 'subgroup_ids' => [])
+    end
+  end
+
+  describe '.record_for_namespace_quietly' do
+    it 'logs rather than raising' do
+      snapshot = { full_path: 'a', organization_id: nil, payload: { namespace_id: 1 } }
+      expect(::Gitlab::AppLogger).to receive(:warn).with(hash_including(namespace_id: 1))
+
+      expect(described_class.record_for_namespace_quietly(snapshot, kind: :group_deleted)).to be_nil
+    end
+  end
+
   describe '.after_cursor' do
     it 'returns later rows in id order' do
       first = create(:oc_cloudmap_event, project: project)
