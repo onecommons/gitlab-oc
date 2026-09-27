@@ -86,7 +86,7 @@ module OC
     # without reporting them.
     #
     # `group_archived` / `group_unarchived` / `group_deleted` /
-    # `namespace_moved`
+    # `namespace_moved` / `group_included`
     #   A change to a namespace that alters every project beneath it without
     #   writing any of their rows. One row for the namespace, not one per
     #   project: project_path holds the *namespace's* full path and project
@@ -102,6 +102,9 @@ module OC
     # recorded after it commits, so project_path is the new path. It adds:
     #   namespace_type   Group or User
     #   old_path         the full path before the move
+    #
+    # `group_included` is a group marked to put every public project beneath
+    # it in the cloudmap; see OC::GroupCustomAttribute.
     #
     # `group_deleted` lists what the hierarchy held before the destroy. Each of
     # those projects also leaves its own `project_deleted` row.
@@ -135,7 +138,7 @@ module OC
         package_published: 3, image_pushed: 4, image_tag_deleted: 5,
         image_deleted: 6, mirror_synced: 7, group_archived: 8,
         group_unarchived: 9, namespace_moved: 10, group_deleted: 11,
-        metadata_changed: 12
+        metadata_changed: 12, group_included: 13
       }
 
       belongs_to :organization, class_name: '::Organizations::Organization'

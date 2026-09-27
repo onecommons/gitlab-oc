@@ -6,12 +6,15 @@ module OC
     # oc_cloudmap_events after a stored cursor and reports it to the Unfurl
     # server's POST /cloudmap/analyze, several URLs per request:
     #
-    #   add      public blueprints and dashboards whose metadata changed;
+    #   add      included projects whose metadata changed, if public;
     #            refreshed with analyze "metadata", which does not clone
-    #   private  blueprints and dashboards that exist but are not public
+    #   private  included projects that exist but are not public
     #   deleted  repositories that were public when they were deleted
-    #   moved    {from:, to:} for a public blueprint or dashboard whose path
+    #   moved    {from:, to:} for a public included project whose path
     #            changed, its own or a namespace's above it
+    #
+    # Included means a blueprint or dashboard, or any project under a group
+    # marked OC::GroupCustomAttribute::CLOUDMAP_INCLUDE_ALL_PUBLIC.
     #
     # These are events, not instructions: what each means for a cloudmap
     # record is the server's decision. Visibility and type are judged when
@@ -39,7 +42,7 @@ module OC
       UNFURL_TYPES = [::OC::UNFURL_BLUEPRINT, ::OC::UNFURL_DASHBOARD].freeze
 
       PROJECT_KINDS = %w[metadata_changed visibility_changed].freeze
-      HIERARCHY_KINDS = %w[namespace_moved group_archived group_unarchived].freeze
+      HIERARCHY_KINDS = %w[namespace_moved group_archived group_unarchived group_included].freeze
 
       def perform
         # Left unread rather than skipped, for when the server is configured.
@@ -82,13 +85,18 @@ module OC
         events.uniq
       end
 
-      # Blueprints and dashboards only: nothing else ever reaches the
-      # cloudmap from here, so there is nothing else to report on.
+      # The included projects among those the rows name: nothing else ever
+      # reaches the cloudmap from here, so there is nothing else to report on.
       def listed_projects(rows)
         ids = rows.flat_map { |row| [row.project_id, *Array(row.payload['project_ids'])] }.compact.uniq
+        marked_groups = ::GroupCustomAttribute.cloudmap_including_group_ids
 
         ids.each_slice(ROW_LIMIT).flat_map do |slice|
-          ::Project.id_in(slice).with_unfurl_type(UNFURL_TYPES).with_route.to_a
+          named = ::Project.id_in(slice).with_route
+          typed = named.with_unfurl_type(UNFURL_TYPES).to_a
+          next typed if marked_groups.empty?
+
+          (typed + named.in_namespace(::Group.id_in(marked_groups).self_and_descendant_ids).to_a).uniq
         end
       end
 

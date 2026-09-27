@@ -12,3 +12,5 @@ class GroupCustomAttribute < ApplicationRecord
     'Namespaces::CustomAttributePolicy'
   end
 end
+
+GroupCustomAttribute.prepend_mod # OC Change

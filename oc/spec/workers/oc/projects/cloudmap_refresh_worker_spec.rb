@@ -253,4 +253,51 @@ RSpec.describe OC::Projects::CloudmapRefreshWorker, :clean_gitlab_redis_shared_s
 
     expect(bodies.size).to eq(2)
   end
+
+  describe 'a group marked to include all its public projects' do
+    let_it_be(:marked) { create(:group, :public) }
+    let_it_be(:subgroup) { create(:group, :public, parent: marked) }
+    let_it_be(:plain) { create(:project, :public, namespace: subgroup) }
+    let_it_be(:hidden) { create(:project, :private, namespace: subgroup) }
+
+    before_all do
+      plain.record_unfurl_type!(OC::REGULAR_PROJECT)
+      marked.custom_attributes.create!(key: OC::GroupCustomAttribute::CLOUDMAP_INCLUDE_ALL_PUBLIC, value: 'true')
+    end
+
+    it 'sends a public project of any type beneath it, at any depth' do
+      bodies = sent_bodies
+      row(plain)
+
+      perform
+
+      expect(bodies.first['add']).to eq([plain.http_url_to_repo])
+    end
+
+    it 'reports one beneath it that is not public' do
+      bodies = sent_bodies
+      row(hidden, kind: :visibility_changed)
+
+      perform
+
+      expect(bodies.first['private']).to eq([hidden.http_url_to_repo])
+    end
+
+    it 'sends the hierarchy when the mark is set' do
+      bodies = sent_bodies
+      group_row(:group_included, [plain.id, hidden.id], path: marked.full_path)
+
+      perform
+
+      expect(bodies.first).to include('add' => [plain.http_url_to_repo], 'private' => [hidden.http_url_to_repo])
+    end
+
+    it 'still leaves out an unmarked group\'s plain projects' do
+      row(untyped)
+
+      perform
+
+      expect(WebMock).not_to have_requested(:post, analyze_url)
+    end
+  end
 end

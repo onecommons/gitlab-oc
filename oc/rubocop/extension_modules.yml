@@ -6,6 +6,7 @@ Gitlab/BoundedContexts:
     - 'oc/app/finders/oc/projects_finder.rb'
     - 'oc/app/graphql/oc/resolvers/projects_resolver.rb'
     - 'oc/app/models/oc/environment.rb'
+    - 'oc/app/models/oc/group_custom_attribute.rb'
     - 'oc/app/serializers/oc/build_detail_entity.rb'
     - 'oc/app/serializers/oc/environment_entity.rb'
     - 'oc/app/models/oc/issue.rb'
