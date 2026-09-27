@@ -14,16 +14,12 @@ module GDK
       end
 
       def command
-        "unfurl serve --clone-root #{clone_root} --cloud-server #{gitlab_url} " \
+        "unfurl --home #{home} serve --clone-root #{clone_root} --cloud-server #{gitlab_url} " \
           "--port #{PORT} --cors #{gitlab_url}"
       end
 
       def env
         base = {
-          # With a home project, a repository redirect in its local unfurl.yaml
-          # makes every environment importing std fail to export, and one
-          # unexportable environment disables environment creation entirely.
-          'UNFURL_HOME' => '',
           'UNFURL_LOGGING' => 'trace',
           'UNFURL_PACKAGE_RULES' => package_rules,
           # Setting this also puts the Rust proxy in front of waitress; it binds
@@ -76,6 +72,15 @@ module GDK
       # whole URL in env.runit, which the run script sources after this.
       def cloudmap_db_url
         "postgres:///unfurl_cloudmap?host=#{config.postgresql.host}"
+      end
+
+      # A home of the GDK's own rather than ~/.unfurl_home: a repository
+      # redirect in a personal home's local unfurl.yaml makes every environment
+      # importing std fail to export, and one unexportable environment disables
+      # environment creation entirely. It holds the cloudmaps.hosts entry that
+      # lets POST /cloudmap/analyze read this GitLab's projects.
+      def home
+        GDK.root.join('tmp', 'unfurl_home')
       end
 
       def clone_root

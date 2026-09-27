@@ -200,12 +200,15 @@ index only after a pull and a restart.
 
 What the service sets, and why:
 
-- **`UNFURL_HOME=`** — with a home project, a repository redirect in
-  `~/.unfurl_home/local/unfurl.yaml` (`unfurl.cloud/onecommons/std` pointing
-  somewhere else, say) makes every environment that imports `std` fail to
-  export with `Path not allowed outside of repository or document root`, and
-  one unexportable environment disables environment creation for the whole
-  dashboard.
+- **`unfurl --home <gdk>/tmp/unfurl_home`** — a home of the GDK's own,
+  written by the install script, rather than `~/.unfurl_home`: a repository
+  redirect in a personal home's `local/unfurl.yaml`
+  (`unfurl.cloud/onecommons/std` pointing somewhere else, say) makes every
+  environment that imports `std` fail to export with `Path not allowed outside
+  of repository or document root`, and one unexportable environment disables
+  environment creation for the whole dashboard. Its `cloudmaps.hosts.gdk`
+  entry lets `POST /cloudmap/analyze` read this GDK's projects, and its
+  `canonical_url` keys their records as `git://unfurl.cloud/...`.
 - **`UNFURL_PACKAGE_RULES`** — whitespace-separated pairs, resolving both
   `gitlab.com/onecommons/*` and `unfurl.cloud/onecommons/*` to this GDK.
 - **`CACHE_REDIS_URL`** — GDK's redis on its socket, since the redis component
