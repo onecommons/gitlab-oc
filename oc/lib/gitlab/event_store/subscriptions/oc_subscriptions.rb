@@ -17,6 +17,8 @@ module Gitlab
 
           # Unfiltered, unlike the two above: the cloudmap records a run's
           # status as a property of the run, so a failure is a change too.
+          store.subscribe ::OC::Repositories::MirrorSyncedWorker, to: ::OC::Repositories::MirrorSyncedEvent
+
           store.subscribe ::OC::Projects::RecordCloudmapEventWorker,
             to: [
               ::Projects::ProjectVisibilityChangedEvent,

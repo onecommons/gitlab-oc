@@ -138,25 +138,32 @@ module OC
     end
 
     # OC Change -- pull mirroring
-    # An imported project keeps its credentials, because unsafe_import_url
+    # A mirror keeps its import credentials, because unsafe_import_url
     # rebuilds them from import_data and a mirror goes on fetching long after
     # the import has finished.
     override :remove_import_data
     def remove_import_data
-      super unless regular_project?
+      super unless mirror_requested?
     end
 
     # The import records the request to mirror; there is no `mirror` column in
     # this edition, because upstream's is gated on an EE feature.
     #
-    # Reads the recorded type rather than regular_project?, which classifies,
-    # and so writes: the banner and the settings section ask this on a GET.
+    # Whatever the project's type: a blueprint or dashboard can be mirrored
+    # too. A project made from an Unfurl template cannot be, which 15.11
+    # ensured by requiring a Regular type; here templates are built-in
+    # archives with no URL to fetch from, and only the GitHub import records
+    # the request.
     def mirror?
-      import? && recorded_unfurl_type == OC::REGULAR_PROJECT && import_data&.data&.dig('is_mirror')
+      import? && mirror_requested?
     end
 
     def mirror_enabled?
       mirror? && import_data&.data&.dig('mirror_enabled')
+    end
+
+    def mirror_requested?
+      import_data&.data&.dig('is_mirror').present?
     end
 
     # Work items sync (issues/MRs mirrored into the gitlab-work-items branch)

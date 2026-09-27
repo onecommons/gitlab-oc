@@ -204,15 +204,27 @@ RSpec.describe Project, feature_category: :groups_and_projects do
         project.custom_attributes.find_by(key: 'unfurl_type').destroy!
         flag_as_mirror
 
-        expect { expect(project.mirror?).to be_falsey }
+        expect { expect(project.mirror?).to be(true) }
           .not_to change { project.custom_attributes.count }
       end
 
-      it 'is false for a dashboard, which is imported from a template rather than mirrored' do
-        flag_as_mirror
-        project.record_unfurl_type!(OC::UNFURL_DASHBOARD)
+      where(:type) { [OC::UNFURL_BLUEPRINT, OC::UNFURL_DASHBOARD] }
 
-        expect(project.mirror?).to be_falsey
+      with_them do
+        it 'is true for a blueprint or dashboard imported as a mirror' do
+          flag_as_mirror
+          project.record_unfurl_type!(type)
+
+          expect(project.mirror?).to be(true)
+        end
+      end
+
+      # What 15.11's Regular-only rule guarded: a project made from an Unfurl
+      # template must never fetch from it.
+      it 'is false for a project made from an Unfurl template' do
+        template_project = create(:project, import_type: 'gitlab_built_in_project_template')
+
+        expect(template_project.mirror?).to be_falsey
       end
     end
 
@@ -236,9 +248,15 @@ RSpec.describe Project, feature_category: :groups_and_projects do
         expect { project.remove_import_data }.not_to change { ProjectImportData.count }
       end
 
-      it 'removes them from a project that is not a regular project' do
+      it 'keeps them for a mirrored blueprint' do
         flag_as_mirror
         project.record_unfurl_type!(OC::UNFURL_BLUEPRINT)
+
+        expect { project.remove_import_data }.not_to change { ProjectImportData.count }
+      end
+
+      it 'removes them from an import that is not a mirror' do
+        flag_as_mirror(is_mirror: false)
 
         expect { project.remove_import_data }.to change { ProjectImportData.count }.by(-1)
       end

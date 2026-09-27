@@ -843,6 +843,8 @@
   - 1
 - - oc_projects_record_cloudmap_event
   - 1
+- - oc_repositories_mirror_synced
+  - 1
 - - oc_repositories_project_unfurl_cache
   - 1
 - - oc_work_items_commit_notes_sync

@@ -83,6 +83,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace:
+- :name: oc_repositories_mirror_synced
+  :worker_name: OC::Repositories::MirrorSyncedWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :high
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: oc_repositories_project_unfurl_cache
   :worker_name: OC::Repositories::ProjectUnfurlCacheWorker
   :feature_category: :source_code_management
