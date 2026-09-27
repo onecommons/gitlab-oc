@@ -12,6 +12,8 @@ RSpec.describe OC::Projects::CloudmapRefreshWorker, :clean_gitlab_redis_shared_s
 
   let(:server) { 'http://unfurl.test' }
   let(:analyze_url) { "#{server}/cloudmap/analyze?auth_project=#{CGI.escape(OC::UNFURL_CLOUDMAP_PROJECT)}" }
+  let(:commit_url) { "#{server}/cloudmap?auth_project=#{CGI.escape(OC::UNFURL_CLOUDMAP_PROJECT)}" }
+  let!(:commit_request) { stub_request(:post, commit_url) }
   let(:cursor_key) { described_class::CURSOR_KEY }
 
   subject(:perform) { described_class.new.perform }
@@ -298,6 +300,49 @@ RSpec.describe OC::Projects::CloudmapRefreshWorker, :clean_gitlab_redis_shared_s
       perform
 
       expect(WebMock).not_to have_requested(:post, analyze_url)
+    end
+  end
+
+  describe 'committing' do
+    it 'stages each request and commits once at the end of the run' do
+      stub_const("#{described_class}::EVENTS_PER_REQUEST", 1)
+      bodies = sent_bodies
+      row(blueprint)
+      row(private_blueprint, kind: :visibility_changed)
+
+      perform
+
+      expect(bodies.pluck('commit')).to eq([false, false])
+      expect(commit_request.with(body: {
+        commit: true, commit_msg: 'GitLab: 1 add, 1 private'
+      }.to_json)).to have_been_requested.once
+    end
+
+    it 'does not commit when a request fails' do
+      stub_request(:post, analyze_url).to_return(status: 500)
+      row(blueprint)
+
+      perform
+
+      expect(commit_request).not_to have_been_requested
+    end
+
+    it 'keeps its place when the commit fails' do
+      sent_bodies
+      stub_request(:post, commit_url).to_return(status: 500)
+      row(blueprint)
+
+      perform
+
+      expect(cursor).to be_nil
+    end
+
+    it 'makes no commit for a run with nothing to send' do
+      row(blueprint, kind: :pipeline_finished)
+
+      perform
+
+      expect(commit_request).not_to have_been_requested
     end
   end
 end

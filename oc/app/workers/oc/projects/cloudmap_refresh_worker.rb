@@ -20,11 +20,20 @@ module OC
     # record is the server's decision. Visibility and type are judged when
     # sent, not when the row was written. The server writes to the cloudmap
     # with a credential of its own, so none is sent.
+    #
+    # One commit per run, however many requests it takes: each request only
+    # stages, and an empty POST /cloudmap at the end commits what they
+    # staged.
     class CloudmapRefreshWorker
       include ApplicationWorker
       include CronjobQueue # rubocop:disable Scalability/CronWorkerContext -- reads a feed spanning every project
 
       data_consistency :sticky
+      # Safe to rerun: the cursor only moves once a run is committed, and the
+      # server ignores a change it already has. Deduplicated so a slow run
+      # and the next minute's cannot read the same rows.
+      idempotent!
+      deduplicate :until_executed
       feature_category :source_code_management
       urgency :low
       defer_on_database_health_signal :gitlab_main_org, %i[oc_cloudmap_events projects], 1.minute
@@ -53,6 +62,7 @@ module OC
 
         events = events_in(rows)
         return unless events.each_slice(EVENTS_PER_REQUEST).all? { |slice| analyze(slice) }
+        return unless events.empty? || commit(events)
 
         self.cursor = rows.last.id
         log_extra_metadata_on_done(:rows, rows.size)
@@ -146,28 +156,45 @@ module OC
       end
 
       def request_body(events)
-        body = { add: [], analyze: 'metadata' }
+        body = { add: [], analyze: 'metadata', commit: false }
         events.each { |(list, value)| (body[list] ||= []) << value }
         body
+      end
+
+      # An empty write with commit set means "commit what earlier requests
+      # staged", on both the Python and the Rust handlers.
+      def commit(events)
+        post('/cloudmap', commit: true, commit_msg: commit_message(events))
+      end
+
+      def commit_message(events)
+        counts = events.group_by(&:first).transform_values(&:size)
+        summary = counts.map { |list, count| "#{count} #{list}" }.join(', ')
+
+        "GitLab: #{summary}"
       end
 
       # "metadata" re-reads the host's record of a repository without cloning
       # it. Gitlab::HTTP blocks the local network by default, and this posts
       # straight to the unfurl-server container.
       def analyze(events)
+        post('/cloudmap/analyze', request_body(events))
+      end
+
+      def post(path, body)
         response = ::Gitlab::HTTP.post(
-          "#{unfurl_server_url}/cloudmap/analyze",
+          "#{unfurl_server_url}#{path}",
           query: { auth_project: ::OC::UNFURL_CLOUDMAP_PROJECT },
           headers: { 'Content-Type' => 'application/json' },
-          body: ::Gitlab::Json.dump(request_body(events)),
+          body: ::Gitlab::Json.dump(body),
           allow_local_requests: true
         )
         return true if response.success?
 
-        log_failure(status: response.code, body: response.body.to_s.truncate(500))
+        log_failure(path: path, status: response.code, body: response.body.to_s.truncate(500))
         false
       rescue *::Gitlab::HTTP::HTTP_ERRORS => error
-        log_failure(error_class: error.class.name, error_message: error.message)
+        log_failure(path: path, error_class: error.class.name, error_message: error.message)
         false
       end
 
