@@ -4,8 +4,8 @@ module GDK
   module Services
     # The Unfurl server the blueprint and dashboard pages call. Production
     # proxies it behind the chart's Ingress; a GDK reaches it directly, so it
-    # runs with CORS for the GitLab origin and gitlab.yml's
-    # extra.unfurl_server_url points at it.
+    # runs with CORS for the GitLab origin, and in development
+    # OC::Repositories::UnfurlServer::GDK_URL points at it.
     class Unfurl < Base
       PORT = 8081
 

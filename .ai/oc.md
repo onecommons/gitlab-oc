@@ -145,21 +145,12 @@ dashboard, error pages, mailer) travel with those views when they are ported.
 
 The blueprint pages call the Unfurl server at `/services/unfurl-server`, which
 production proxies (the chart's Ingress) and which a GDK without NGINX does
-not have. Instead run the server with CORS for the GitLab origin and tell the
-frontend where it is; `gon.unfurl_server_url` comes from the `extra` section
-of `gitlab.yml`, and the origin also has to be allowed by the CSP, which is
-configuration (`content_security_policy.directives.connect_src` replaces the
-whole default, so include the dev servers too):
-
-```yaml
-production: &base
-  gitlab:
-    content_security_policy:
-      directives:
-        connect_src: "'self' http://localhost:* ws://localhost:* wss://localhost:* http://gdk.test:* ws://gdk.test:* wss://gdk.test:*"
-  extra:
-    unfurl_server_url: 'http://localhost:8081'
-```
+not have. Instead the GDK runs the server with CORS for the GitLab origin, and
+`gon.unfurl_server_url` tells the frontend where it is. That comes from
+`OC::Repositories::UnfurlServer.browser_url`: `UNFURL_SERVER_URL`, then
+`extra.unfurl_server_url` in `gitlab.yml`, then, in development only,
+`http://localhost:8081`. `oc/config/initializers/unfurl_server.rb` appends its
+origin to the CSP's `connect-src`, so a GDK needs no `gitlab.yml` edits.
 
 A GDK service supervises the server, so it starts with everything else and its
 log is where every other service's is. Install it once:
@@ -177,9 +168,7 @@ when it is already done. The definition lives in this repo because the GDK
 checkout is upstream's, where the file would be untracked and a `gdk update`
 would eventually lose it. GDK finds services by reflection over
 `GDK::Services`, so the copy is the whole registration, and `gdk start` renders
-the run script itself — which is why none of this wants `gdk reconfigure`, and
-that matters, because reconfigure would overwrite the `config/gitlab.yml`
-above.
+the run script itself, so none of this needs `gdk reconfigure`.
 
 The cloudmap half is optional. `--skip-cloudmap` leaves it out, and without a
 clone the service omits both cloudmap variables, so `/cloudmap` is proxied to

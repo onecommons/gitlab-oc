@@ -12,10 +12,10 @@ RSpec.describe 'Invalidating a project\'s Unfurl caches', feature_category: :sou
     before do
       sign_in(owner)
 
-      # The GDK's config/gitlab.yml sets extra.unfurl_server_url under
-      # `production: &base`, which the test environment inherits, so without
-      # this these examples really do POST to localhost:8081 and report
-      # cleared: false whenever no Unfurl server happens to be running.
+      # A gitlab.yml that sets extra.unfurl_server_url under `production: &base`
+      # passes it to the test environment, so without this these examples
+      # really do POST to it and report cleared: false whenever no Unfurl
+      # server happens to be running.
       stub_config(extra: {})
     end
 

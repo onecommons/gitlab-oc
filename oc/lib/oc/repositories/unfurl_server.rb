@@ -13,6 +13,8 @@ module OC
     module UnfurlServer
       ENV_KEY = 'UNFURL_SERVER_INTERNAL_URL'
       BROWSER_ENV_KEY = 'UNFURL_SERVER_URL'
+      # The GDK service oc/scripts/unfurl.rb defines.
+      GDK_URL = 'http://localhost:8081'
 
       class << self
         def internal_url
@@ -24,10 +26,26 @@ module OC
         # What gon hands oc-pages. Unset when the page uses the same-origin
         # proxy path, which is the ordinary production case.
         def browser_url
-          ENV[BROWSER_ENV_KEY].presence || config['unfurl_server_url'].presence
+          ENV[BROWSER_ENV_KEY].presence || config['unfurl_server_url'].presence || development_default
+        end
+
+        # Lets the browser reach a server outside GitLab's origin, as on a GDK.
+        # Appends, because setting connect_src in gitlab.yml replaces the whole
+        # default, dev servers included.
+        def allow_in_csp(policy)
+          url = browser_url
+          sources = policy&.directives&.fetch('connect-src', nil)
+          return if url.blank? || sources.blank?
+
+          origin = URI.join(url, '/').to_s
+          policy.connect_src(*sources, origin) unless sources.include?(origin)
         end
 
         private
+
+        def development_default
+          GDK_URL if Rails.env.development?
+        end
 
         def config
           ::Gitlab.config.extra
