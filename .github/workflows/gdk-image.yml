@@ -12,6 +12,10 @@ name: gdk image
         description: Fork ref to bake into the image
         required: false
         default: main
+      rebuild_base:
+        description: Rebuild gdk:base too (off reuses the last one)
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -45,6 +49,7 @@ jobs:
       # which installs this fork rather than GitLab EE. GDK's CI copies the same
       # two files into the context before building.
       - name: Prepare the GDK base
+        if: inputs.rebuild_base != false
         run: |
           git clone --depth=1 https://gitlab.com/gitlab-org/gitlab-development-kit.git "$RUNNER_TEMP/gdk"
           cd "$RUNNER_TEMP/gdk"
@@ -54,6 +59,7 @@ jobs:
       # No credentials are passed to either build: the fork is public, so they
       # clone it anonymously and nothing lands in a layer.
       - name: Build and push the GDK base
+        if: inputs.rebuild_base != false
         uses: docker/build-push-action@v6
         with:
           context: ${{ runner.temp }}/gdk/support/gdk-in-a-box/container

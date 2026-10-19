@@ -62,9 +62,11 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
 
 # Assets last: the slowest layer, and the one most likely to be invalidated.
 # webpack directly: package.json's build script is an if/else Yarn Berry's
-# shell cannot run.
+# shell cannot run. The base wrote an infection scanner graph before
+# node_modules existed, and webpack reuses it rather than rescanning.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
+    && rm -f tmp/infection_scanner.json \
     && yarn run webpack
 
 # The GDK's redis listens on a unix socket and nothing else -- its template is
