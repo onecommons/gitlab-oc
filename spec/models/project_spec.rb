@@ -2723,7 +2723,8 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
   describe '#to_param' do
     context 'with namespace' do
       before do
-        @group = create(:group, name: 'gitlab')
+        # OC Change -- the fork reserves the path gitlab
+        @group = create(:group, name: 'gitlab-org')
         @project = create(:project, path: 'gitlabhq', namespace: @group)
       end
 
@@ -9077,8 +9078,9 @@ RSpec.describe Project, factory_default: :keep, feature_category: :groups_and_pr
 
           project.check_personal_projects_limit
 
+          # OC Change -- the fork's message for its deploy-interface users
           expect(project.errors[:limit_reached].first)
-            .to eq('You cannot create projects in your personal namespace. Contact your GitLab administrator.')
+            .to eq('To create projects, set Interface to Develop applications in your profile settings.')
         end
       end
 
