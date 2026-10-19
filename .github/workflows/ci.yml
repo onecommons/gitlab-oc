@@ -4,7 +4,8 @@ name: ci
 "on":
   pull_request:
   push:
-    branches: [main, oc-patches]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   rubocop:
