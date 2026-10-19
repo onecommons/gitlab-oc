@@ -63,14 +63,19 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     ; status=$?; mise x -- gdk stop; exit $status
 
 # The test Gitaly, Workhorse and fixture repositories, as upstream CI prepares
-# them; otherwise every spec run compiles them first, ~7 minutes. Gitaly's Go
-# build cache and its bundled Git's build trees (~1.6 GB) go in the same layer,
-# or the image keeps them: TestEnv only checks the checkout's .git, VERSION
-# and _build/bin before deciding to rebuild.
+# them; otherwise every spec run compiles them first, ~7 minutes. What the
+# build leaves goes in the same layer, or the image keeps it: Go's module and
+# build caches (~2.2 GB, redirected so the base's own stay), Gitaly's build
+# cache and bundled Git's build trees (~1.6 GB), and the binaries the started
+# Gitaly unpacked under tmp/run. TestEnv only checks the checkout's .git,
+# VERSION and _build/bin before deciding to rebuild.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
+    && export GOMODCACHE=/tmp/go-mod GOCACHE=/tmp/go-build \
     && RAILS_ENV=test scripts/setup-test-env \
-    && rm -rf tmp/tests/gitaly/_build/cache tmp/tests/gitaly/_build/deps
+    && { chmod -R u+w /tmp/go-mod 2>/dev/null || true; } \
+    && rm -rf /tmp/go-mod /tmp/go-build tmp/run/gitaly-* \
+        tmp/tests/gitaly/_build/cache tmp/tests/gitaly/_build/deps
 
 # Assets last: the slowest layer, and the one most likely to be invalidated.
 # Rspack, as the GDK runs it: only its config knows how to resolve the oc-pages
