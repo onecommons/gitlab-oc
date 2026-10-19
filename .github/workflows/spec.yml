@@ -63,12 +63,14 @@ jobs:
       # rspack because request specs under oc/spec/requests/projects render a
       # full page and read the asset manifest from its dev server; without it
       # Rails fails with "Could not load manifest".
+      # The topology service because the GDK enables cells, and a spec that
+      # builds records while loading claims them before spec_helper's stubs apply.
       - name: Start services
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
             cd /gitlab-gdk/gitlab-development-kit &&
-            mise x -- gdk start postgresql redis rspack'
+            mise x -- gdk start postgresql redis rspack gitlab-topology-service'
 
       - name: Migrate the test database
         run: |
