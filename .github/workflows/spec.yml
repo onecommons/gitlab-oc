@@ -13,6 +13,12 @@ name: spec
       gdk_image:
         required: false
         default: ghcr.io/onecommons/gitlab-oc/gdk:latest
+      only:
+        description: >-
+          Stages to run, comma-separated without spaces, from static,fast,oc,upstream,heavy.
+          Empty runs them all.
+        required: false
+        default: ''
 
 env:
   GDK_IMAGE: ${{ inputs.gdk_image || 'ghcr.io/onecommons/gitlab-oc/gdk:latest' }}
@@ -83,6 +89,7 @@ jobs:
       # because the fork's method simply stops being called. Runs before the
       # suites: it is quick and its failure explains theirs.
       - name: Static verification
+        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',static,') }}
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
@@ -92,6 +99,7 @@ jobs:
       # fast_spec_helper specs need neither database nor Gitaly and cannot
       # share an invocation with spec_helper ones, so they run on their own.
       - name: RSpec (fast_spec_helper)
+        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',fast,') }}
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
@@ -100,6 +108,7 @@ jobs:
               $(mise x -- ruby oc/scripts/upstream_specs.rb --fast | tr "\n" " ")'
 
       - name: RSpec (oc/spec)
+        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',oc,') }}
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
@@ -115,6 +124,7 @@ jobs:
       # fast_spec_helper ones ran in the step above, which boots no Rails.
       # Quarantined examples are skipped as in upstream CI: they fail there too.
       - name: RSpec (upstream specs the fork edits)
+        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',upstream,') }}
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
@@ -127,7 +137,9 @@ jobs:
       # upstream classes. Nightly rather than per-push, so a regression in them
       # surfaces within a day instead of holding up every merge.
       - name: RSpec (heavy upstream specs)
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+        if: >-
+          ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+          && (!inputs.only || contains(format(',{0},', inputs.only), ',heavy,')) }}
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
