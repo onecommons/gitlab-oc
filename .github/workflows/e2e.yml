@@ -151,6 +151,14 @@ jobs:
           OC_URL: http://gdk.test:3000
           OC_INVITE_CODE: cypress-e2e
           DRYRUN: '1'
+          # Placeholders, as in unfurl-gui's own CI: the environment forms
+          # require them, and DRYRUN never sends them anywhere.
+          AWS_ACCESS_KEY_ID: foobarbaz
+          AWS_SECRET_ACCESS_KEY: asldfjkasldkjalqweioptuqpeortiu
+          AWS_DEFAULT_REGION: eu-central-1
+          AWS_DNS_ZONE: opencloudservices.net
+          GCP_DNS_ZONE: deploythis.io
+          GOOGLE_APPLICATION_CREDENTIALS: testing-shared/fixtures/service-account.json
         run: |
           yarn integration-test run --namespace onecommons/blueprints -- \
             --browser chrome -s "$SPECS"
