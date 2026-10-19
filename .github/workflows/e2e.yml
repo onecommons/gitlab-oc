@@ -134,6 +134,43 @@ jobs:
             unfurl serve --port 8081 --cors http://gdk.test:3000 \
               --cloud-server http://gdk.test:3000 --clone-root /tmp/unfurl-repos
 
+      # Deploy specs wait for their pipeline's job, so a runner has to take it;
+      # see "A runner for deployment jobs" in .ai/oc.md. Instance-level because
+      # each run signs up a new dashboard project, created per run so no
+      # runner token ever lands in the image. DEPLOY_IMAGE overrides the
+      # onecommons/ci default with the unfurl image under test. Host networking
+      # for the job containers, like the GDK's, so they reach gdk.test:3000.
+      - name: Start a runner
+        env:
+          DEPLOY_IMAGE: ${{ inputs.unfurl_image }}
+        run: |
+          cat > /tmp/runner.rb <<'RUBY'
+          admin = User.admins.first
+          response = Ci::Runners::CreateRunnerService.new(
+            user: admin,
+            params: { runner_type: 'instance_type', run_untagged: true, description: 'e2e' }
+          ).execute
+          abort(response.message.to_s) unless response.success?
+          variable = Ci::InstanceVariable.find_or_initialize_by(key: 'DEPLOY_IMAGE')
+          variable.update!(value: ENV.fetch('DEPLOY_IMAGE'), protected: false, masked: false)
+          puts "RUNNER_TOKEN=#{response.payload[:runner].token}"
+          RUBY
+          docker cp /tmp/runner.rb gdk:/tmp/runner.rb
+          token=$(docker exec -u gdk -e DEPLOY_IMAGE="$DEPLOY_IMAGE" gdk bash -c '
+            eval "$(~/.local/bin/mise activate bash)" &&
+            cd /gitlab-gdk/gitlab-development-kit/gitlab &&
+            RAILS_ENV=development bin/rails runner /tmp/runner.rb' | sed -n 's/^RUNNER_TOKEN=//p')
+          [ -n "$token" ] || { echo "no runner token"; exit 1; }
+          echo "::add-mask::$token"
+          docker run -d --name runner --network host \
+            --add-host gdk.test:127.0.0.1 \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            gitlab/gitlab-runner:v19.3.2
+          docker exec runner gitlab-runner register --non-interactive \
+            --url http://gdk.test:3000 --token "$token" \
+            --executor docker --docker-image alpine:latest \
+            --docker-network-mode host --docker-extra-hosts gdk.test:127.0.0.1
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -166,7 +203,9 @@ jobs:
       # The containers write some files, such as lock files, that only they can read.
       - name: Make the logs readable
         if: ${{ failure() || inputs.save_logs }}
-        run: sudo chmod -R a+rX logs
+        run: |
+          docker logs runner > logs/runner.log 2>&1 || true
+          sudo chmod -R a+rX logs
 
       - name: Upload logs
         if: ${{ failure() || inputs.save_logs }}
