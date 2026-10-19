@@ -5979,45 +5979,6 @@ RETURN OLD;
 END
 $$;
 
-CREATE TABLE ai_audit_events (
-    id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    cloud_event_id uuid NOT NULL,
-    author_id bigint NOT NULL,
-    project_id bigint,
-    namespace_id bigint,
-    event_name text NOT NULL,
-    ip_address inet,
-    workflow_id bigint,
-    details text,
-    CONSTRAINT check_3e009d5357 CHECK ((char_length(event_name) <= 255)),
-    CONSTRAINT check_547b01c40f CHECK ((num_nonnulls(namespace_id, project_id) = 1))
-)
-PARTITION BY RANGE (created_at);
-
-CREATE TABLE ai_events_counts (
-    id bigint NOT NULL,
-    events_date date NOT NULL,
-    namespace_id bigint,
-    user_id bigint NOT NULL,
-    organization_id bigint NOT NULL,
-    event smallint NOT NULL,
-    total_occurrences integer DEFAULT 0 NOT NULL
-)
-PARTITION BY RANGE (events_date);
-
-CREATE TABLE ai_usage_events (
-    id bigint NOT NULL,
-    "timestamp" timestamp with time zone NOT NULL,
-    user_id bigint NOT NULL,
-    organization_id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    event smallint NOT NULL,
-    extras jsonb DEFAULT '{}'::jsonb NOT NULL,
-    namespace_id bigint
-)
-PARTITION BY RANGE ("timestamp");
-
 CREATE SEQUENCE audit_events_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -6161,171 +6122,6 @@ CREATE TABLE background_operation_workers_cell_local (
     CONSTRAINT check_f9caba0499 CHECK (((jsonb_typeof(min_cursor) = 'array'::text) AND (jsonb_typeof(max_cursor) = 'array'::text)))
 )
 PARTITION BY LIST (partition);
-
-CREATE TABLE backup_finding_evidences (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_finding_flags (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_finding_identifiers (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_finding_links (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_finding_remediations (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_finding_signatures (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    finding_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_findings (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerabilities (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL,
-    traversal_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_external_issue_links (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_issue_links (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_merge_request_links (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_reads (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_severity_overrides (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_state_transitions (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE backup_vulnerability_user_mentions (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    original_record_identifier bigint NOT NULL,
-    vulnerability_id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    date date NOT NULL,
-    data jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
 
 CREATE TABLE batched_background_migration_job_transition_logs (
     id bigint NOT NULL,
@@ -6538,22 +6334,6 @@ CREATE TABLE p_ci_job_runtime_environments (
     project_id bigint NOT NULL,
     suspend_on_success boolean DEFAULT false NOT NULL,
     suspend_on_failure boolean DEFAULT false NOT NULL
-)
-PARTITION BY LIST (partition_id);
-
-CREATE TABLE p_ci_pipeline_artifact_states (
-    verification_started_at timestamp with time zone,
-    verification_retry_at timestamp with time zone,
-    verified_at timestamp with time zone,
-    pipeline_artifact_id bigint NOT NULL,
-    partition_id bigint NOT NULL,
-    verification_state smallint DEFAULT 0 NOT NULL,
-    verification_retry_count smallint DEFAULT 0,
-    verification_checksum bytea,
-    verification_failure text,
-    project_id bigint,
-    CONSTRAINT check_cfca6ea0df CHECK ((project_id IS NOT NULL)),
-    CONSTRAINT check_ee83b93f85 CHECK ((char_length(verification_failure) <= 255))
 )
 PARTITION BY LIST (partition_id);
 
@@ -6863,33 +6643,6 @@ CREATE TABLE merge_requests_merge_data (
 )
 PARTITION BY RANGE (merge_request_id);
 
-CREATE TABLE p_ai_active_context_code_enabled_namespaces (
-    id bigint NOT NULL,
-    namespace_id bigint NOT NULL,
-    connection_id bigint NOT NULL,
-    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
-    state smallint DEFAULT 0 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
-)
-PARTITION BY RANGE (namespace_id);
-
-CREATE TABLE p_ai_active_context_code_repositories (
-    id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    connection_id bigint,
-    enabled_namespace_id bigint,
-    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
-    last_commit text,
-    state smallint DEFAULT 0 NOT NULL,
-    indexed_at timestamp with time zone,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    last_queried_at timestamp with time zone,
-    CONSTRAINT check_b253d453c7 CHECK ((char_length(last_commit) <= 64))
-)
-PARTITION BY RANGE (project_id);
-
 CREATE TABLE p_batched_git_ref_updates_deletions (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
@@ -6913,15 +6666,6 @@ CREATE TABLE p_catalog_resource_sync_events (
 )
 PARTITION BY LIST (partition_id);
 
-CREATE TABLE p_ci_finished_build_ch_sync_events (
-    build_id bigint NOT NULL,
-    partition bigint DEFAULT 1 NOT NULL,
-    build_finished_at timestamp without time zone NOT NULL,
-    processed boolean DEFAULT false NOT NULL,
-    project_id bigint NOT NULL
-)
-PARTITION BY LIST (partition);
-
 CREATE TABLE p_ci_finished_pipeline_ch_sync_events (
     pipeline_id bigint NOT NULL,
     project_namespace_id bigint NOT NULL,
@@ -6942,73 +6686,6 @@ CREATE TABLE p_ci_runtime_environments (
 )
 PARTITION BY LIST (partition);
 
-CREATE TABLE p_duo_workflows_checkpoint_blobs (
-    id bigint NOT NULL,
-    workflow_id bigint NOT NULL,
-    project_id bigint,
-    namespace_id bigint,
-    workflow_created_at timestamp with time zone NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    current_thread integer DEFAULT 0 NOT NULL,
-    thread_ts text NOT NULL,
-    channel text NOT NULL,
-    version text NOT NULL,
-    write_type text NOT NULL,
-    step_action text NOT NULL,
-    data bytea NOT NULL,
-    CONSTRAINT check_7738849f6c CHECK ((char_length(step_action) <= 255)),
-    CONSTRAINT check_7b23937719 CHECK ((char_length(thread_ts) <= 255)),
-    CONSTRAINT check_a33120de27 CHECK ((char_length(version) <= 255)),
-    CONSTRAINT check_a35b9c8003 CHECK ((char_length(write_type) <= 255)),
-    CONSTRAINT check_duo_wf_checkpoint_blobs_data_size CHECK ((octet_length(data) <= 1048576)),
-    CONSTRAINT check_duo_wf_checkpoint_blobs_sharding_key CHECK ((num_nonnulls(namespace_id, project_id) = 1)),
-    CONSTRAINT check_f7e2b28e64 CHECK ((char_length(channel) <= 255))
-)
-PARTITION BY RANGE (workflow_created_at);
-
-CREATE TABLE p_duo_workflows_checkpoint_headers (
-    id bigint NOT NULL,
-    workflow_id bigint NOT NULL,
-    project_id bigint,
-    namespace_id bigint,
-    workflow_created_at timestamp with time zone NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    current_thread integer DEFAULT 0 NOT NULL,
-    checkpoint jsonb NOT NULL,
-    metadata jsonb NOT NULL,
-    thread_ts text NOT NULL,
-    parent_ts text,
-    checkpoint_ns text,
-    CONSTRAINT check_71babcae59 CHECK ((char_length(thread_ts) <= 255)),
-    CONSTRAINT check_8fe91401d3 CHECK ((char_length(parent_ts) <= 255)),
-    CONSTRAINT check_duo_wf_checkpoint_headers_checkpoint_ns_limit CHECK ((char_length(checkpoint_ns) <= 4096)),
-    CONSTRAINT check_duo_wf_checkpoint_headers_sharding_key CHECK ((num_nonnulls(namespace_id, project_id) = 1))
-)
-PARTITION BY RANGE (workflow_created_at);
-
-CREATE TABLE p_duo_workflows_checkpoints (
-    id bigint NOT NULL,
-    workflow_id bigint NOT NULL,
-    project_id bigint,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    namespace_id bigint,
-    thread_ts text NOT NULL,
-    parent_ts text,
-    checkpoint jsonb NOT NULL,
-    metadata jsonb NOT NULL,
-    ui_chat_log jsonb,
-    current_thread integer DEFAULT 0 NOT NULL,
-    checkpoint_ns text,
-    CONSTRAINT check_70d1d05b50 CHECK ((num_nonnulls(namespace_id, project_id) = 1)),
-    CONSTRAINT check_b55c120f3f CHECK ((char_length(thread_ts) <= 255)),
-    CONSTRAINT check_duo_wf_checkpoints_checkpoint_ns_limit_4k CHECK ((char_length(checkpoint_ns) <= 4096)),
-    CONSTRAINT check_e63817afa6 CHECK ((char_length(parent_ts) <= 255))
-)
-PARTITION BY RANGE (created_at);
-
 CREATE TABLE p_generated_ref_commits (
     id bigint NOT NULL,
     merge_request_iid bigint NOT NULL,
@@ -7018,20 +6695,6 @@ CREATE TABLE p_generated_ref_commits (
     commit_sha bytea NOT NULL
 )
 PARTITION BY RANGE (project_id);
-
-CREATE TABLE p_knowledge_graph_code_indexing_tasks (
-    id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    ref text NOT NULL,
-    commit_sha text NOT NULL,
-    traversal_path text NOT NULL,
-    CONSTRAINT check_291fb206ad CHECK ((char_length(ref) <= 255)),
-    CONSTRAINT check_c9cdc501a3 CHECK ((char_length(traversal_path) <= 1024)),
-    CONSTRAINT check_d66fc905af CHECK ((char_length(commit_sha) <= 40))
-)
-PARTITION BY RANGE (created_at);
 
 CREATE SEQUENCE sent_notifications_id_seq
     START WITH 1
@@ -7097,24 +6760,6 @@ CREATE TABLE projects_visits (
 )
 PARTITION BY RANGE (visited_at);
 
-CREATE TABLE security_findings (
-    id bigint NOT NULL,
-    scan_id bigint NOT NULL,
-    scanner_id bigint NOT NULL,
-    severity smallint NOT NULL,
-    deduplicated boolean DEFAULT false NOT NULL,
-    uuid uuid,
-    overridden_uuid uuid,
-    partition_number integer DEFAULT 1 NOT NULL,
-    finding_data jsonb DEFAULT '{}'::jsonb NOT NULL,
-    project_id bigint,
-    scanner_reported_severity smallint,
-    context_unaware_uuid uuid,
-    CONSTRAINT check_6c2851a8c9 CHECK ((uuid IS NOT NULL)),
-    CONSTRAINT check_9c3ba4d6f2 CHECK ((project_id IS NOT NULL))
-)
-PARTITION BY LIST (partition_number);
-
 CREATE TABLE user_audit_events (
     id bigint DEFAULT nextval('audit_events_id_seq'::regclass) NOT NULL,
     created_at timestamp with time zone NOT NULL,
@@ -7136,15 +6781,6 @@ CREATE TABLE user_audit_events (
 )
 PARTITION BY RANGE (created_at);
 
-CREATE TABLE value_stream_dashboard_counts (
-    id bigint NOT NULL,
-    namespace_id bigint NOT NULL,
-    count bigint NOT NULL,
-    recorded_at timestamp with time zone NOT NULL,
-    metric smallint NOT NULL
-)
-PARTITION BY RANGE (recorded_at);
-
 CREATE TABLE verification_codes (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     visitor_id_code text NOT NULL,
@@ -7157,48 +6793,6 @@ CREATE TABLE verification_codes (
 PARTITION BY RANGE (created_at);
 
 COMMENT ON TABLE verification_codes IS 'JiHu-specific table';
-
-CREATE TABLE vulnerability_archive_exports (
-    id bigint NOT NULL,
-    partition_number bigint DEFAULT 1 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    started_at timestamp with time zone,
-    finished_at timestamp with time zone,
-    project_id bigint NOT NULL,
-    author_id bigint NOT NULL,
-    date_range daterange NOT NULL,
-    file_store smallint,
-    format smallint,
-    file text,
-    status text,
-    CONSTRAINT check_3423276100 CHECK ((char_length(file) <= 255)),
-    CONSTRAINT check_aada0b0f45 CHECK ((char_length(status) <= 8))
-)
-PARTITION BY LIST (partition_number);
-
-CREATE TABLE vulnerability_archived_records (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    id bigint NOT NULL,
-    date date NOT NULL,
-    project_id bigint NOT NULL,
-    archive_id bigint NOT NULL,
-    vulnerability_identifier bigint NOT NULL,
-    data jsonb DEFAULT '{}'::jsonb NOT NULL
-)
-PARTITION BY RANGE (date);
-
-CREATE TABLE vulnerability_archives (
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    id bigint NOT NULL,
-    project_id bigint NOT NULL,
-    archived_records_count integer DEFAULT 0 NOT NULL,
-    date date NOT NULL,
-    CONSTRAINT chk_rails_6b9e2d707f CHECK ((archived_records_count >= 0))
-)
-PARTITION BY RANGE (date);
 
 CREATE TABLE web_hook_logs_daily (
     id bigint NOT NULL,
@@ -7221,22 +6815,6 @@ CREATE TABLE web_hook_logs_daily (
     CONSTRAINT check_df72cb58f5 CHECK ((char_length(url_hash) <= 44))
 )
 PARTITION BY RANGE (created_at);
-
-CREATE TABLE zoekt_tasks (
-    id bigint NOT NULL,
-    partition_id bigint DEFAULT 1 NOT NULL,
-    zoekt_node_id bigint NOT NULL,
-    zoekt_repository_id bigint NOT NULL,
-    project_identifier bigint NOT NULL,
-    perform_at timestamp with time zone DEFAULT now() NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    state smallint DEFAULT 0 NOT NULL,
-    task_type smallint NOT NULL,
-    retries_left smallint DEFAULT 5 NOT NULL,
-    CONSTRAINT c_zoekt_tasks_on_retries_left CHECK (((retries_left > 0) OR ((retries_left = 0) AND (state = 255))))
-)
-PARTITION BY LIST (partition_id);
 
 CREATE TABLE analytics_cycle_analytics_issue_stage_events (
     stage_event_hash_id bigint NOT NULL,
@@ -12848,6 +12426,22 @@ CREATE SEQUENCE ai_agent_identities_id_seq
 
 ALTER SEQUENCE ai_agent_identities_id_seq OWNED BY ai_agent_identities.id;
 
+CREATE TABLE ai_audit_events (
+    id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    cloud_event_id uuid NOT NULL,
+    author_id bigint NOT NULL,
+    project_id bigint,
+    namespace_id bigint,
+    event_name text NOT NULL,
+    ip_address inet,
+    workflow_id bigint,
+    details text,
+    CONSTRAINT check_3e009d5357 CHECK ((char_length(event_name) <= 255)),
+    CONSTRAINT check_547b01c40f CHECK ((num_nonnulls(namespace_id, project_id) = 1))
+)
+PARTITION BY RANGE (created_at);
+
 CREATE SEQUENCE ai_audit_events_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -13098,6 +12692,17 @@ CREATE SEQUENCE ai_conversation_threads_id_seq
 
 ALTER SEQUENCE ai_conversation_threads_id_seq OWNED BY ai_conversation_threads.id;
 
+CREATE TABLE ai_events_counts (
+    id bigint NOT NULL,
+    events_date date NOT NULL,
+    namespace_id bigint,
+    user_id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    event smallint NOT NULL,
+    total_occurrences integer DEFAULT 0 NOT NULL
+)
+PARTITION BY RANGE (events_date);
+
 CREATE SEQUENCE ai_events_counts_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -13320,6 +12925,18 @@ CREATE SEQUENCE ai_tool_rules_id_seq
     CACHE 1;
 
 ALTER SEQUENCE ai_tool_rules_id_seq OWNED BY ai_tool_rules.id;
+
+CREATE TABLE ai_usage_events (
+    id bigint NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    event smallint NOT NULL,
+    extras jsonb DEFAULT '{}'::jsonb NOT NULL,
+    namespace_id bigint
+)
+PARTITION BY RANGE ("timestamp");
 
 CREATE SEQUENCE ai_usage_events_id_seq
     START WITH 1
@@ -15695,6 +15312,171 @@ CREATE SEQUENCE background_operation_workers_cell_local_id_seq
     CACHE 1;
 
 ALTER SEQUENCE background_operation_workers_cell_local_id_seq OWNED BY background_operation_workers_cell_local.id;
+
+CREATE TABLE backup_finding_evidences (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_finding_flags (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_finding_identifiers (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_finding_links (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_finding_remediations (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_finding_signatures (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    finding_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_findings (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerabilities (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL,
+    traversal_ids bigint[] DEFAULT '{}'::bigint[] NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_external_issue_links (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_issue_links (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_merge_request_links (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_reads (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_severity_overrides (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_state_transitions (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
+CREATE TABLE backup_vulnerability_user_mentions (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    original_record_identifier bigint NOT NULL,
+    vulnerability_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    date date NOT NULL,
+    data jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
 
 CREATE TABLE badges (
     id bigint NOT NULL,
@@ -26106,6 +25888,17 @@ CREATE SEQUENCE organizations_id_seq
 
 ALTER SEQUENCE organizations_id_seq OWNED BY organizations.id;
 
+CREATE TABLE p_ai_active_context_code_enabled_namespaces (
+    id bigint NOT NULL,
+    namespace_id bigint NOT NULL,
+    connection_id bigint NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    state smallint DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+)
+PARTITION BY RANGE (namespace_id);
+
 CREATE SEQUENCE p_ai_active_context_code_enabled_namespaces_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -26114,6 +25907,22 @@ CREATE SEQUENCE p_ai_active_context_code_enabled_namespaces_id_seq
     CACHE 1;
 
 ALTER SEQUENCE p_ai_active_context_code_enabled_namespaces_id_seq OWNED BY p_ai_active_context_code_enabled_namespaces.id;
+
+CREATE TABLE p_ai_active_context_code_repositories (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    connection_id bigint,
+    enabled_namespace_id bigint,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    last_commit text,
+    state smallint DEFAULT 0 NOT NULL,
+    indexed_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    last_queried_at timestamp with time zone,
+    CONSTRAINT check_b253d453c7 CHECK ((char_length(last_commit) <= 64))
+)
+PARTITION BY RANGE (project_id);
 
 CREATE SEQUENCE p_ai_active_context_code_repositories_id_seq
     START WITH 1
@@ -26141,6 +25950,15 @@ CREATE SEQUENCE p_catalog_resource_sync_events_id_seq
     CACHE 1;
 
 ALTER SEQUENCE p_catalog_resource_sync_events_id_seq OWNED BY p_catalog_resource_sync_events.id;
+
+CREATE TABLE p_ci_finished_build_ch_sync_events (
+    build_id bigint NOT NULL,
+    partition bigint DEFAULT 1 NOT NULL,
+    build_finished_at timestamp without time zone NOT NULL,
+    processed boolean DEFAULT false NOT NULL,
+    project_id bigint NOT NULL
+)
+PARTITION BY LIST (partition);
 
 CREATE SEQUENCE p_ci_job_annotations_id_seq
     START WITH 1
@@ -26178,6 +25996,22 @@ CREATE SEQUENCE p_ci_job_messages_id_seq
 
 ALTER SEQUENCE p_ci_job_messages_id_seq OWNED BY p_ci_job_messages.id;
 
+CREATE TABLE p_ci_pipeline_artifact_states (
+    verification_started_at timestamp with time zone,
+    verification_retry_at timestamp with time zone,
+    verified_at timestamp with time zone,
+    pipeline_artifact_id bigint NOT NULL,
+    partition_id bigint NOT NULL,
+    verification_state smallint DEFAULT 0 NOT NULL,
+    verification_retry_count smallint DEFAULT 0,
+    verification_checksum bytea,
+    verification_failure text,
+    project_id bigint,
+    CONSTRAINT check_cfca6ea0df CHECK ((project_id IS NOT NULL)),
+    CONSTRAINT check_ee83b93f85 CHECK ((char_length(verification_failure) <= 255))
+)
+PARTITION BY LIST (partition_id);
+
 CREATE SEQUENCE p_ci_runtime_environments_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -26205,6 +26039,31 @@ CREATE SEQUENCE p_ci_workloads_id_seq
 
 ALTER SEQUENCE p_ci_workloads_id_seq OWNED BY p_ci_workloads.id;
 
+CREATE TABLE p_duo_workflows_checkpoint_blobs (
+    id bigint NOT NULL,
+    workflow_id bigint NOT NULL,
+    project_id bigint,
+    namespace_id bigint,
+    workflow_created_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    current_thread integer DEFAULT 0 NOT NULL,
+    thread_ts text NOT NULL,
+    channel text NOT NULL,
+    version text NOT NULL,
+    write_type text NOT NULL,
+    step_action text NOT NULL,
+    data bytea NOT NULL,
+    CONSTRAINT check_7738849f6c CHECK ((char_length(step_action) <= 255)),
+    CONSTRAINT check_7b23937719 CHECK ((char_length(thread_ts) <= 255)),
+    CONSTRAINT check_a33120de27 CHECK ((char_length(version) <= 255)),
+    CONSTRAINT check_a35b9c8003 CHECK ((char_length(write_type) <= 255)),
+    CONSTRAINT check_duo_wf_checkpoint_blobs_data_size CHECK ((octet_length(data) <= 1048576)),
+    CONSTRAINT check_duo_wf_checkpoint_blobs_sharding_key CHECK ((num_nonnulls(namespace_id, project_id) = 1)),
+    CONSTRAINT check_f7e2b28e64 CHECK ((char_length(channel) <= 255))
+)
+PARTITION BY RANGE (workflow_created_at);
+
 CREATE SEQUENCE p_duo_workflows_checkpoint_blobs_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -26214,6 +26073,27 @@ CREATE SEQUENCE p_duo_workflows_checkpoint_blobs_id_seq
 
 ALTER SEQUENCE p_duo_workflows_checkpoint_blobs_id_seq OWNED BY p_duo_workflows_checkpoint_blobs.id;
 
+CREATE TABLE p_duo_workflows_checkpoint_headers (
+    id bigint NOT NULL,
+    workflow_id bigint NOT NULL,
+    project_id bigint,
+    namespace_id bigint,
+    workflow_created_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    current_thread integer DEFAULT 0 NOT NULL,
+    checkpoint jsonb NOT NULL,
+    metadata jsonb NOT NULL,
+    thread_ts text NOT NULL,
+    parent_ts text,
+    checkpoint_ns text,
+    CONSTRAINT check_71babcae59 CHECK ((char_length(thread_ts) <= 255)),
+    CONSTRAINT check_8fe91401d3 CHECK ((char_length(parent_ts) <= 255)),
+    CONSTRAINT check_duo_wf_checkpoint_headers_checkpoint_ns_limit CHECK ((char_length(checkpoint_ns) <= 4096)),
+    CONSTRAINT check_duo_wf_checkpoint_headers_sharding_key CHECK ((num_nonnulls(namespace_id, project_id) = 1))
+)
+PARTITION BY RANGE (workflow_created_at);
+
 CREATE SEQUENCE p_duo_workflows_checkpoint_headers_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -26222,6 +26102,27 @@ CREATE SEQUENCE p_duo_workflows_checkpoint_headers_id_seq
     CACHE 1;
 
 ALTER SEQUENCE p_duo_workflows_checkpoint_headers_id_seq OWNED BY p_duo_workflows_checkpoint_headers.id;
+
+CREATE TABLE p_duo_workflows_checkpoints (
+    id bigint NOT NULL,
+    workflow_id bigint NOT NULL,
+    project_id bigint,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    namespace_id bigint,
+    thread_ts text NOT NULL,
+    parent_ts text,
+    checkpoint jsonb NOT NULL,
+    metadata jsonb NOT NULL,
+    ui_chat_log jsonb,
+    current_thread integer DEFAULT 0 NOT NULL,
+    checkpoint_ns text,
+    CONSTRAINT check_70d1d05b50 CHECK ((num_nonnulls(namespace_id, project_id) = 1)),
+    CONSTRAINT check_b55c120f3f CHECK ((char_length(thread_ts) <= 255)),
+    CONSTRAINT check_duo_wf_checkpoints_checkpoint_ns_limit_4k CHECK ((char_length(checkpoint_ns) <= 4096)),
+    CONSTRAINT check_e63817afa6 CHECK ((char_length(parent_ts) <= 255))
+)
+PARTITION BY RANGE (created_at);
 
 CREATE SEQUENCE p_duo_workflows_checkpoints_id_seq
     START WITH 1
@@ -26240,6 +26141,20 @@ CREATE SEQUENCE p_generated_ref_commits_id_seq
     CACHE 1;
 
 ALTER SEQUENCE p_generated_ref_commits_id_seq OWNED BY p_generated_ref_commits.id;
+
+CREATE TABLE p_knowledge_graph_code_indexing_tasks (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    ref text NOT NULL,
+    commit_sha text NOT NULL,
+    traversal_path text NOT NULL,
+    CONSTRAINT check_291fb206ad CHECK ((char_length(ref) <= 255)),
+    CONSTRAINT check_c9cdc501a3 CHECK ((char_length(traversal_path) <= 1024)),
+    CONSTRAINT check_d66fc905af CHECK ((char_length(commit_sha) <= 40))
+)
+PARTITION BY RANGE (created_at);
 
 CREATE SEQUENCE p_knowledge_graph_code_indexing_tasks_id_seq
     START WITH 1
@@ -30901,6 +30816,24 @@ CREATE TABLE security_finding_token_statuses (
     CONSTRAINT raw_source_code_extract_not_longer_than_2048 CHECK ((char_length(raw_source_code_extract) <= 2048))
 );
 
+CREATE TABLE security_findings (
+    id bigint NOT NULL,
+    scan_id bigint NOT NULL,
+    scanner_id bigint NOT NULL,
+    severity smallint NOT NULL,
+    deduplicated boolean DEFAULT false NOT NULL,
+    uuid uuid,
+    overridden_uuid uuid,
+    partition_number integer DEFAULT 1 NOT NULL,
+    finding_data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    project_id bigint,
+    scanner_reported_severity smallint,
+    context_unaware_uuid uuid,
+    CONSTRAINT check_6c2851a8c9 CHECK ((uuid IS NOT NULL)),
+    CONSTRAINT check_9c3ba4d6f2 CHECK ((project_id IS NOT NULL))
+)
+PARTITION BY LIST (partition_number);
+
 CREATE SEQUENCE security_findings_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -33229,6 +33162,15 @@ CREATE TABLE value_stream_dashboard_aggregations (
     enabled boolean DEFAULT true NOT NULL
 );
 
+CREATE TABLE value_stream_dashboard_counts (
+    id bigint NOT NULL,
+    namespace_id bigint NOT NULL,
+    count bigint NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    metric smallint NOT NULL
+)
+PARTITION BY RANGE (recorded_at);
+
 CREATE SEQUENCE value_stream_dashboard_counts_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -33683,6 +33625,25 @@ CREATE TABLE vulnerability_archive_export_uploads (
     CONSTRAINT check_b888b1df14 CHECK ((char_length(checksum) <= 64))
 );
 
+CREATE TABLE vulnerability_archive_exports (
+    id bigint NOT NULL,
+    partition_number bigint DEFAULT 1 NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    started_at timestamp with time zone,
+    finished_at timestamp with time zone,
+    project_id bigint NOT NULL,
+    author_id bigint NOT NULL,
+    date_range daterange NOT NULL,
+    file_store smallint,
+    format smallint,
+    file text,
+    status text,
+    CONSTRAINT check_3423276100 CHECK ((char_length(file) <= 255)),
+    CONSTRAINT check_aada0b0f45 CHECK ((char_length(status) <= 8))
+)
+PARTITION BY LIST (partition_number);
+
 CREATE SEQUENCE vulnerability_archive_exports_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -33692,6 +33653,18 @@ CREATE SEQUENCE vulnerability_archive_exports_id_seq
 
 ALTER SEQUENCE vulnerability_archive_exports_id_seq OWNED BY vulnerability_archive_exports.id;
 
+CREATE TABLE vulnerability_archived_records (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    id bigint NOT NULL,
+    date date NOT NULL,
+    project_id bigint NOT NULL,
+    archive_id bigint NOT NULL,
+    vulnerability_identifier bigint NOT NULL,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL
+)
+PARTITION BY RANGE (date);
+
 CREATE SEQUENCE vulnerability_archived_records_id_seq
     START WITH 1
     INCREMENT BY 1
@@ -33700,6 +33673,17 @@ CREATE SEQUENCE vulnerability_archived_records_id_seq
     CACHE 1;
 
 ALTER SEQUENCE vulnerability_archived_records_id_seq OWNED BY vulnerability_archived_records.id;
+
+CREATE TABLE vulnerability_archives (
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    archived_records_count integer DEFAULT 0 NOT NULL,
+    date date NOT NULL,
+    CONSTRAINT chk_rails_6b9e2d707f CHECK ((archived_records_count >= 0))
+)
+PARTITION BY RANGE (date);
 
 CREATE SEQUENCE vulnerability_archives_id_seq
     START WITH 1
@@ -35596,6 +35580,22 @@ CREATE SEQUENCE zoekt_repositories_id_seq
     CACHE 1;
 
 ALTER SEQUENCE zoekt_repositories_id_seq OWNED BY zoekt_repositories.id;
+
+CREATE TABLE zoekt_tasks (
+    id bigint NOT NULL,
+    partition_id bigint DEFAULT 1 NOT NULL,
+    zoekt_node_id bigint NOT NULL,
+    zoekt_repository_id bigint NOT NULL,
+    project_identifier bigint NOT NULL,
+    perform_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    state smallint DEFAULT 0 NOT NULL,
+    task_type smallint NOT NULL,
+    retries_left smallint DEFAULT 5 NOT NULL,
+    CONSTRAINT c_zoekt_tasks_on_retries_left CHECK (((retries_left > 0) OR ((retries_left = 0) AND (state = 255))))
+)
+PARTITION BY LIST (partition_id);
 
 CREATE SEQUENCE zoekt_tasks_id_seq
     START WITH 1
@@ -49351,6 +49351,8 @@ CREATE UNIQUE INDEX index_oc_blueprint_deployments_on_deployed_project_and_time 
 CREATE INDEX index_oc_cloudmap_events_on_occurred_at ON oc_cloudmap_events USING btree (occurred_at);
 
 CREATE INDEX index_oc_cloudmap_events_on_organization_id_and_id ON oc_cloudmap_events USING btree (organization_id, id);
+
+CREATE INDEX index_oc_cloudmap_events_on_project_id ON oc_cloudmap_events USING btree (project_id);
 
 CREATE UNIQUE INDEX index_oc_environment_providers_on_environment_id ON oc_environment_providers USING btree (environment_id);
 
