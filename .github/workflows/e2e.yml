@@ -86,9 +86,15 @@ jobs:
           for i in $(seq 1 60); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
             [ "$code" = "200" ] && { echo "up after $((i*10))s"; break; }
+            [ $((i % 6)) = 0 ] && echo "$((i*10))s: HTTP $code"
             sleep 10
           done
-          [ "$code" = "200" ] || { docker logs gdk | tail -50; exit 1; }
+          [ "$code" = "200" ] || {
+            curl -s http://gdk.test:3000/users/sign_in | head -40
+            docker exec -u gdk gdk bash -c 'cd /gitlab-gdk/gitlab-development-kit &&
+              ~/.local/bin/mise x -- gdk status; tail -n 40 log/*/current gitlab/log/development.log' || true
+            exit 1
+          }
 
       # The GDK's own redis, published above, rather than a second container:
       # the image appends a TCP listener to its config for exactly this. db 6
@@ -135,6 +141,11 @@ jobs:
         run: |
           yarn integration-test run --namespace onecommons/blueprints -- \
             --browser chrome -s "$SPECS"
+
+      # The containers write some files, such as lock files, that only they can read.
+      - name: Make the logs readable
+        if: ${{ failure() || inputs.save_logs }}
+        run: sudo chmod -R a+rX logs
 
       - name: Upload logs
         if: ${{ failure() || inputs.save_logs }}
