@@ -330,7 +330,8 @@ RSpec.configure do |config|
       stub_feature_flags(cells_unique_claims: false)
 
       # Org migration target cell mode is only enabled in Cells on GitLab.com
-      stub_feature_flags(org_migration_target_cell: false)
+      # OC Change -- the flag is defined only in EE; stubbing it here warned once per example
+      Gitlab.ee { stub_feature_flags(org_migration_target_cell: false) }
 
       # This feature flag will be removed in %19.0
       stub_feature_flags(work_item_legacy_url: false)
