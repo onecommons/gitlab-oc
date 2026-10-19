@@ -798,18 +798,17 @@ Where tests belong:
   `OC::SomeHelper` module is in place when upstream's `SomeHelper.prepend_mod`
   runs.
 - `oc/spec/**` — RSpec for `oc/` code, mirroring the source layout. Runs in
-  the `rspec-oc unit pg17` / `rspec-oc integration pg17` CI jobs, which select
-  the folder from the `-oc` suffix in the job name (`scripts/rspec_helpers.sh`).
+  the `oc` stage of `.github/workflows/spec.yml` (see [CI](#ci)).
 - `oc/spec/frontend/**` — Jest, discovered automatically
-  (`jest.config.base.js`); runs in the existing `jest` CI job.
+  (`jest.config.base.js`); no GitHub workflow runs Jest yet.
 - Root `spec/**` — only when OneCommons behavior needs coverage beside the
   upstream implementation. Tag those examples `:onecommons`. The job that ran
   them in the 15.11 fork (`rspec-oc upstream specs`, an explicit file list in
   `.gitlab/ci/rails.gitlab-ci.yml` mirrored in `oc/spec/README.md`) has not
   been re-created in this port; add it with the first such file. Edits to an
   *untagged* upstream example (for instance adding an `# OC Change` entry to
-  an existing expectation) need no list entry — but see below: nothing in this
-  fork's CI runs that file either.
+  an existing expectation) need no list entry — the `upstream` stage runs the
+  file if it covers code the fork edits (see [CI](#ci)).
 - `qa/qa/specs/features/oc/**` — end-to-end, separate `qa/` bundle. Written
   with the `create(:project)` factories (`QA/FabricateUsage`) and a
   `feature_category`, not `product_group`. No CI job runs them yet.
@@ -820,11 +819,14 @@ Where tests belong:
   markdownlint applies as to `doc/`: labelled fences, `Git` not `git`,
   headings one level at a time.
 
-**Nothing runs the upstream `spec/` tree.** `.github/workflows/spec.yml` runs
-`oc/spec` and `oc/spec/lib/gitlab_edition_spec.rb`, and that is all;
-`.gitlab/ci` describes GitLab's own pipelines, which this fork does not use. So
-an in-place `# OC Change` that breaks an upstream example goes unnoticed, and
-they accumulate. Run the files you touch by hand.
+**`spec.yml` runs the upstream examples the fork affects.**
+`oc/scripts/upstream_specs.rb` derives the list of upstream spec files from the
+`# OC Change` markers, so the list follows the fork's edits. The `upstream`
+stage runs them per push, and four slow files (`--heavy`) run nightly. A fork
+change that breaks an upstream example therefore fails CI; fix the example with
+an `# OC Change` comment explaining the fork's behaviour, as was done for the
+reserved `gitlab` group path and the zero project-limit message in
+`spec/models/project_spec.rb`.
 
 A survey on 2026-09-21 found fifteen, all of them upstream examples nothing had
 run since the fork diverged. Fourteen are fixed; what is left is
@@ -845,3 +847,89 @@ Two causes, both worth recognising again:
   as `href=3D"..."`. `OC::ApplicationHelper#asset_to_string` strips the map.
   Worth remembering the shape: a body that provably contains what the example
   wants, while the assembled message does not.
+
+### CI
+
+CI is GitHub Actions on [`onecommons/gitlab-oc`](https://github.com/onecommons/gitlab-oc), in
+`.github/workflows/`. `.gitlab/ci` is upstream's and unused.
+
+- **Branches.** `main` is the default branch; work lands on `oc-patches` and
+  `main` is fast-forwarded to it. `ci` and `spec` run on pushes to `main` and
+  on pull requests, so while iterating on CI push only `oc-patches` and start
+  workflows by hand with `gh workflow run <workflow> --ref oc-patches`;
+  fast-forward and push `main` once green. `git push -o ci.skip` is GitLab-only
+  and GitHub ignores it.
+- **`ci.yml`** runs RuboCop on the Ruby files the push or PR changed, matching
+  lefthook's rule that an offense is yours if you touched the file. A
+  `yarn.lock changed?` job handles the frontend: when `yarn.lock` changed, it
+  reads the `unfurl-gui` commit pinned for `oc-pages` and calls `e2e.yml` with
+  that commit and the commit under test. Other pushes skip e2e.
+- **`spec.yml`** runs one job per stage, in parallel, each in its own GDK
+  container from the image:
+  - `static`: `rake lint:static_verification`, which catches an `override`
+    whose upstream method has gone — the first thing a rebase breaks.
+  - `fast`: the fast_spec_helper specs.
+  - `oc`: `oc/spec`.
+  - `upstream`: upstream specs covering files the fork edits.
+  - `heavy`: four slow upstream files.
+
+  A push or PR runs the first four (~30 min). The nightly schedule (03:41 UTC,
+  on `main`) and manual runs add `heavy`. A manual run takes `-f only=heavy` or
+  `only=oc,upstream` (comma-separated, no spaces) to run just those stages.
+  Quarantined examples are skipped with `--tag ~quarantine`, as in upstream CI.
+  The nightly skips itself when `main`'s commit and the image digest match the
+  last passing nightly. The weekly image rebuild changes the digest, so it
+  still runs at least weekly, and a failed nightly never counts as a match.
+- **`spec.yml` starts only `postgresql redis rspack gitlab-topology-service`.**
+  rspack because request specs read the asset manifest; the topology service
+  because the GDK enables cells, and a spec that builds records while loading
+  (`spec/policies/project_policy_spec.rb`) reaches it before spec_helper's
+  stubs apply.
+- **`gdk-image.yml`** builds `ghcr.io/onecommons/gitlab-oc/gdk` weekly
+  (Sundays) and on demand, from the branch it runs on (or `-f ref=`).
+  `-f rebuild_base=false` reuses `gdk:base`. The base is GDK's own
+  GDK-in-a-Box recipe with its install script swapped for
+  `oc/support/ci/install-config-gdk.sh`, so no layer holds GitLab EE code (the
+  repo is public). `oc/support/ci/Dockerfile` then layers on:
+  - hostname `gdk.test`, what a developer's GDK uses and unfurl-gui's cypress
+    README assumes, with `gdk reconfigure` so nothing keeps the base's
+    `gdk.local`. Never `localhost`, which flips the harness into standalone
+    mode.
+  - the container registry: GitLab offers registry token scopes only with it
+    enabled, and the dashboard requests them for its deploy token.
+  - the test Gitaly and Workhorse, prebuilt with `scripts/setup-test-env`,
+    which saves ~7 min per spec job.
+
+  Image layers keep anything a later layer deletes, so build leftovers (Go
+  module and build caches, Gitaly's build cache and Git build trees,
+  `tmp/run/gitaly-*`) are removed in the same `RUN` step that creates them. The
+  image is ~6.9 GB compressed.
+- **`e2e.yml`** runs unfurl-gui's cypress suite against the GDK image. Pushes
+  do not trigger it on their own: run it by hand
+  (`gh workflow run e2e --ref oc-patches -f unfurl_gui_ref=<sha>`) or call it
+  (from `ci.yml`, or from unfurl-gui). The optional `ref` input is empty to
+  test the image as built; when set, the GDK is first moved to that fork commit
+  (checkout, `bundle install`, `yarn install`, `gettext:compile`, migrations;
+  the GDK's rspack service compiles the frontend on start). Default specs:
+  `aws__minecraft__minecraft` first, because each run signs up a new user whose
+  dashboard is empty until something deploys and `route_smoke`/`light_mode`
+  need its rows; then `route_smoke`, `light_mode`, `visit_cloudchart`,
+  `smorgasbord`. Gotchas, each learned the hard way:
+  - **Host networking** for the GDK, unfurl server and job containers, with
+    `--add-host gdk.test:127.0.0.1`: the HTTP router binds `gdk.test`
+    (loopback), which a published port cannot reach, and the GDK must reach the
+    unfurl server on the runner's 8081.
+  - **A runner per run.** Deploy specs wait for their pipeline's job to pass.
+    The workflow creates an instance runner with
+    `Ci::Runners::CreateRunnerService` inside the GDK, registers
+    `gitlab/gitlab-runner` (version matching the server) with the Docker
+    executor, and sets `DEPLOY_IMAGE` to the unfurl image under test — the same
+    recipe as "A runner for deployment jobs" above. The token is minted per run
+    so none lands in the public image.
+  - **Placeholder cloud credentials** (unfurl-gui CI's own fake `AWS_*`, DNS
+    zones and `testing-shared/fixtures/service-account.json`): the environment
+    forms require them and `DRYRUN` never sends them anywhere.
+  - Cypress prints a spec's results only when the spec ends, so a long spec
+    looks like a hang in the Actions console. Logs (GDK, Rails, unfurl server,
+    runner) upload as the `logs` artifact on failure or with
+    `-f save_logs=true`; screenshots always.
