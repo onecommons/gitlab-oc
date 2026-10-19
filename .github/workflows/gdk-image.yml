@@ -9,9 +9,8 @@ name: gdk image
   workflow_dispatch:
     inputs:
       ref:
-        description: Fork ref to bake into the image
+        description: Fork ref to bake into the image (default the run's branch)
         required: false
-        default: main
       rebuild_base:
         description: Rebuild gdk:base too (off reuses the last one)
         type: boolean
@@ -73,7 +72,7 @@ jobs:
           file: oc/support/ci/Dockerfile
           push: true
           build-args: |
-            OC_REF=${{ inputs.ref || 'main' }}
+            OC_REF=${{ inputs.ref || github.ref_name }}
           tags: |
             ghcr.io/onecommons/gitlab-oc/gdk:latest
             ghcr.io/onecommons/gitlab-oc/gdk:${{ github.run_number }}
