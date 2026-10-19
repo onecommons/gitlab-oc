@@ -107,13 +107,15 @@ jobs:
       # upstream expects of code the fork changed underneath it. The list is
       # derived from the `# OC Change` markers, so it follows the edits; the
       # fast_spec_helper ones ran in the step above, which boots no Rails.
+      # Quarantined examples are skipped as in upstream CI: they fail there too.
       - name: RSpec (upstream specs the fork edits)
         run: |
           docker exec -u gdk gdk bash -c '
             eval "$(~/.local/bin/mise activate bash)" &&
             cd '"$GITLAB"' &&
             export ENABLE_RSPACK=true &&
-            mise x -- bundle exec rspec $(mise x -- ruby oc/scripts/upstream_specs.rb | tr "\n" " ")'
+            mise x -- bundle exec rspec --tag ~quarantine \
+              $(mise x -- ruby oc/scripts/upstream_specs.rb | tr "\n" " ")'
 
       # Four files are most of half an hour, because the fork edits big
       # upstream classes. Nightly rather than per-push, so a regression in them
@@ -125,7 +127,8 @@ jobs:
             eval "$(~/.local/bin/mise activate bash)" &&
             cd '"$GITLAB"' &&
             export ENABLE_RSPACK=true &&
-            mise x -- bundle exec rspec $(mise x -- ruby oc/scripts/upstream_specs.rb --heavy | tr "\n" " ")'
+            mise x -- bundle exec rspec --tag ~quarantine \
+              $(mise x -- ruby oc/scripts/upstream_specs.rb --heavy | tr "\n" " ")'
 
       # A killed run leaves a transaction open on `shards` that poisons every
       # later suite, so a cancelled job should not leave the container behind.

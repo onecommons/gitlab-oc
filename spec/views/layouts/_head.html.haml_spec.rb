@@ -78,9 +78,10 @@ RSpec.describe 'layouts/_head', feature_category: :design_system do
     context 'if no pwa icon is defined' do
       it 'link to the default icon' do
         render
+        # OC Change -- the fork's icon
         expect(rendered).to include(
           "<link rel=\"apple-touch-icon\" type=\"image/x-icon\" " \
-          "href=\"/assets/apple-touch-icon-b049d4bc0dd9626f31db825d61880737befc7835982586d015bded10b4435460.png\" />"
+          "href=\"/assets/apple-touch-icon-2f91661fcde5f4a918114bcbc80f28ca87a325db048936ad27623df5e3d9a211.png\" />"
         )
       end
     end
@@ -192,7 +193,8 @@ RSpec.describe 'layouts/_head', feature_category: :design_system do
   end
 
   def stub_helper_with_safe_string(method)
-    allow_any_instance_of(PageLayoutHelper).to receive(method)
+    # OC Change -- any_instance cannot stub OC::PageLayoutHelper's prepended page_image
+    allow(view).to receive(method)
       .and_return(%q(foo" http-equiv="refresh).html_safe)
   end
 end
