@@ -61,13 +61,14 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     ; status=$?; mise x -- gdk stop; exit $status
 
 # Assets last: the slowest layer, and the one most likely to be invalidated.
-# webpack directly: package.json's build script is an if/else Yarn Berry's
-# shell cannot run. The base wrote an infection scanner graph before
-# node_modules existed, and webpack reuses it rather than rescanning.
+# Rspack, as the GDK runs it: only its config knows how to resolve the oc-pages
+# package. Called directly because package.json's build script is an if/else
+# Yarn Berry's shell cannot run. The base wrote an infection scanner graph
+# before node_modules existed, and the build reuses it rather than rescanning.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
     && rm -f tmp/infection_scanner.json \
-    && yarn run webpack
+    && yarn run rspack
 
 # The GDK's redis listens on a unix socket and nothing else -- its template is
 # three lines and the first is `port 0` -- so nothing outside the container can
