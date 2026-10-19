@@ -26,9 +26,11 @@ name: e2e
         description: Upload the GDK and unfurl logs even when the run passes
       specs:
         type: string
+        # minecraft first: each run signs up a user whose dashboard is empty
+        # until something deploys, and route_smoke and light_mode need its rows.
         description: Comma-separated cypress specs known to pass on a GDK
         default: >-
-          cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js
+          cypress/e2e/blueprints/aws__minecraft__minecraft.cy.js,cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js,cypress/e2e/deployments/smorgasbord.cy.js
   workflow_dispatch:
     inputs:
       unfurl_gui_ref:
@@ -44,7 +46,7 @@ name: e2e
 # inputs, so the fallbacks repeat them.
 env:
   GDK_IMAGE: ${{ inputs.gdk_image || 'ghcr.io/onecommons/gitlab-oc/gdk:latest' }}
-  SPECS: ${{ inputs.specs || 'cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js' }}
+  SPECS: ${{ inputs.specs || 'cypress/e2e/blueprints/aws__minecraft__minecraft.cy.js,cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js,cypress/e2e/deployments/smorgasbord.cy.js' }}
 
 jobs:
   cypress:
