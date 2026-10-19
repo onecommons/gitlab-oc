@@ -17,12 +17,14 @@ ARG OC_REF=main
 WORKDIR /gitlab-gdk/gitlab-development-kit
 SHELL ["/bin/bash", "-c"]
 
-# gdk.test rather than their gdk.local, because that hostname is the contract
-# with the cypress harness -- and it must not be localhost, which flips
-# integration-test.js into standalone mode.
+# gdk.test, the hostname a developer's GDK uses and unfurl-gui's cypress README
+# assumes, so CI runs the same commands. Never localhost, which flips
+# integration-test.js into standalone mode. Reconfigured so no generated file
+# keeps the base's gdk.local.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && mise x -- gdk config set hostname gdk.test \
-    && mise x -- gdk config set listen_address 0.0.0.0
+    && mise x -- gdk config set listen_address 0.0.0.0 \
+    && mise x -- gdk reconfigure
 
 # The base's checkout is the fork's default branch as of the base build.
 RUN eval "$(~/.local/bin/mise activate bash)" \
@@ -60,6 +62,16 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     && { RAILS_ENV=test bin/rake db:drop db:create db:schema:load; } \
     ; status=$?; mise x -- gdk stop; exit $status
 
+# The test Gitaly, Workhorse and fixture repositories, as upstream CI prepares
+# them; otherwise every spec run compiles them first, ~7 minutes. Gitaly's Go
+# build cache and its bundled Git's build trees (~1.6 GB) go in the same layer,
+# or the image keeps them: TestEnv only checks the checkout's .git, VERSION
+# and _build/bin before deciding to rebuild.
+RUN eval "$(~/.local/bin/mise activate bash)" \
+    && cd gitlab \
+    && RAILS_ENV=test scripts/setup-test-env \
+    && rm -rf tmp/tests/gitaly/_build/cache tmp/tests/gitaly/_build/deps
+
 # Assets last: the slowest layer, and the one most likely to be invalidated.
 # Rspack, as the GDK runs it: only its config knows how to resolve the oc-pages
 # package. Called directly because package.json's build script is an if/else
@@ -86,13 +98,6 @@ RUN printf '\n# OC Change -- reachable from the e2e unfurl server\nport 6379\nbi
 # Most of a developer GDK's 18 GB is disposable: logs regrow at ~1.4 GB/day,
 # the Yarn cache has done its job, and .gem archives and rdoc are never read.
 #
-# tmp/tests/gitaly stays, all 2.2 GB of it. Stripping it to the binaries looks
-# free and is not: TestEnv#component_needs_update? reads VERSION from that
-# folder and treats ENOENT as "needs rebuilding", so the suite would try to
-# rebuild Gitaly from a source tree that is no longer there. The GDK's
-# .cache/.gitaly_commit_sha can short-circuit that check, but it is consulted
-# after .git and before VERSION, which makes it a coincidence to rely on
-# rather than a guarantee.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && rm -rf /gitlab-gdk/gitlab-development-kit/gitlab/log/* \
     && rm -rf ~/.cache/yarn ~/.yarn/berry/cache \
