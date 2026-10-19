@@ -90,7 +90,7 @@ RSpec.describe OC::WorkItems::ImportWorker, feature_category: :source_code_manag
 
       it 'logs the skip with no user to blame' do
         expect(::Gitlab::AppLogger).to receive(:info).with(
-          hash_including(project_id: project.id, user_id: nil))
+          hash_including(project_id: project.id, ::Labkit::Fields::GL_USER_ID => nil))
 
         worker.perform(project.id, nil)
       end

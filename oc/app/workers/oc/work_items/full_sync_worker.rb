@@ -78,7 +78,7 @@ module OC
       rescue ::Gitlab::Git::PreReceiveError => e
         ::Gitlab::AppLogger.warn(
           message: 'work items full sync rejected by pre-receive check',
-          project_id: project_id, error: e.message)
+          project_id: project_id, ::Labkit::Fields::ERROR_MESSAGE => e.message)
       end
 
       private

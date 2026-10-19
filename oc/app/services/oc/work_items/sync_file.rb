@@ -151,7 +151,7 @@ module OC
         rescue Error => error
           ::Gitlab::AppLogger.warn(
             message: 'work items sync file could not be read; importing nothing',
-            project_id: project&.id, error: error.message)
+            project_id: project&.id, ::Labkit::Fields::ERROR_MESSAGE => error.message)
 
           new
         end

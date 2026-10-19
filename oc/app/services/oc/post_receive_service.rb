@@ -55,7 +55,7 @@ module OC
     rescue ::StandardError => error
       ::Gitlab::AppLogger.warn(
         message: 'work items sync file could not be reported to the pusher',
-        project_id: project&.id, error_class: error.class.name, error: error.message)
+        project_id: project&.id, error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
     end
 
     def summary(file)

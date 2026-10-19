@@ -152,7 +152,7 @@ module OC
       def refuse(decision, reason)
         ::Gitlab::AppLogger.info(
           message: 'work items transfer refused',
-          project_id: @project.id, path: decision.path, peer: decision.peer, reason: reason)
+          project_id: @project.id, path: decision.path, peer: decision.peer, refusal_reason: reason)
 
         nil
       end

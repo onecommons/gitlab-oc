@@ -78,7 +78,7 @@ module OC
 
         ::Gitlab::AppLogger.info(
           message: 'work items import skipped: push not authorized by an owner',
-          project_id: project.id, user_id: user&.id)
+          project_id: project.id, ::Labkit::Fields::GL_USER_ID => user&.id)
 
         false
       end

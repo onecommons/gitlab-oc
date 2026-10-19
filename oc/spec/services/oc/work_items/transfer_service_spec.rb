@@ -75,7 +75,7 @@ RSpec.describe OC::WorkItems::TransferService, feature_category: :source_code_ma
     describe 'refusals' do
       def expect_refusal(matching)
         expect(::Gitlab::AppLogger).to receive(:info)
-          .with(hash_including(reason: a_string_matching(matching)))
+          .with(hash_including(refusal_reason: a_string_matching(matching)))
       end
 
       it 'refuses an item that is not here' do
@@ -207,7 +207,7 @@ RSpec.describe OC::WorkItems::TransferService, feature_category: :source_code_ma
     describe 'refusals' do
       def expect_refusal(matching)
         expect(::Gitlab::AppLogger).to receive(:info)
-          .with(hash_including(reason: a_string_matching(matching)))
+          .with(hash_including(refusal_reason: a_string_matching(matching)))
       end
 
       # Standing intent, not an instruction to act now: the document may

@@ -265,7 +265,7 @@ module OC
         ::Gitlab::AppLogger.info(
           message: 'work items import waiting: default_user cannot be used',
           project_id: @project.id, peer: pair.peer_uuid,
-          default_user: pair.default_user, reason: reason)
+          default_user: pair.default_user, wait_reason: reason)
 
         :unsatisfied
       end
@@ -320,7 +320,7 @@ module OC
         ::Gitlab::AppLogger.warn(
           message: 'work items import could not build a document',
           project_id: @project.id, path: action.path,
-          error_class: error.class.name, error: error.message)
+          error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
 
         service.record_failure(action, document['web_url'], error.message)
       end
@@ -431,7 +431,7 @@ module OC
       rescue ::Psych::Exception => error
         ::Gitlab::AppLogger.warn(
           message: 'work items import skipped an unreadable document',
-          project_id: @project.id, path: path, error: error.message)
+          project_id: @project.id, path: path, ::Labkit::Fields::ERROR_MESSAGE => error.message)
         nil
       end
 

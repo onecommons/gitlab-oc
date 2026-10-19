@@ -44,7 +44,7 @@ module OC
         # permanent; retrying would only spam Gitaly.
         ::Gitlab::AppLogger.warn(
           message: 'work items commit notes sync rejected by pre-receive check',
-          project_id: project_id, error: e.message)
+          project_id: project_id, ::Labkit::Fields::ERROR_MESSAGE => e.message)
       end
       # rubocop: enable CodeReuse/ActiveRecord
     end

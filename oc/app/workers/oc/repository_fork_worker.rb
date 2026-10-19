@@ -30,7 +30,7 @@ module OC
       # this (the fork's own issues would not match), so log loudly.
       ::Gitlab::AppLogger.error(
         message: 'failed to remove inherited work items sync branch from fork',
-        project_id: target_project.id, error: e.message)
+        project_id: target_project.id, ::Labkit::Fields::ERROR_MESSAGE => e.message)
     end
   end
 end

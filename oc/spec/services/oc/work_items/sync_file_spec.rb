@@ -506,7 +506,7 @@ RSpec.describe OC::WorkItems::SyncFile, feature_category: :source_code_managemen
     end
 
     it 'declares nothing for a file it cannot read, and says so in the log' do
-      expect(::Gitlab::AppLogger).to receive(:warn).with(hash_including(:error))
+      expect(::Gitlab::AppLogger).to receive(:warn).with(hash_including(::Labkit::Fields::ERROR_MESSAGE))
 
       expect(described_class.load("---\n_schema: nope\n")).to be_empty
     end
