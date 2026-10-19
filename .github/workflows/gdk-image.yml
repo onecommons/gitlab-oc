@@ -2,8 +2,7 @@
 name: gdk image
 
 # NOTE: a scheduled workflow only runs from the repository's DEFAULT branch.
-# This file has to be on main to fire, and builds the port branch explicitly
-# rather than whatever main happens to hold.
+# This file has to be on main to fire.
 "on":
   schedule:
     - cron: '17 4 * * 0'   # Sundays, early
@@ -42,8 +41,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # No credentials are passed: the fork is public, so the image build
-      # clones it anonymously and nothing lands in a layer.
+      # GDK's own GDK-in-a-Box recipe with its install step swapped for ours,
+      # which installs this fork rather than GitLab EE. GDK's CI copies the same
+      # two files into the context before building.
+      - name: Prepare the GDK base
+        run: |
+          git clone --depth=1 https://gitlab.com/gitlab-org/gitlab-development-kit.git "$RUNNER_TEMP/gdk"
+          cd "$RUNNER_TEMP/gdk"
+          cp packages_debian.txt .mise-version support/gdk-in-a-box/container/
+          cp "$GITHUB_WORKSPACE/oc/support/ci/install-config-gdk.sh" support/gdk-in-a-box/container/
+
+      # No credentials are passed to either build: the fork is public, so they
+      # clone it anonymously and nothing lands in a layer.
+      - name: Build and push the GDK base
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ runner.temp }}/gdk/support/gdk-in-a-box/container
+          push: true
+          tags: ghcr.io/onecommons/gitlab-oc/gdk:base
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:

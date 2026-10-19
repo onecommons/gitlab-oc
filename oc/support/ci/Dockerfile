@@ -1,21 +1,18 @@
 # A GDK running this fork, for CI.
 #
-# Built on GitLab's own GDK-in-a-Box image rather than a copy of its
-# Dockerfile: that image is rebuilt by GDK's pipelines continuously, so the
-# toolchain, the GDK install and the Postgres/Redis/Gitaly infrastructure stay
-# current without us maintaining a recipe. The fork's own 2021 image went stale
-# precisely because it did not inherit anything.
+# Built on GDK-in-a-Box rather than a recipe of our own: gdk-image.yml builds
+# GDK's current support/gdk-in-a-box/container Dockerfile, so the toolchain and
+# the Postgres/Redis/Gitaly infrastructure stay current without us maintaining
+# them. The fork's own 2021 image went stale precisely because it did not
+# inherit anything.
 #
-# What is NOT inherited: their checkout follows GitLab's development line, one
-# release ahead of ours -- 19.4.0-pre against this fork's 19.3 as of writing --
-# so schema and assets are rebuilt below and their database is dropped rather
-# than migrated, which cannot go backwards. Ruby is 3.3.11 in both, so the
-# baked gems match this fork's ABI and bundle install mostly no-ops.
-ARG GDK_BASE=registry.gitlab.com/gitlab-org/gitlab-development-kit/gitlab-gdk-in-a-box:main
+# Not GitLab's published image, though: its checkout is GitLab EE, and a layer
+# keeps that whatever a later one deletes. The base swaps in
+# install-config-gdk.sh so GDK installs this fork instead.
+ARG GDK_BASE=ghcr.io/onecommons/gitlab-oc/gdk:base
 FROM ${GDK_BASE}
 
-ARG OC_REPO=https://github.com/onecommons/gitlab-oc.git
-ARG OC_REF=v19.3.0-oc
+ARG OC_REF=main
 
 WORKDIR /gitlab-gdk/gitlab-development-kit
 SHELL ["/bin/bash", "-c"]
@@ -27,17 +24,14 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     && mise x -- gdk config set hostname gdk.test \
     && mise x -- gdk config set listen_address 0.0.0.0
 
-# Point the checkout at the fork. A treeless clone still fetches a foreign
-# ref, and the object overlap with upstream is large, so this is cheaper than
-# it looks.
+# The base's checkout is the fork's default branch as of the base build.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
-    && git remote add oc "${OC_REPO}" \
-    && git fetch --depth=1 oc "${OC_REF}" \
+    && git fetch --depth=1 origin "${OC_REF}" \
     && git checkout -B "${OC_REF}" FETCH_HEAD
 
-# The fork's Gemfile is near-upstream's, so most gems are already present; the
-# lockfile is Yarn Berry with an oc-pages git dependency, so modules are not.
+# The base installed the gems, so bundle install mostly no-ops; it skipped the
+# Node modules (see install-config-gdk.sh).
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
     && bundle install --jobs 4 \
