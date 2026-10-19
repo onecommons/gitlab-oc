@@ -16,7 +16,7 @@ name: spec
       only:
         description: >-
           Stages to run, comma-separated without spaces, from static,fast,oc,upstream,heavy.
-          Empty runs them all.
+          Empty runs them all. Each runs as its own job, in parallel.
         required: false
         default: ''
 
@@ -25,9 +25,35 @@ env:
   GITLAB: /gitlab-gdk/gitlab-development-kit/gitlab
 
 jobs:
-  rspec:
-    name: oc/spec
+  # Which stages this run covers, as the matrix below runs them: one job each,
+  # in parallel, so a run takes as long as its slowest stage plus setup rather
+  # than the sum of them. heavy only runs nightly or when asked for.
+  plan:
     runs-on: ubuntu-latest
+    outputs:
+      stages: ${{ steps.plan.outputs.stages }}
+    steps:
+      - id: plan
+        env:
+          ONLY: ${{ inputs.only }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          stages="static fast oc upstream"
+          case "$EVENT" in schedule|workflow_dispatch) stages="$stages heavy" ;; esac
+          if [ -n "$ONLY" ]; then
+            stages=$(for s in $stages; do case ",$ONLY," in *",$s,"*) echo "$s" ;; esac; done)
+          fi
+          echo "stages=$(printf '%s\n' $stages | jq -R . | jq -sc 'map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+
+  rspec:
+    name: ${{ matrix.stage }}
+    needs: plan
+    if: ${{ needs.plan.outputs.stages != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stage: ${{ fromJSON(needs.plan.outputs.stages) }}
     steps:
       # No browser is involved -- oc/spec has no js: true examples -- so the
       # large-packages sweep that removes chrome is fine here.
@@ -38,7 +64,7 @@ jobs:
           large-packages: true
 
       # `sleep infinity` rather than the image's own command, which runs
-      # `gdk restart` and brings up every service. Only three are needed
+      # `gdk restart` and brings up every service. Only four are needed
       # below, and rails-web is not among them.
       - name: Start the container
         run: |
@@ -84,69 +110,36 @@ jobs:
             eval "$(~/.local/bin/mise activate bash)" &&
             cd '"$GITLAB"' && RAILS_ENV=test mise x -- bin/rake db:migrate'
 
-      # Override.verify! raises when a method an `override` names has gone from
-      # upstream -- the first thing a rebase breaks, and silent otherwise
-      # because the fork's method simply stops being called. Runs before the
-      # suites: it is quick and its failure explains theirs.
-      - name: Static verification
-        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',static,') }}
+      # static: Override.verify! raises when a method an `override` names has
+      # gone from upstream -- the first thing a rebase breaks, and silent
+      # otherwise because the fork's method simply stops being called.
+      #
+      # fast: fast_spec_helper specs need neither database nor Gitaly and
+      # cannot share an invocation with spec_helper ones.
+      #
+      # upstream: the upstream examples covering files the fork edits in place.
+      # oc/spec cannot see these: it tests the fork's own code, while these
+      # assert what upstream expects of code the fork changed underneath it.
+      # The list is derived from the `# OC Change` markers, so it follows the
+      # edits. Quarantined examples are skipped as in upstream CI.
+      #
+      # heavy: four files that are most of half an hour, because the fork edits
+      # big upstream classes. Nightly rather than per-push, so a regression in
+      # them surfaces within a day instead of holding up every merge.
+      - name: Run ${{ matrix.stage }}
+        env:
+          STAGE: ${{ matrix.stage }}
         run: |
-          docker exec -u gdk gdk bash -c '
-            eval "$(~/.local/bin/mise activate bash)" &&
-            cd '"$GITLAB"' &&
-            mise x -- bundle exec rake lint:static_verification'
-
-      # fast_spec_helper specs need neither database nor Gitaly and cannot
-      # share an invocation with spec_helper ones, so they run on their own.
-      - name: RSpec (fast_spec_helper)
-        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',fast,') }}
-        run: |
-          docker exec -u gdk gdk bash -c '
-            eval "$(~/.local/bin/mise activate bash)" &&
-            cd '"$GITLAB"' &&
-            mise x -- bundle exec rspec oc/spec/lib/gitlab_edition_spec.rb \
-              $(mise x -- ruby oc/scripts/upstream_specs.rb --fast | tr "\n" " ")'
-
-      - name: RSpec (oc/spec)
-        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',oc,') }}
-        run: |
-          docker exec -u gdk gdk bash -c '
-            eval "$(~/.local/bin/mise activate bash)" &&
-            cd '"$GITLAB"' &&
-            export ENABLE_RSPACK=true &&
-            mise x -- bundle exec rspec oc/spec \
-              --exclude-pattern "**/gitlab_edition_spec.rb"'
-
-      # The upstream examples covering files the fork edits in place. oc/spec
-      # cannot see these: it tests the fork's own code, while these assert what
-      # upstream expects of code the fork changed underneath it. The list is
-      # derived from the `# OC Change` markers, so it follows the edits; the
-      # fast_spec_helper ones ran in the step above, which boots no Rails.
-      # Quarantined examples are skipped as in upstream CI: they fail there too.
-      - name: RSpec (upstream specs the fork edits)
-        if: ${{ !inputs.only || contains(format(',{0},', inputs.only), ',upstream,') }}
-        run: |
-          docker exec -u gdk gdk bash -c '
-            eval "$(~/.local/bin/mise activate bash)" &&
-            cd '"$GITLAB"' &&
-            export ENABLE_RSPACK=true &&
-            mise x -- bundle exec rspec --tag ~quarantine \
-              $(mise x -- ruby oc/scripts/upstream_specs.rb | tr "\n" " ")'
-
-      # Four files are most of half an hour, because the fork edits big
-      # upstream classes. Nightly rather than per-push, so a regression in them
-      # surfaces within a day instead of holding up every merge.
-      - name: RSpec (heavy upstream specs)
-        if: >-
-          ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-          && (!inputs.only || contains(format(',{0},', inputs.only), ',heavy,')) }}
-        run: |
-          docker exec -u gdk gdk bash -c '
-            eval "$(~/.local/bin/mise activate bash)" &&
-            cd '"$GITLAB"' &&
-            export ENABLE_RSPACK=true &&
-            mise x -- bundle exec rspec --tag ~quarantine \
-              $(mise x -- ruby oc/scripts/upstream_specs.rb --heavy | tr "\n" " ")'
+          case "$STAGE" in
+            static)   cmd='bundle exec rake lint:static_verification' ;;
+            fast)     cmd='bundle exec rspec oc/spec/lib/gitlab_edition_spec.rb $(ruby oc/scripts/upstream_specs.rb --fast)' ;;
+            oc)       cmd='bundle exec rspec oc/spec --exclude-pattern "**/gitlab_edition_spec.rb"' ;;
+            upstream) cmd='bundle exec rspec --tag ~quarantine $(ruby oc/scripts/upstream_specs.rb)' ;;
+            heavy)    cmd='bundle exec rspec --tag ~quarantine $(ruby oc/scripts/upstream_specs.rb --heavy)' ;;
+          esac
+          # $cmd's own $(...) expands in the container, not here.
+          docker exec -u gdk -e ENABLE_RSPACK=true gdk bash -c \
+            "eval \"\$(~/.local/bin/mise activate bash)\" && cd $GITLAB && mise x -- bash -c '$cmd'"
 
       # A killed run leaves a transaction open on `shards` that poisons every
       # later suite, so a cancelled job should not leave the container behind.
