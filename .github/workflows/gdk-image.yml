@@ -12,7 +12,7 @@ name: gdk image
       ref:
         description: Fork ref to bake into the image
         required: false
-        default: v19.3.0-oc
+        default: main
 
 permissions:
   contents: read
@@ -51,7 +51,7 @@ jobs:
           file: oc/support/ci/Dockerfile
           push: true
           build-args: |
-            OC_REF=${{ inputs.ref || 'v19.3.0-oc' }}
+            OC_REF=${{ inputs.ref || 'main' }}
           tags: |
             ghcr.io/onecommons/gitlab-oc/gdk:latest
             ghcr.io/onecommons/gitlab-oc/gdk:${{ github.run_number }}

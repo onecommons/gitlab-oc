@@ -4,7 +4,7 @@ name: ci
 "on":
   pull_request:
   push:
-    branches: [v19.3.0-oc]
+    branches: [main, oc-patches]
 
 jobs:
   rubocop:

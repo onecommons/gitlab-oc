@@ -4,7 +4,7 @@ name: spec
 "on":
   pull_request:
   push:
-    branches: [v19.3.0-oc]
+    branches: [main, oc-patches]
   # The heavy upstream specs, which are too slow for every push.
   schedule:
     - cron: '41 3 * * *'
