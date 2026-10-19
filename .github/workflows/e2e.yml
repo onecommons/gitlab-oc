@@ -78,7 +78,10 @@ jobs:
 
       - name: Start the GDK
         run: |
+          # Both names the GDK's config uses (see spec.yml), or its HTTP router
+          # cannot start and nothing listens on 3000.
           docker run -d --name gdk -p 3000:3000 -p 6379:6379 \
+            --add-host gdk.test:127.0.0.1 --add-host gdk.local:127.0.0.1 \
             -e UNFURL_SERVER_URL=http://gdk.test:8081 \
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
             -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \
