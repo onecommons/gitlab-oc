@@ -76,11 +76,17 @@ jobs:
       - name: Prepare log directories
         run: mkdir -p logs/gdk-services logs/gdk-rails logs/unfurl && chmod -R 777 logs
 
+      # On its own so the ~6 GB pull shows progress; `docker run -d` is silent.
+      - name: Pull the GDK image
+        run: docker pull "$GDK_IMAGE"
+
+      # Host networking, like the unfurl server below: the HTTP router binds
+      # gdk.test, i.e. loopback, which a published port cannot reach, and the
+      # GDK has to reach the unfurl server on the runner's 8081. Both names the
+      # GDK's config uses resolve, or the router cannot start (see spec.yml).
       - name: Start the GDK
         run: |
-          # Both names the GDK's config uses (see spec.yml), or its HTTP router
-          # cannot start and nothing listens on 3000.
-          docker run -d --name gdk -p 3000:3000 -p 6379:6379 \
+          docker run -d --name gdk --network host \
             --add-host gdk.test:127.0.0.1 --add-host gdk.local:127.0.0.1 \
             -e UNFURL_SERVER_URL=http://gdk.test:8081 \
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
@@ -101,8 +107,8 @@ jobs:
             exit 1
           }
 
-      # The GDK's own redis, published above, rather than a second container:
-      # the image appends a TCP listener to its config for exactly this. db 6
+      # The GDK's own redis, on the shared host network, rather than a second
+      # container: the image appends a TCP listener to its config for this. db 6
       # because GitLab holds 0-5 in development, per GDK's redis component.
       #
       # --add-host because --network host shares the network namespace but not
