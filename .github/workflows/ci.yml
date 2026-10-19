@@ -61,3 +61,43 @@ jobs:
         run: |
           REVEAL_RUBOCOP_TODO=0 xargs < changed.txt \
             bundle exec rubocop --parallel --force-exclusion --no-server
+
+  # e2e only when yarn.lock changed: that is where the oc-pages pin lives, so a
+  # changed lock is a changed unfurl-gui to test against this commit. Other
+  # pushes would only retest what the last one did, at ~25 minutes a run.
+  lockfile:
+    name: yarn.lock changed?
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+      unfurl_gui_ref: ${{ steps.diff.outputs.unfurl_gui_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # No base on a manual run, or on a push that created the branch.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if git diff --quiet "$BASE" "$HEAD" -- yarn.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          ref=$(git show "$HEAD:yarn.lock" | grep -m1 'resolution: "oc-pages@' \
+            | sed -n 's/.*[&#]commit=\([0-9a-f]\{40\}\).*/\1/p')
+          echo "unfurl_gui_ref=$ref" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    needs: lockfile
+    if: ${{ needs.lockfile.outputs.changed == 'true' }}
+    uses: ./.github/workflows/e2e.yml
+    with:
+      unfurl_gui_ref: ${{ needs.lockfile.outputs.unfurl_gui_ref }}
+      ref: ${{ github.event.pull_request.head.sha || github.sha }}
