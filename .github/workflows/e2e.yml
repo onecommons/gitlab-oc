@@ -20,6 +20,12 @@ name: e2e
       unfurl_gui_ref:
         type: string
         required: true
+      ref:
+        type: string
+        default: ''
+        description: >-
+          Fork ref to test. Empty tests the image as built; set, the GDK is moved
+          to it first (gems, node modules, translations, migrations), ~10 minutes
       save_logs:
         type: boolean
         default: false
@@ -35,6 +41,12 @@ name: e2e
     inputs:
       unfurl_gui_ref:
         required: true
+      ref:
+        required: false
+        default: ''
+        description: >-
+          Fork ref to test. Empty tests the image as built; set, the GDK is moved
+          to it first (gems, node modules, translations, migrations), ~10 minutes
       unfurl_image:
         required: false
         default: ghcr.io/onecommons/unfurl:local-cloud-endpoint
@@ -87,13 +99,33 @@ jobs:
       # GDK has to reach the unfurl server on the runner's 8081. gdk.test must
       # resolve in the container too, or the router cannot start.
       - name: Start the GDK
+        env:
+          REF: ${{ inputs.ref }}
         run: |
+          # Idle until the ref, if any, is in place; the image's own startup
+          # script then brings the GDK up, and its rspack service compiles
+          # whatever frontend is checked out.
           docker run -d --name gdk --network host \
             --add-host gdk.test:127.0.0.1 \
             -e UNFURL_SERVER_URL=http://gdk.test:8081 \
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
             -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \
-            "$GDK_IMAGE"
+            "$GDK_IMAGE" sleep infinity
+          if [ -n "$REF" ]; then
+            docker exec -u gdk -e REF="$REF" gdk bash -c '
+              set -e
+              eval "$(~/.local/bin/mise activate bash)"
+              cd /gitlab-gdk/gitlab-development-kit/gitlab
+              git fetch --depth=1 origin "$REF"
+              git checkout --force FETCH_HEAD
+              mise x -- bundle install --jobs 4
+              mise x -- yarn install --immutable
+              mise x -- bin/rake gettext:compile
+              mise x -- gdk start postgresql redis
+              RAILS_ENV=development mise x -- bin/rake db:migrate
+              mise x -- gdk stop'
+          fi
+          docker exec -d gdk /home/gdk/gdk-container-startup.sh
           SECONDS=0
           # A hung request reports 000 rather than stalling the loop.
           while [ $SECONDS -lt 600 ]; do
