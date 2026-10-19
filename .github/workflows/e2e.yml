@@ -84,12 +84,12 @@ jobs:
 
       # Host networking, like the unfurl server below: the HTTP router binds
       # gdk.test, i.e. loopback, which a published port cannot reach, and the
-      # GDK has to reach the unfurl server on the runner's 8081. Both names the
-      # GDK's config uses resolve, or the router cannot start (see spec.yml).
+      # GDK has to reach the unfurl server on the runner's 8081. gdk.test must
+      # resolve in the container too, or the router cannot start.
       - name: Start the GDK
         run: |
           docker run -d --name gdk --network host \
-            --add-host gdk.test:127.0.0.1 --add-host gdk.local:127.0.0.1 \
+            --add-host gdk.test:127.0.0.1 \
             -e UNFURL_SERVER_URL=http://gdk.test:8081 \
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
             -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \

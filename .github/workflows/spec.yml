@@ -43,10 +43,10 @@ jobs:
       - name: Start the container
         run: |
           docker pull "$GDK_IMAGE"
-          # The GDK's config names itself gdk.test and, from the base image,
-          # gdk.local; nothing in the container resolves either otherwise.
+          # The GDK's config names itself gdk.test, which nothing in the
+          # container resolves otherwise.
           docker run -d --name gdk \
-            --add-host gdk.test:127.0.0.1 --add-host gdk.local:127.0.0.1 \
+            --add-host gdk.test:127.0.0.1 \
             "$GDK_IMAGE" sleep infinity
 
       # The image bakes whatever ref it was built from; this moves it to the
