@@ -21,6 +21,8 @@ module Lint
     def lint_commit(commit)
       return if commit.message.to_s.strip.empty?
 
+      # OC Change: the linter skips only one prefix, so `oc: build: Desc` would fail on `build`
+      commit = CommitData.new(commit.message.delete_prefix('oc: '), commit.sha)
       linter = Gitlab::Dangerfiles::CommitLinter.new(commit)
 
       return if linter.fixup? || linter.merge? || linter.revert? || linter.suggestion?

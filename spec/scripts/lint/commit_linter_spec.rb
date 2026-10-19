@@ -66,6 +66,21 @@ RSpec.describe Lint::CommitLinter, feature_category: :tooling do
       end
     end
 
+    # OC Change
+    context 'with the fork prefix before a conventional commit type' do
+      let(:valid_message) { "oc: build(gdk): Add a valid commit message here" }
+
+      it { is_expected.to be_nil }
+
+      context 'when the description is lowercase' do
+        let(:valid_message) { "oc: build(gdk): add a valid commit message here" }
+
+        it 'still fails' do
+          expect(result.problems).to include(:subject_starts_with_lowercase)
+        end
+      end
+    end
+
     context 'with a subject ending with a period' do
       let(:valid_message) { "Add a valid commit message here." }
 

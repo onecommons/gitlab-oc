@@ -478,8 +478,9 @@ blueprint project to look at (`oc/db/fixtures/development/`).
   `oc: <type>(<optional scope>): <Description>` — where type is one of `feat`,
   `fix`, `docs`, `refactor`, `build`, `ci`, `test`, `chore`. Upstream's rules
   still apply (`doc/development/contributing/merge_request_workflow.md`, and
-  the post-commit hook lints them); they permit a lowercase `prefix:` as long
-  as the description is capitalised. Upstream's `.ai/git.md` forbids
+  the post-commit hook lints them); they permit one lowercase `prefix:` before
+  a capitalised description, so `scripts/lint/commit_linter.rb` drops `oc: `
+  first and the type counts as that prefix. Upstream's `.ai/git.md` forbids
   `Co-Authored-By:` trailers; this fork keeps them.
 
 ### GitLab's own marketing
