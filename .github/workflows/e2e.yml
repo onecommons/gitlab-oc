@@ -83,15 +83,17 @@ jobs:
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
             -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \
             "$GDK_IMAGE"
-          for i in $(seq 1 60); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
-            [ "$code" = "200" ] && { echo "up after $((i*10))s"; break; }
-            [ $((i % 6)) = 0 ] && echo "$((i*10))s: HTTP $code"
+          SECONDS=0
+          # A hung request reports 000 rather than stalling the loop.
+          while [ $SECONDS -lt 600 ]; do
+            code=$(curl -s --max-time 20 -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
+            [ "$code" = "200" ] && { echo "up after ${SECONDS}s"; break; }
+            echo "${SECONDS}s: HTTP $code"
             sleep 10
           done
           [ "$code" = "200" ] || {
-            curl -s http://gdk.test:3000/users/sign_in | head -40
-            docker exec -u gdk gdk bash -c 'cd /gitlab-gdk/gitlab-development-kit &&
+            curl -s --max-time 20 http://gdk.test:3000/users/sign_in | head -40
+            timeout 120 docker exec -u gdk gdk bash -c 'cd /gitlab-gdk/gitlab-development-kit &&
               ~/.local/bin/mise x -- gdk status; tail -n 40 log/*/current gitlab/log/development.log' || true
             exit 1
           }
