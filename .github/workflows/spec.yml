@@ -30,18 +30,52 @@ jobs:
   # than the sum of them. heavy only runs nightly or when asked for.
   plan:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
     outputs:
       stages: ${{ steps.plan.outputs.stages }}
     steps:
+      # A nightly with nothing new to test is skipped: same commit and same
+      # image as the last nightly that passed. The image is rebuilt weekly, so
+      # this still runs at least once a week. A failed nightly never matches,
+      # so the next night tries again.
+      - name: Compare with the last passing nightly
+        id: nightly
+        if: ${{ github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          digest=$(docker buildx imagetools inspect "$GDK_IMAGE" --format '{{json .Manifest}}' | jq -r .digest)
+          mkdir -p nightly && echo "${{ github.sha }} $digest" > nightly/key
+          echo "this nightly: $(cat nightly/key)"
+          last=$(gh run list -R "$GITHUB_REPOSITORY" -w spec.yml -e schedule -s success -L 1 \
+            --json databaseId -q '.[0].databaseId')
+          if [ -n "$last" ] && gh run download "$last" -R "$GITHUB_REPOSITORY" -n nightly-key -D last 2>/dev/null; then
+            echo "last passing nightly ($last): $(cat last/key)"
+            cmp -s nightly/key last/key && echo "unchanged=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record what this nightly tests
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-key
+          path: nightly/key
+
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
           EVENT: ${{ github.event_name }}
+          UNCHANGED: ${{ steps.nightly.outputs.unchanged }}
         run: |
           stages="static fast oc upstream"
           case "$EVENT" in schedule|workflow_dispatch) stages="$stages heavy" ;; esac
           if [ -n "$ONLY" ]; then
             stages=$(for s in $stages; do case ",$ONLY," in *",$s,"*) echo "$s" ;; esac; done)
+          fi
+          if [ "$UNCHANGED" = true ]; then
+            echo "Nothing new since the last passing nightly; skipping."
+            stages=
           fi
           echo "stages=$(printf '%s\n' $stages | jq -R . | jq -sc 'map(select(length > 0))')" >> "$GITHUB_OUTPUT"
 
