@@ -40,6 +40,12 @@ name: e2e
         type: boolean
         default: false
 
+# workflow_call defaults do not reach a workflow_dispatch run, which lacks these
+# inputs, so the fallbacks repeat them.
+env:
+  GDK_IMAGE: ${{ inputs.gdk_image || 'ghcr.io/onecommons/gitlab-oc/gdk:latest' }}
+  SPECS: ${{ inputs.specs || 'cypress/e2e/00_visitor/route_smoke.cy.js,cypress/e2e/00_visitor/light_mode.cy.js,cypress/e2e/00_visitor/visit_cloudchart.cy.js' }}
+
 jobs:
   cypress:
     runs-on: ubuntu-latest
@@ -76,7 +82,7 @@ jobs:
             -e UNFURL_SERVER_URL=http://gdk.test:8081 \
             -v "$PWD/logs/gdk-services:/gitlab-gdk/gitlab-development-kit/log" \
             -v "$PWD/logs/gdk-rails:/gitlab-gdk/gitlab-development-kit/gitlab/log" \
-            '${{ inputs.gdk_image }}'
+            "$GDK_IMAGE"
           for i in $(seq 1 60); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://gdk.test:3000/users/sign_in || true)
             [ "$code" = "200" ] && { echo "up after $((i*10))s"; break; }
@@ -128,7 +134,7 @@ jobs:
           DRYRUN: '1'
         run: |
           yarn integration-test run --namespace onecommons/blueprints -- \
-            --browser chrome -s '${{ inputs.specs }}'
+            --browser chrome -s "$SPECS"
 
       - name: Upload logs
         if: ${{ failure() || inputs.save_logs }}
