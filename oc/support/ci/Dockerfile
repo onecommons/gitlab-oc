@@ -31,38 +31,41 @@ RUN eval "$(~/.local/bin/mise activate bash)" \
     && git checkout -B "${OC_REF}" FETCH_HEAD
 
 # The base installed the gems, so bundle install mostly no-ops; it skipped the
-# Node modules (see install-config-gdk.sh).
+# Node modules (see install-config-gdk.sh), and with them the JS translations
+# gettext:compile writes.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
     && bundle install --jobs 4 \
-    && yarn install --immutable
+    && yarn install --immutable \
+    && bin/rake gettext:compile
 
-# Schema, seeds and the instance settings the fork needs. Kept as a script in
-# the repo so the image and a developer's own GDK are configured the same way
-# -- see "Instance settings" in .ai/oc.md.
+# The base's gdk install created and seeded the database from the fork, so this
+# only migrates to OC_REF and applies the instance settings the fork needs.
+# Kept as a script in the repo so the image and a developer's own GDK are
+# configured the same way -- see "Instance settings" in .ai/oc.md. The status
+# is kept across `gdk stop` so a failure fails the build.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && mise x -- gdk start postgresql redis \
     && cd gitlab \
-    && RAILS_ENV=development bin/rake db:drop db:create db:schema:load \
-    && RAILS_ENV=development bin/rake db:migrate \
-    && RAILS_ENV=development bin/rake db:seed_fu \
-    && RAILS_ENV=development bin/rake db:seed_fu FILTER=unfurl_blueprints \
-    && RAILS_ENV=development UNFURL_SERVER_URL=http://gdk.test:8081 \
-       bin/rails runner oc/support/ci/instance_settings.rb \
-    && mise x -- gdk stop || true
+    && { RAILS_ENV=development bin/rake db:migrate \
+         && RAILS_ENV=development bin/rake db:seed_fu FILTER=unfurl_blueprints \
+         && RAILS_ENV=development UNFURL_SERVER_URL=http://gdk.test:8081 \
+            bin/rails runner oc/support/ci/instance_settings.rb; } \
+    ; status=$?; mise x -- gdk stop; exit $status
 
-# The test databases are separate from development and rspec will not create
-# them for you. Cheap here, and the alternative is every spec run paying for it.
+# The base created the test databases too; reload them so they match OC_REF.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && mise x -- gdk start postgresql redis \
     && cd gitlab \
-    && RAILS_ENV=test bin/rake db:create db:schema:load \
-    && mise x -- gdk stop || true
+    && { RAILS_ENV=test bin/rake db:drop db:create db:schema:load; } \
+    ; status=$?; mise x -- gdk stop; exit $status
 
 # Assets last: the slowest layer, and the one most likely to be invalidated.
+# webpack directly: package.json's build script is an if/else Yarn Berry's
+# shell cannot run.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && cd gitlab \
-    && yarn build
+    && yarn run webpack
 
 # The GDK's redis listens on a unix socket and nothing else -- its template is
 # three lines and the first is `port 0` -- so nothing outside the container can
