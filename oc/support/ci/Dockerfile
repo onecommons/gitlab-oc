@@ -25,15 +25,16 @@ SHELL ["/bin/bash", "-c"]
 # The container registry as in production and a developer's GDK: without it
 # GitLab offers no registry token scopes, and the dashboard's request for its
 # deploy token, which asks for them, fails validation. Its setup migrates the
-# registry database, hence postgresql; Go's caches are redirected and dropped
-# so the layer keeps only the registry binary.
+# registry database, creating it first as a fresh install would, hence
+# postgresql; Go's caches are redirected and dropped so the layer keeps only
+# the registry binary.
 RUN eval "$(~/.local/bin/mise activate bash)" \
     && mise x -- gdk config set hostname gdk.test \
     && mise x -- gdk config set listen_address 0.0.0.0 \
     && mise x -- gdk config set registry.enabled true \
     && export GOMODCACHE=/tmp/go-mod GOCACHE=/tmp/go-build \
     && mise x -- gdk start postgresql \
-    && { mise x -- make registry-setup && mise x -- gdk reconfigure; } \
+    && { mise x -- make _postgresql-init-registry registry-setup && mise x -- gdk reconfigure; } \
     ; status=$?; mise x -- gdk stop \
     ; { chmod -R u+w /tmp/go-mod 2>/dev/null; rm -rf /tmp/go-mod /tmp/go-build; } \
     ; exit $status
