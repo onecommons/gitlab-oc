@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'fast_spec_helper'
+require 'spec_helper' # OC Change -- the OC prepend these examples expect loads only with Rails
 
 RSpec.describe Gitlab::Help::HugoTransformer, feature_category: :gitlab_docs do
   describe '#transform' do
