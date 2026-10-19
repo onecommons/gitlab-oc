@@ -89,7 +89,10 @@ RSpec.describe 'Unfurl project templates', feature_category: :source_code_manage
       expect(system('tar', '-xzf', template.archive_path.to_s, '-C', directory)).to be(true)
 
       repository_path = File.join(directory, 'repository')
-      expect(system('git', 'clone', '--quiet', File.join(directory, 'project.bundle'), repository_path)).to be(true)
+      # Template bundles, upstream's too, carry no HEAD, so without --branch the
+      # clone checks out init.defaultBranch, whatever this machine sets it to.
+      expect(system('git', 'clone', '--quiet', '--branch', 'main', File.join(directory, 'project.bundle'),
+        repository_path)).to be(true)
 
       yield repository_path
     end
