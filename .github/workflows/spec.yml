@@ -89,13 +89,10 @@ jobs:
       matrix:
         stage: ${{ fromJSON(needs.plan.outputs.stages) }}
     steps:
-      # No browser is involved -- oc/spec has no js: true examples -- so the
-      # large-packages sweep that removes chrome is fine here.
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          large-packages: true
+      # Hosted runners have had ~86 GB free, so nothing is cleared first; this
+      # shows in the log if that ever shrinks.
+      - name: Disk space
+        run: df -h /
 
       # `sleep infinity` rather than the image's own command, which runs
       # `gdk restart` and brings up every service. Only four are needed

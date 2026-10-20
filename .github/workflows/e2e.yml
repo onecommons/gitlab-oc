@@ -64,12 +64,10 @@ jobs:
   cypress:
     runs-on: ubuntu-latest
     steps:
-      # large-packages would take google-chrome with it, which cypress needs.
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          large-packages: false
+      # Hosted runners have had ~86 GB free, so nothing is cleared first; this
+      # shows in the log if that ever shrinks.
+      - name: Disk space
+        run: df -h /
 
       - uses: actions/checkout@v4
         with:
