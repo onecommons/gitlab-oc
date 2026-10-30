@@ -1,0 +1,155 @@
+name: CNG release
+
+on:
+  push:
+    # <VERSION>-<YY-MM-DD><letter>, as oc/scripts/release.sh makes them;
+    # VERSION may carry an -rcN.
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][a-z]'
+      - '[0-9]+.[0-9]+.[0-9]+-rc[0-9]+-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][a-z]'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag mirrored to GitLab
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cng-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'onecommons/gitlab-oc'
+    runs-on: ubuntu-latest
+    # GitHub's ceiling; the job ends when the pipeline does.
+    timeout-minutes: 360
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      CNG_PROJECT_ID: ${{ vars.CNG_PROJECT_ID || 'onecommons%2FCNG' }}
+      CNG_REF: ${{ vars.CNG_REF || 'master' }}
+      CNG_RUNNER_TAG: cng-github
+      MIRROR_URL: https://gitlab.com/onecommons/gitlab-foss.git
+
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          fetch-depth: 1
+          sparse-checkout: |
+            /VERSION
+            /*_VERSION
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Check credentials and disk space
+        shell: bash
+        env:
+          CNG_TRIGGER_TOKEN: ${{ secrets.CNG_TRIGGER_TOKEN }}
+          CI_SERVER_TOKEN: ${{ secrets.GITLAB_CNG_REGISTRATION_TOKEN }}
+        run: |
+          set -euo pipefail
+          : "${CNG_TRIGGER_TOKEN:?Set CNG_TRIGGER_TOKEN}"
+          : "${CI_SERVER_TOKEN:?Set GITLAB_CNG_REGISTRATION_TOKEN}"
+          if [[ "$CI_SERVER_TOKEN" != glrt-* ]]; then
+            echo '::error::Use a runner authentication token (glrt-...) for the cng-github project runner'
+            exit 1
+          fi
+          df -h
+
+      # CNG fetches the source by SHA from the mirror; without this a missing
+      # tag fails the pipeline at download_gitlab, well into the run.
+      - name: Check the mirror has the release
+        id: mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+            echo '::error::Release tag is not a valid container image tag'
+            exit 1
+          fi
+          source_sha=$(git rev-parse 'HEAD^{commit}')
+          # The peeled line, last when present, is an annotated tag's commit.
+          mirrored=$(git ls-remote "$MIRROR_URL" "refs/tags/$RELEASE_TAG" "refs/tags/$RELEASE_TAG^{}" |
+            awk '{print $1}' | tail -1)
+          if [[ "$mirrored" != "$source_sha" ]]; then
+            echo "::error::$MIRROR_URL has ${mirrored:-no} $RELEASE_TAG, not $source_sha; push it with oc/scripts/release.sh"
+            exit 1
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger the CNG pipeline
+        id: trigger
+        shell: bash
+        env:
+          CNG_TRIGGER_TOKEN: ${{ secrets.CNG_TRIGGER_TOKEN }}
+          source_sha: ${{ steps.mirror.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          args=(
+            --form-string "token=$CNG_TRIGGER_TOKEN"
+            --form-string "ref=$CNG_REF"
+            --form-string 'variables[PIPELINE_TYPE]=CE_TAG_BUILD_PIPELINE'
+            --form-string 'variables[CE_PIPELINE]=true'
+            --form-string 'variables[EE_PIPELINE]='
+            --form-string 'variables[CE_PROJECT]=gitlab-foss'
+            --form-string 'variables[GITLAB_RAILS_NAMESPACE]=onecommons'
+            --form-string 'variables[GITLAB_SOURCE_METHOD]=git'
+            --form-string "variables[GITLAB_VERSION]=$source_sha"
+            --form-string "variables[GITLAB_DISPLAY_VERSION]=$RELEASE_TAG"
+            --form-string "variables[GITLAB_TAG]=$RELEASE_TAG"
+            --form-string "variables[GITLAB_REF_SLUG]=$RELEASE_TAG"
+            --form-string 'variables[COMPILE_ASSETS]=true'
+            --form-string 'variables[FORCE_RAILS_IMAGE_BUILDS]=true'
+            --form-string 'variables[DISABLE_BUILDX_CLUSTER]=true'
+            --form-string 'variables[ARCH_LIST]=amd64'
+            --form-string "variables[CNG_RUNNER_TAG]=$CNG_RUNNER_TAG"
+            --form-string "variables[HIGH_CAPACITY_RUNNER_TAG]=$CNG_RUNNER_TAG"
+          )
+
+          for name in \
+            GITALY_SERVER_VERSION \
+            GITLAB_SHELL_VERSION \
+            GITLAB_PAGES_VERSION \
+            GITLAB_KAS_VERSION \
+            GITLAB_ELASTICSEARCH_INDEXER_VERSION \
+            GITLAB_OPENBAO_VERSION
+          do
+            version=$(tr -d '\r\n' < "$name")
+            test -n "$version"
+            if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?(-ee)?$ ]]; then
+              version="v$version"
+            fi
+            args+=(--form-string "variables[$name]=$version")
+          done
+
+          response=$(curl --silent --show-error --fail-with-body \
+            --connect-timeout 15 --max-time 60 \
+            "${args[@]}" \
+            "https://gitlab.com/api/v4/projects/$CNG_PROJECT_ID/trigger/pipeline")
+          pipeline_url=$(jq -er '.web_url' <<< "$response")
+          jq -er '"pipeline_id=\(.id)"' <<< "$response" >> "$GITHUB_OUTPUT"
+          {
+            printf 'Release: %s\n\n' "$RELEASE_TAG"
+            printf 'Source commit: %s\n\n' "$source_sha"
+            printf '[CNG pipeline](%s)\n' "$pipeline_url"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Host the CNG GitLab runner until the pipeline finishes
+        uses: onecommons/gitlab-runner-action@d66754bc4ad1c309250427404f6700817011bcc9
+        with:
+          runner-token: ${{ secrets.GITLAB_CNG_REGISTRATION_TOKEN }}
+          gitlab-instance: https://gitlab.com/
+          name: cng-${{ github.run_id }}-${{ github.run_attempt }}
+          docker-image: docker:28.5.1
+          runner-image: gitlab/gitlab-runner:v19.5.2
+          concurrent: '1'
+          network-per-build: 'true'
+          pipeline-url: https://gitlab.com/api/v4/projects/${{ env.CNG_PROJECT_ID }}/pipelines/${{ steps.trigger.outputs.pipeline_id }}
+          # An upper bound under the job's timeout-minutes, leaving time for cleanup.
+          timeout: '21000'
