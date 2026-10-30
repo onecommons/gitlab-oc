@@ -13,9 +13,18 @@ set -e
 
 GDK=${GDK_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}
 REPO=$(cd "$(dirname "$0")/../.." && pwd)
-GITLAB_URL=${GITLAB_URL:-http://gdk.test:3000}
+# The address the service gives the server, from the same GDK config
+# (lib/gdk/services/unfurl.rb's gitlab_url).
+if [ -z "${GITLAB_URL:-}" ]; then
+  GITLAB_URL=http://$(cd "$GDK" && gdk config get hostname):$(cd "$GDK" && gdk config get gitlab.rails.port)
+fi
+gitlab_host=${GITLAB_URL#*://}
+gitlab_host=${gitlab_host%%[:/]*}
 UPSTREAM_CLOUDMAP=${UPSTREAM_CLOUDMAP:-https://unfurl.cloud/onecommons/cloudmap.git}
 CLOUDMAP=$GDK/tmp/cloudmap
+# The server commits to and pushes whatever branch the clone is on, so this
+# instance's records stay off upstream's main.
+CLOUDMAP_BRANCH=${CLOUDMAP_BRANCH:-hosts/$gitlab_host}
 HOME_PROJECT=$GDK/tmp/unfurl_home
 
 case "${1:-}" in
@@ -74,6 +83,13 @@ else
     git -C "$CLOUDMAP" remote set-url origin "$GITLAB_URL/onecommons/cloudmap.git"
     echo "origin now points at $GITLAB_URL -- pull once the GDK is up"
   fi
+
+  # The server reads the branch when it opens the clone, so a switch needs
+  # `gdk restart unfurl`. Plain `git switch` tracks the remote's branch if
+  # one was pushed. Not `switch -C`: that resets an existing branch.
+  git -C "$CLOUDMAP" switch -q "$CLOUDMAP_BRANCH" 2>/dev/null ||
+    git -C "$CLOUDMAP" switch -q -c "$CLOUDMAP_BRANCH"
+  echo "on branch  $CLOUDMAP_BRANCH"
 
   # unfurl-git-sync migrates its own tables on first start but never issues
   # CREATE DATABASE, and createdb fails when the database is already there.
