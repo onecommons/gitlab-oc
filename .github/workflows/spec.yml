@@ -52,7 +52,7 @@ jobs:
             --json databaseId -q '.[0].databaseId')
           if [ -n "$last" ] && gh run download "$last" -R "$GITHUB_REPOSITORY" -n nightly-key -D last 2>/dev/null; then
             echo "last passing nightly ($last): $(cat last/key)"
-            cmp -s nightly/key last/key && echo "unchanged=true" >> "$GITHUB_OUTPUT"
+            if cmp -s nightly/key last/key; then echo "unchanged=true" >> "$GITHUB_OUTPUT"; fi
           fi
 
       - name: Record what this nightly tests
