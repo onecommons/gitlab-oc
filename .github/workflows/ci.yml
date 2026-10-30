@@ -10,8 +10,7 @@ name: ci
 jobs:
   rubocop:
     name: rubocop
-    # rugged's bundled libgit2 fails to build on ubuntu-latest's 26.04 image.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -21,13 +20,16 @@ jobs:
           fetch-depth: 0
 
       # Native extensions the Gemfile builds from source: pg, re2,
-      # charlock_holmes, gpgme, grpc, nokogiri and timfel-krb5-auth. Without these the bundle
-      # fails during install rather than during the lint.
+      # charlock_holmes, gpgme, grpc, nokogiri, rugged and timfel-krb5-auth.
+      # Without these the bundle fails during install rather than during the
+      # lint. rugged links OpenSSL's private libs, which on 26.04 include
+      # jitterentropy.
       - name: Install build dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            cmake pkg-config libpq-dev libre2-dev libicu-dev libgpgme-dev libkrb5-dev
+            cmake pkg-config libpq-dev libre2-dev libicu-dev libgpgme-dev libkrb5-dev \
+            libjitterentropy3-dev zlib1g-dev libzstd-dev
 
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
