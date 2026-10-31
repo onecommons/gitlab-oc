@@ -141,7 +141,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Host the CNG GitLab runner until the pipeline finishes
-        uses: onecommons/gitlab-runner-action@d66754bc4ad1c309250427404f6700817011bcc9
+        uses: onecommons/gitlab-runner-action@799cea635555c3cc846eec1356c4f22c2f7c4074
         with:
           runner-token: ${{ secrets.GITLAB_CNG_REGISTRATION_TOKEN }}
           gitlab-instance: https://gitlab.com/
