@@ -53,7 +53,7 @@
     "webpack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" NODE_ENV=production webpack --config config/webpack.config.js",
     "rspack": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" rspack build --config config/rspack.config.mjs",
     "rspack-prod": "scripts/build_frontend_islands && NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=10240}\" NODE_ENV=production rspack build --config config/rspack.config.mjs",
-    "build": "if [ \"$ENABLE_RSPACK\" = \"true\" ]; then yarn run rspack; else yarn run webpack; fi",
+    "build": "scripts/frontend/build.sh",
     "vite-prod": "scripts/build_frontend_islands && yarn run tailwindcss:build && NODE_ENV=production vite build"
   },
   "dependencies": {
