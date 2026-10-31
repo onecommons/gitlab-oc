@@ -21,15 +21,18 @@ concurrency:
   group: cng-release
   cancel-in-progress: false
 
+env:
+  CNG_PROJECT_ID: ${{ vars.CNG_PROJECT_ID || 'onecommons%2FCNG' }}
+
 jobs:
-  build:
+  trigger:
     if: github.repository == 'onecommons/gitlab-oc'
     runs-on: ubuntu-latest
-    # GitHub's ceiling; the job ends when the pipeline does.
-    timeout-minutes: 360
+    timeout-minutes: 15
+    outputs:
+      pipeline_id: ${{ steps.trigger.outputs.pipeline_id }}
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
-      CNG_PROJECT_ID: ${{ vars.CNG_PROJECT_ID || 'onecommons%2FCNG' }}
       CNG_REF: ${{ vars.CNG_REF || 'master' }}
       CNG_RUNNER_TAG: cng-github
       MIRROR_URL: https://gitlab.com/onecommons/gitlab-foss.git
@@ -46,7 +49,7 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - name: Check credentials and disk space
+      - name: Check credentials
         shell: bash
         env:
           CNG_TRIGGER_TOKEN: ${{ secrets.CNG_TRIGGER_TOKEN }}
@@ -59,7 +62,6 @@ jobs:
             echo '::error::Use a runner authentication token (glrt-...) for the cng-github project runner'
             exit 1
           fi
-          df -h
 
       # CNG fetches the source by SHA from the mirror; without this a missing
       # tag fails the pipeline at download_gitlab, well into the run.
@@ -143,16 +145,29 @@ jobs:
             printf '[CNG pipeline](%s)\n' "$pipeline_url"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Host the CNG GitLab runner until the pipeline finishes
+  # Separate machines rather than a higher concurrent: the heavier image
+  # builds would contend for one runner's memory and disk. Hosts share the
+  # runner token; each unregisters only its own manager.
+  runner:
+    needs: trigger
+    runs-on: ubuntu-latest
+    # GitHub's ceiling; each host ends when the pipeline does.
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [1, 2, 3]
+    steps:
+      - name: Host a CNG GitLab runner until the pipeline finishes
         uses: onecommons/gitlab-runner-action@799cea635555c3cc846eec1356c4f22c2f7c4074
         with:
           runner-token: ${{ secrets.GITLAB_CNG_REGISTRATION_TOKEN }}
           gitlab-instance: https://gitlab.com/
-          name: cng-${{ github.run_id }}-${{ github.run_attempt }}
+          name: cng-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.host }}
           docker-image: docker:28.5.1
           runner-image: gitlab/gitlab-runner:v19.5.2
           concurrent: '1'
           network-per-build: 'true'
-          pipeline-url: https://gitlab.com/api/v4/projects/${{ env.CNG_PROJECT_ID }}/pipelines/${{ steps.trigger.outputs.pipeline_id }}
+          pipeline-url: https://gitlab.com/api/v4/projects/${{ env.CNG_PROJECT_ID }}/pipelines/${{ needs.trigger.outputs.pipeline_id }}
           # An upper bound under the job's timeout-minutes, leaving time for cleanup.
           timeout: '21000'
