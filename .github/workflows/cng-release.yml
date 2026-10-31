@@ -108,6 +108,9 @@ jobs:
             --form-string 'variables[FORCE_RAILS_IMAGE_BUILDS]=true'
             --form-string 'variables[DISABLE_BUILDX_CLUSTER]=true'
             --form-string 'variables[ARCH_LIST]=amd64'
+            # The registry path is lowercase but the project is onecommons/CNG,
+            # and cosign verify matches the signing identity's case.
+            --form-string 'variables[COSIGN_CAPITALIZE_PROJECT_NAME]=true'
             --form-string "variables[CNG_RUNNER_TAG]=$CNG_RUNNER_TAG"
             --form-string "variables[HIGH_CAPACITY_RUNNER_TAG]=$CNG_RUNNER_TAG"
           )
