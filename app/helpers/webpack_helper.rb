@@ -101,7 +101,8 @@ module WebpackHelper
   end
 
   def rspack_enabled?
-    Gitlab::Utils.to_boolean(ENV['ENABLE_RSPACK'], default: false)
+    # OC Change: oc-pages builds only with Rspack, so it is the default here
+    Gitlab::Utils.to_boolean(ENV['ENABLE_RSPACK'], default: true)
   end
 
   def bundler_manifest_filename
