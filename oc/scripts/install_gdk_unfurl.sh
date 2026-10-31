@@ -91,17 +91,22 @@ else
     git -C "$CLOUDMAP" switch -q -c "$CLOUDMAP_BRANCH"
   echo "on branch  $CLOUDMAP_BRANCH"
 
-  # unfurl-git-sync migrates its own tables on first start but never issues
-  # CREATE DATABASE, and createdb fails when the database is already there.
-  # The name has to match cloudmap_db_url in unfurl.rb -- the server does not
-  # complain about the wrong database, it just indexes nothing into it.
-  if psql -h "$GDK/postgresql" -d postgres -Atc \
-      "select 1 from pg_database where datname = 'unfurl_cloudmap'" | grep -q 1; then
-    echo "present    database unfurl_cloudmap"
-  else
-    createdb -h "$GDK/postgresql" unfurl_cloudmap
-    echo "created    database unfurl_cloudmap"
+  # The server migrates its own tables on first start, as the role this
+  # creates; GDK's postgres trusts the socket, so neither needs a password.
+  # The URL has to match cloudmap_db_url in unfurl.rb -- the server does not
+  # complain about the wrong database, it just indexes nothing into it. A
+  # database left from before the role existed is owned by another role, which
+  # create-database warns about; drop it and re-run.
+  unfurl_python=$(sed -n '1s/^#!//p' "$(command -v unfurl)")
+  unfurl_server=$("$unfurl_python" -c \
+    'from unfurl.server.serve import _find_rust_server_bin as f; print(f() or "")')
+  if [ -z "$unfurl_server" ]; then
+    echo "no unfurl-server binary; build it with cargo build -p unfurl-server" >&2
+    exit 1
   fi
+  UNFURL_CLOUDMAP_DB_URL="postgres://unfurl_cloudmap@localhost/unfurl_cloudmap?host=$GDK/postgresql" \
+    "$unfurl_server" create-database
+  echo "ensured    database unfurl_cloudmap"
 fi
 
 echo

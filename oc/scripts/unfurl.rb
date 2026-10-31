@@ -66,12 +66,12 @@ module GDK
       end
 
       # GDK's postgres listens on a socket only, which sqlx takes as a host
-      # parameter rather than in the authority. The database name is repeated
-      # in oc/scripts/install_gdk_unfurl.sh; a mismatch migrates an empty
-      # database and serves an empty index rather than failing. Override the
-      # whole URL in env.runit, which the run script sources after this.
+      # parameter rather than in the authority. The role and database are
+      # repeated in oc/scripts/install_gdk_unfurl.sh; a mismatch migrates an
+      # empty database and serves an empty index rather than failing. Override
+      # the whole URL in env.runit, which the run script sources after this.
       def cloudmap_db_url
-        "postgres:///unfurl_cloudmap?host=#{config.postgresql.host}"
+        "postgres://unfurl_cloudmap@localhost/unfurl_cloudmap?host=#{config.postgresql.host}"
       end
 
       # A home of the GDK's own rather than ~/.unfurl_home: a repository
