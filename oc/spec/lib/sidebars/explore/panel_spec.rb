@@ -9,9 +9,9 @@ RSpec.describe Sidebars::Explore::Panel, feature_category: :navigation do
     panel.instance_variable_get(:@menus).map(&:title)
   end
 
-  it 'leads with blueprints, offers the cloud and drops snippets' do
+  it 'leads with blueprints, offers the cloud and drops snippets and the CI/CD catalog' do
     expect(titles.first).to eq('Blueprints')
     expect(titles).to include('Cloud')
-    expect(titles).not_to include('Snippets')
+    expect(titles).not_to include('Snippets', 'CI/CD Catalog')
   end
 end

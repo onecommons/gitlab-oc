@@ -18,6 +18,7 @@ module OC
           )
           add_menu(::Sidebars::Explore::Menus::CloudMenu.new(context))
           remove_menu(::Sidebars::Explore::Menus::SnippetsMenu)
+          remove_menu(::Sidebars::Explore::Menus::CatalogMenu)
         end
       end
     end
