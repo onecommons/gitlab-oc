@@ -4,6 +4,8 @@ import { setCookie, getCookie } from '~/lib/utils/common_utils';
 import { sidebarState } from './state';
 
 export const SIDEBAR_COLLAPSED_CLASS = 'page-with-super-sidebar-collapsed';
+// OC Change: pages whose sidebar overlays them at every width, see OC::NavHelper
+export const SIDEBAR_OVERLAY_CLASS = 'page-with-super-sidebar-overlay';
 export const SIDEBAR_BLOCKED_CSS_TRANSITIONS_CLASS = 'super-sidebar-has-css-transitions-blocked';
 export const SIDEBAR_COLLAPSED_COOKIE = 'super_sidebar_collapsed';
 export const SIDEBAR_COLLAPSED_COOKIE_EXPIRATION = 365 * 10;
@@ -17,7 +19,9 @@ export const isCollapsed = () => findPage().classList.contains(SIDEBAR_COLLAPSED
 // See documentation: https://design.gitlab.com/patterns/navigation#left-sidebar
 // NOTE: at 1200px nav sidebar should not overlap the content
 // https://gitlab.com/gitlab-org/gitlab-foss/merge_requests/24555#note_134136110
-export const isDesktopBreakpoint = () => GlBreakpointInstance.windowWidth() >= breakpoints.xl;
+export const isDesktopBreakpoint = () =>
+  GlBreakpointInstance.windowWidth() >= breakpoints.xl &&
+  !findPage()?.classList.contains(SIDEBAR_OVERLAY_CLASS); // OC Change
 
 export const getCollapsedCookie = () => getCookie(SIDEBAR_COLLAPSED_COOKIE) === 'true';
 

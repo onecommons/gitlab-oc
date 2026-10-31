@@ -23,6 +23,30 @@ RSpec.describe PageLayoutHelper, feature_category: :navigation do
     end
   end
 
+  describe '#overlay_super_sidebar' do
+    it 'is off until a view asks for it' do
+      helper.nav('project')
+
+      expect(helper.overlay_super_sidebar?).to be(false)
+      expect(helper.nav).to eq('project')
+    end
+
+    it "takes the nav over from the layout's, which is set after the view" do
+      helper.overlay_super_sidebar(nav: 'explore')
+      helper.nav('project')
+
+      expect(helper.overlay_super_sidebar?).to be(true)
+      expect(helper.nav).to eq('explore')
+    end
+
+    it "leaves the nav alone when it isn't given one" do
+      helper.overlay_super_sidebar
+      helper.nav('explore')
+
+      expect(helper.nav).to eq('explore')
+    end
+  end
+
   describe '#page_image' do
     it 'defaults to the fork mark' do
       expect(helper.page_image).to match_asset_path 'assets/uf-logo.png'

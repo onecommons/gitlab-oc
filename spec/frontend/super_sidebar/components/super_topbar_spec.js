@@ -83,6 +83,13 @@ describe('SuperTopbar', () => {
         expect(findSidebarToggle().classes()).toContain('xl:gl-hidden');
       });
 
+      // OC Change
+      it('is shown on large screens when the sidebar overlays the page', () => {
+        createComponent({ sidebarData: { ...mockSidebarData, sidebar_overlay: true } });
+
+        expect(findSidebarToggle().classes()).not.toContain('xl:gl-hidden');
+      });
+
       it('is not shown when the sidebar has no menu items', () => {
         createComponent({
           sidebarData: { ...mockSidebarData, current_menu_items: [] },

@@ -31,7 +31,7 @@ module OC
     # layouts/header/_default.html.haml, which 19.3 replaced with the topbar.
     override :super_sidebar_context
     def super_sidebar_context(user, group:, project:, panel:, panel_type:)
-      super.merge(edition_topbar_links: topbar_links(project))
+      super.merge(edition_topbar_links: topbar_links(project), sidebar_overlay: overlay_super_sidebar?)
     end
 
     private

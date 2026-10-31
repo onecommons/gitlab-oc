@@ -15,6 +15,26 @@ module OC
       image_path('favicon.png')
     end
 
+    # 15.11 had no sidebar on /cloud or a blueprint's overview. A view calling
+    # this keeps it behind the topbar's menu button at every width, as on a
+    # phone, and can give it another panel -- the layout's `nav "project"`
+    # runs after the view, so the view can't set nav itself.
+    def overlay_super_sidebar(nav: nil)
+      @overlay_super_sidebar = true
+      @overlay_super_sidebar_nav = nav
+    end
+
+    def overlay_super_sidebar?
+      @overlay_super_sidebar.present?
+    end
+
+    override :nav
+    def nav(name = nil)
+      return super if name
+
+      @overlay_super_sidebar_nav || super
+    end
+
     # The card an external site shows for a link here. Upstream's default is
     # GitLab's own; there is no seam for it, so the method comes across whole.
     override :page_image

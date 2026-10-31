@@ -7,6 +7,7 @@ import {
   SIDEBAR_COLLAPSED_CLASS,
   SIDEBAR_COLLAPSED_COOKIE,
   SIDEBAR_COLLAPSED_COOKIE_EXPIRATION,
+  SIDEBAR_OVERLAY_CLASS,
   toggleSuperSidebarCollapsed,
   toggleSuperSidebarIconOnly,
   initSuperSidebarCollapsedState,
@@ -82,6 +83,18 @@ describe('Super Sidebar Collapsed State Manager', () => {
 
       expect(sidebarState.isIconOnly).toBe(false);
       expect(sidebarState.isCollapsed).toBe(false);
+    });
+
+    // OC Change
+    it('collapses an overlaid sidebar on desktop, as on mobile', () => {
+      jest.spyOn(GlBreakpointInstance, 'windowWidth').mockReturnValue(xl);
+      findPage().classList.add(SIDEBAR_OVERLAY_CLASS);
+
+      initSuperSidebarCollapsedState();
+
+      pageHasCollapsedClass(true);
+      expect(sidebarState.isCollapsed).toBe(true);
+      expect(sidebarState.isMobile).toBe(true);
     });
   });
 

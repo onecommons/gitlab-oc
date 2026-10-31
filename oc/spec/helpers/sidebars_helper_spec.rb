@@ -86,5 +86,15 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
         expect(links.find { |link| link[:text] == 'Dashboard' }).to include(active: true)
       end
     end
+
+    it "tells the topbar whether the page's sidebar is overlaid" do
+      context = -> { helper.super_sidebar_context(user, group: nil, project: nil, panel: panel, panel_type: 'explore') }
+
+      expect(context.call).to include(sidebar_overlay: false)
+
+      helper.overlay_super_sidebar
+
+      expect(context.call).to include(sidebar_overlay: true)
+    end
   end
 end

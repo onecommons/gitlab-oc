@@ -133,11 +133,12 @@ export default {
       <!-- OC Change -->
       <edition-topbar-links :links="sidebarData.edition_topbar_links" />
 
+      <!-- OC Change: sidebar_overlay pages keep it at every width -->
       <super-sidebar-toggle
         v-if="sidebarData.current_menu_items.length"
         icon="hamburger"
         type="expand"
-        class="xl:gl-hidden"
+        :class="{ 'xl:gl-hidden': !sidebarData.sidebar_overlay }"
         :aria-label="$options.i18n.menuLabel"
       />
 

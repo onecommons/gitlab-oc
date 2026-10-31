@@ -1,6 +1,5 @@
 <script>
 import { computed, defineAsyncComponent } from 'vue';
-import { GlBreakpointInstance, breakpoints } from '@gitlab/ui/src/utils'; // eslint-disable-line no-restricted-syntax -- GlBreakpointInstance is used intentionally here. In this case we must obtain viewport breakpoints
 import { PortalTarget } from 'portal-vue';
 import { Mousetrap } from '~/lib/mousetrap';
 import { TAB_KEY_CODE } from '~/lib/utils/keycodes';
@@ -14,6 +13,7 @@ import { JS_TOGGLE_EXPAND_CLASS, SETTINGS_DISCLOSURE_PORTAL_NAME } from '../cons
 import { sidebarState } from '../state';
 import {
   isCollapsed,
+  isDesktopBreakpoint,
   toggleSuperSidebarCollapsed,
   toggleSuperSidebarIconOnly,
 } from '../super_sidebar_collapsed_state_manager';
@@ -126,7 +126,7 @@ export default {
       }
     },
     isOverlapping() {
-      return GlBreakpointInstance.windowWidth() < breakpoints.xl;
+      return !isDesktopBreakpoint(); // OC Change
     },
     setupFocusTrapListener() {
       /**

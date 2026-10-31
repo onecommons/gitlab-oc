@@ -659,3 +659,29 @@ release. */
     color: $uf-confirm-blue;
   }
 }
+
+// Pages whose sidebar overlays them at every width (OC::NavHelper): upstream's
+// layout below xl, without the breakpoint. The doubled class outranks its
+// selectors, which the xl media queries restyle.
+.page-with-super-sidebar.page-with-super-sidebar-overlay {
+  .super-sidebar-wrapper {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .super-sidebar {
+    margin-left: 0;
+    background-color: var(--body-background-color);
+  }
+
+  &:not(.super-sidebar-has-css-transitions-blocked) .super-sidebar {
+    position: fixed;
+    border-top-right-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+  }
+
+  &:not(.page-with-super-sidebar-collapsed, .super-sidebar-has-css-transitions-blocked) .super-sidebar-overlay {
+    display: block;
+  }
+}

@@ -28,7 +28,12 @@ Vue.use(VueApollo);
 const { lg, xl } = breakpoints;
 const initialSidebarState = { ...sidebarState };
 
-jest.mock('~/super_sidebar/super_sidebar_collapsed_state_manager');
+// OC Change: the real breakpoint check, which these tests drive through GlBreakpointInstance
+jest.mock('~/super_sidebar/super_sidebar_collapsed_state_manager', () => ({
+  ...jest.createMockFromModule('~/super_sidebar/super_sidebar_collapsed_state_manager'),
+  isDesktopBreakpoint: jest.requireActual('~/super_sidebar/super_sidebar_collapsed_state_manager')
+    .isDesktopBreakpoint,
+}));
 jest.mock('~/super_sidebar/utils', () => ({
   ...jest.requireActual('~/super_sidebar/utils'),
   trackContextAccess: jest.fn(),
