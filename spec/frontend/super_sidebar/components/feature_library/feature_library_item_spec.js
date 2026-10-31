@@ -59,8 +59,9 @@ describe('FeatureLibraryItem', () => {
       [{ tier: TIERS.PREMIUM }, 'Premium'],
       [{ tier: TIERS.ULTIMATE }, 'Ultimate'],
       [{ tier: TIERS.ADD_ON }, 'Add-on'],
-      [{ tier: TIERS.FREE }, 'Free'],
-      [{ tier: undefined }, 'Free'],
+      // OC Change
+      [{ tier: TIERS.FREE }, ''],
+      [{ tier: undefined }, ''],
     ])('renders %j as "%s"', (tierProps, expected) => {
       createWrapper({ item: { ...baseItem, ...tierProps } });
       expect(findTierLabel().text()).toBe(expected);

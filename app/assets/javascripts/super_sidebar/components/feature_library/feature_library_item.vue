@@ -44,8 +44,9 @@ export default {
           return __('Ultimate');
         case TIERS.ADD_ON:
           return __('Add-on');
+        // OC Change: there is no paid tier for Free to set apart
         default:
-          return __('Free');
+          return '';
       }
     },
     pinAriaLabel() {
