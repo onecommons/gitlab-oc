@@ -4,14 +4,14 @@ require 'spec_helper'
 
 RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigation do
   # rubocop: disable RSpec/FactoryBot/AvoidCreate -- the classification attribute needs a real project row
-  let(:user) { create(:user) }
-  let(:project) { create(:project, :repository) }
+  let(:user) { create(:user, :with_namespace) }
+  let(:project) { create(:project, :repository, namespace: user.namespace) }
   # rubocop: enable RSpec/FactoryBot/AvoidCreate
   let(:blueprint_menu) { Sidebars::Projects::Menus::ApplicationBlueprintMenu }
 
-  def menus
+  def panel(current_user = user)
     context = Sidebars::Projects::Context.new(
-      current_user: user,
+      current_user: current_user,
       container: project,
       current_ref: project.repository.root_ref,
       is_super_sidebar: true,
@@ -23,7 +23,11 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
       show_promotions: false
     )
 
-    described_class.new(context).instance_variable_get(:@menus).map(&:class)
+    described_class.new(context)
+  end
+
+  def menus
+    panel.instance_variable_get(:@menus).map(&:class)
   end
 
   before do
@@ -51,27 +55,28 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
       project.custom_attributes.create!(key: 'unfurl_type', value: OC::UNFURL_DASHBOARD)
     end
 
-    it 'leads with the dashboard views and drops the repository machinery' do
-      expect(menus.first(2)).to include(dashboard_menu)
-      expect(menus).to include(
-        Sidebars::Projects::SuperSidebarMenus::CodeMenu,
-        Sidebars::Projects::Menus::SettingsMenu
-      )
-      expect(menus).not_to include(
-        Sidebars::Projects::SuperSidebarMenus::ManageMenu,
-        Sidebars::Projects::SuperSidebarMenus::PlanMenu,
-        Sidebars::Projects::SuperSidebarMenus::DeployMenu,
-        Sidebars::Projects::SuperSidebarMenus::MonitorMenu
-      )
+    it 'shows only the flat dashboard menu' do
+      expect(menus).to eq([dashboard_menu])
     end
 
-    it 'offers the dashboard views that have a page behind them' do
-      context = Sidebars::Projects::Context.new(
-        current_user: user, container: project, current_ref: project.repository.root_ref
-      )
-      items = dashboard_menu.new(context).renderable_items.map(&:title)
+    it 'has no context header' do
+      expect(panel.super_sidebar_context_header).to be_nil
+    end
 
-      expect(items).to eq(%w[Overview Environments Deployments])
+    it "lists 15.11's views under the owner's name" do
+      items = panel.super_sidebar_menu_items
+
+      expect(items.pluck(:title)).to eq([user.name, *%w[Dashboard Environments Deployments Repository Settings]])
+      expect(items.find { |item| item[:id] == :oc_repository }[:link])
+        .to eq("/#{project.full_path}/-/tree/#{project.repository.root_ref}")
+    end
+
+    it 'leaves out Settings for those who cannot change them' do
+      project.add_developer(other_user = create(:user)) # rubocop:disable RSpec/FactoryBot/AvoidCreate -- needs a member
+
+      titles = panel(other_user).super_sidebar_menu_items.pluck(:title)
+
+      expect(titles).not_to include('Settings')
     end
   end
 

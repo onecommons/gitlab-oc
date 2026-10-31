@@ -29,8 +29,12 @@ module OC
 
     # 15.11 had Dashboard | Blueprints | Cloud beside the logo in
     # layouts/header/_default.html.haml, which 19.3 replaced with the topbar.
+    # A dashboard's panel has nothing to pin; its own panel type keeps the
+    # sidebar from offering pins and More features.
     override :super_sidebar_context
     def super_sidebar_context(user, group:, project:, panel:, panel_type:)
+      panel_type = 'dashboard' if panel_type == 'project' && dashboard_section?(project)
+
       super.merge(edition_topbar_links: topbar_links(project), sidebar_overlay: overlay_super_sidebar?)
     end
 
