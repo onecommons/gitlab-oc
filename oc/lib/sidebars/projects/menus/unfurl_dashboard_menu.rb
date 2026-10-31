@@ -29,9 +29,12 @@ module Sidebars
             { controller: 'projects/environments' }, :oc_environments, 'environment'))
           add_item(item(_('Deployments'), project_unfurl_deployments_path(project),
             { path: 'projects#deployments' }, :oc_deployments, 'deployments'))
-          add_item(item(_('Repository'), project_tree_path(project, context.current_ref),
-            { controller: %w[tree blob blame edit_tree new_tree find_file commits commit branches tags] },
-            :oc_repository, 'branch'))
+
+          unless project.empty_repo?
+            add_item(item(_('Repository'), project_tree_path(project, context.current_ref),
+              { controller: %w[tree blob blame edit_tree new_tree find_file commits commit branches tags] },
+              :oc_repository, 'branch'))
+          end
 
           # rubocop:disable Gitlab/Authz/PermissionCheck -- the check SettingsMenu makes
           if can?(context.current_user, :admin_project, project)

@@ -71,6 +71,16 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
         .to eq("/#{project.full_path}/-/tree/#{project.repository.root_ref}")
     end
 
+    context 'when the repository is empty' do
+      # rubocop: disable RSpec/FactoryBot/AvoidCreate -- the classification attribute needs a real project row
+      let(:project) { create(:project, :empty_repo, namespace: user.namespace) }
+      # rubocop: enable RSpec/FactoryBot/AvoidCreate
+
+      it 'leaves out Repository, which has no ref to show' do
+        expect(panel.super_sidebar_menu_items.pluck(:title)).not_to include('Repository')
+      end
+    end
+
     it 'leaves out Settings for those who cannot change them' do
       project.add_developer(other_user = create(:user)) # rubocop:disable RSpec/FactoryBot/AvoidCreate -- needs a member
 
