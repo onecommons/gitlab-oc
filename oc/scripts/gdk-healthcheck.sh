@@ -125,5 +125,12 @@ if [ -f "$jlog" ]; then
   [ "$fails" -gt 0 ] && say "SIDEKIQ: $fails error/fatal lines in the last 800 log lines"
 fi
 
+# 7. sidekiq.log size. GDK writes it with `tee -a`, which Rails' log rotation
+#    never sees, and it reached 733 MB. Truncating in place is safe because tee
+#    appends; GDK's own rails-background-jobs log keeps the same output.
+SIDEKIQ_LOG_MAX_MB=${SIDEKIQ_LOG_MAX_MB:-200}
+sklog=$REPO/log/sidekiq.log
+[ -n "$(find "$sklog" -size +"$SIDEKIQ_LOG_MAX_MB"M 2>/dev/null)" ] && : > "$sklog"
+
 [ "$problems" -eq 0 ] || exit 1
 echo "OK"
