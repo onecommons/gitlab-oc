@@ -54,6 +54,30 @@ RSpec.describe Gitlab::Logger, feature_category: :observability do
     end
   end
 
+  # OC Change
+  describe '.rotation' do
+    it "keeps one old file at Rails' log_file_size" do
+      allow(Rails.application.config).to receive(:log_file_size).and_return(100.megabytes)
+
+      expect(described_class.rotation).to eq([1, 100.megabytes])
+    end
+
+    it 'does not rotate without a log_file_size' do
+      allow(Rails.application.config).to receive(:log_file_size).and_return(nil)
+
+      expect(described_class.rotation).to eq([])
+    end
+
+    it 'rotates the built logger' do
+      allow(Rails.application.config).to receive(:log_file_size).and_return(100.megabytes)
+      allow(described_class).to receive(:file_name_noext).and_return('log')
+
+      expect(described_class).to receive(:new).with(anything, 1, 100.megabytes, level: anything)
+
+      described_class.build
+    end
+  end
+
   describe '.log_level' do
     context 'if GITLAB_LOG_LEVEL is set' do
       before do

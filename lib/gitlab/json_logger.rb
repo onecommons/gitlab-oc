@@ -31,7 +31,14 @@ module Gitlab
 
       def build
         Gitlab::SafeRequestStore[cache_key] ||=
-          new(full_log_path, level: log_level)
+          new(full_log_path, level: log_level).tap { |logger| rotate(logger) }
+      end
+
+      # OC Change: as Gitlab::Logger.rotation; Labkit's initialize takes no
+      # rotation arguments, so reopen with them.
+      def rotate(logger)
+        rotation = Gitlab::Logger.rotation
+        logger.reopen(nil, *rotation) if rotation.any?
       end
 
       def cache_key

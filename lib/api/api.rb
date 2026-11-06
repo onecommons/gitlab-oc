@@ -20,7 +20,8 @@ module API
     # per-reporter formatter, which we already supply explicitly via `formatter:` below, so it changes
     # nothing in production. Returning self from #clone keeps LOGGER the single emitting object, so specs
     # can stub LOGGER directly.
-    LOGGER = Logger.new(LOG_FILENAME, level: ::Gitlab::Utils.to_rails_log_level(ENV["GITLAB_LOG_LEVEL"], :info))
+    # OC Change: rotation
+    LOGGER = Logger.new(LOG_FILENAME, *::Gitlab::Logger.rotation, level: ::Gitlab::Utils.to_rails_log_level(ENV["GITLAB_LOG_LEVEL"], :info))
       .tap { |logger| def logger.clone = self }
 
     class MovedPermanentlyError < StandardError

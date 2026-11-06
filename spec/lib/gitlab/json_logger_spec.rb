@@ -26,4 +26,35 @@ RSpec.describe Gitlab::JsonLogger do
       expect(subclass.file_name).to eq('testlogger.log')
     end
   end
+
+  # OC Change
+  describe '.build' do
+    let(:subclass) do
+      Class.new(Gitlab::JsonLogger) do
+        def self.file_name_noext
+          'testlogger'
+        end
+      end
+    end
+
+    it 'reopens the log with the rotation Gitlab::Logger uses' do
+      allow(Gitlab::Logger).to receive(:rotation).and_return([1, 100.megabytes])
+
+      expect_next_instance_of(subclass) do |logger|
+        expect(logger).to receive(:reopen).with(nil, 1, 100.megabytes)
+      end
+
+      subclass.build
+    end
+
+    it 'leaves the log alone without a rotation' do
+      allow(Gitlab::Logger).to receive(:rotation).and_return([])
+
+      expect_next_instance_of(subclass) do |logger|
+        expect(logger).not_to receive(:reopen)
+      end
+
+      subclass.build
+    end
+  end
 end

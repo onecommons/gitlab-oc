@@ -33,7 +33,14 @@ module Gitlab
 
     def self.build
       Gitlab::SafeRequestStore[self.cache_key] ||=
-        new(self.full_log_path, level: log_level)
+        new(self.full_log_path, *rotation, level: log_level)
+    end
+
+    # OC Change: rotate at Rails' log_file_size, as development.log does. Set in
+    # development and test only, so production logs are unchanged.
+    def self.rotation
+      size = Rails.application.config.log_file_size
+      size ? [1, size] : []
     end
 
     def self.log_level(fallback: ::Logger::DEBUG)
