@@ -2,7 +2,7 @@
 # Tags a release and pushes the tag to the GitLab mirror CNG builds from, then
 # to GitHub, where cng-release.yml builds its images.
 #
-#   sh oc/scripts/release.sh [--dry-run] [--force] [<tag>] [commit]
+#   sh oc/scripts/release.sh [--dry-run] [--force] [--no-latest] [<tag>] [commit]
 #
 # Tags are <VERSION>-<YY-MM-DD><letter>, e.g. 19.3.0-rc42-26-10-30a, the
 # letter counting releases that day. Without a tag, the next one for today is
@@ -10,6 +10,10 @@
 #
 # The commit must already be on GitHub's main, which only gets commits that
 # passed CI; --force releases one that isn't.
+#
+# --no-latest leaves the images' latest tag where it is, for a release that
+# isn't the newest (a backport, say). It is recorded in the tag's message,
+# which is all a tag push can tell the workflow.
 #
 # The mirror goes first: cng-release.yml checks it has the tag before
 # triggering anything. The first push there carries the history since 15.11
@@ -26,15 +30,17 @@ TAG_RE="^$VERSION_RE-[0-9]{2}-[0-9]{2}-[0-9]{2}[a-z]\$"
 
 run=
 force=0
+latest=true
 while :; do
   case "${1:-}" in
     --dry-run) run='echo'; shift ;;
     --force) force=1; shift ;;
+    --no-latest) latest=false; shift ;;
     *) break ;;
   esac
 done
 if [ $# -gt 2 ]; then
-  echo "usage: $0 [--dry-run] [--force] [<tag>] [commit]" >&2
+  echo "usage: $0 [--dry-run] [--force] [--no-latest] [<tag>] [commit]" >&2
   exit 2
 fi
 sha=$(git rev-parse --verify "${2:-HEAD}^{commit}")
@@ -88,7 +94,19 @@ if existing=$(git rev-parse -q --verify "refs/tags/$tag^{commit}"); then
     echo "$tag already tags $existing, not $sha" >&2
     exit 1
   fi
+  if git for-each-ref --format='%(contents)' "refs/tags/$tag" | grep -qx 'Latest: false'; then
+    tagged_latest=false
+  else
+    tagged_latest=true
+  fi
+  if [ "$tagged_latest" != "$latest" ]; then
+    echo "$tag was made with latest=$tagged_latest; delete it to change that" >&2
+    exit 1
+  fi
   echo "using      existing tag $tag ($sha)"
+elif [ "$latest" = false ]; then
+  $run git tag -a "$tag" -m "Release $tag" -m 'Latest: false' "$sha"
+  echo "tagged     $tag ($sha), not latest"
 else
   $run git tag -a "$tag" -m "Release $tag" "$sha"
   echo "tagged     $tag ($sha)"

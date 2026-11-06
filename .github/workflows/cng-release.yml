@@ -13,6 +13,11 @@ on:
         description: Existing release tag mirrored to GitLab
         required: true
         type: string
+      latest:
+        description: Also tag the images latest; from-tag follows the tag's message
+        type: choice
+        options: [from-tag, 'true', 'false']
+        default: from-tag
 
 permissions:
   contents: read
@@ -48,6 +53,33 @@ jobs:
             /*_VERSION
           sparse-checkout-cone-mode: false
           persist-credentials: false
+
+      # release.sh --no-latest writes "Latest: false" into the annotated tag.
+      # Read through the API: checkout can leave a pushed tag lightweight,
+      # without its message (actions/checkout#290).
+      - name: Decide whether the images move latest
+        id: latest
+        shell: bash
+        env:
+          LATEST_INPUT: ${{ inputs.latest || 'from-tag' }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "$LATEST_INPUT" != from-tag ]]; then
+            latest=$LATEST_INPUT
+          else
+            ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.type + " " + .object.sha')
+            if [[ "${ref%% *}" != tag ]]; then
+              echo "::error::$RELEASE_TAG is not an annotated tag; release.sh makes one"
+              exit 1
+            fi
+            if gh api "repos/$GITHUB_REPOSITORY/git/tags/${ref#* }" --jq .message | grep -qx 'Latest: false'; then
+              latest=false
+            else
+              latest=true
+            fi
+          fi
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
 
       - name: Check credentials
         shell: bash
@@ -90,6 +122,7 @@ jobs:
         env:
           CNG_TRIGGER_TOKEN: ${{ secrets.CNG_TRIGGER_TOKEN }}
           source_sha: ${{ steps.mirror.outputs.source_sha }}
+          TAG_LATEST: ${{ steps.latest.outputs.latest }}
         run: |
           set -euo pipefail
 
@@ -113,6 +146,7 @@ jobs:
             # The registry path is lowercase but the project is onecommons/CNG,
             # and cosign verify matches the signing identity's case.
             --form-string 'variables[COSIGN_CAPITALIZE_PROJECT_NAME]=true'
+            --form-string "variables[TAG_LATEST]=$TAG_LATEST"
             --form-string "variables[CNG_RUNNER_TAG]=$CNG_RUNNER_TAG"
             --form-string "variables[HIGH_CAPACITY_RUNNER_TAG]=$CNG_RUNNER_TAG"
           )
@@ -142,6 +176,7 @@ jobs:
           {
             printf 'Release: %s\n\n' "$RELEASE_TAG"
             printf 'Source commit: %s\n\n' "$source_sha"
+            printf 'Tagged latest: %s\n\n' "$TAG_LATEST"
             printf '[CNG pipeline](%s)\n' "$pipeline_url"
           } >> "$GITHUB_STEP_SUMMARY"
 
