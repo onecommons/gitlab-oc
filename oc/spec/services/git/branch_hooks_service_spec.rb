@@ -90,6 +90,12 @@ RSpec.describe Git::BranchHooksService, feature_category: :source_code_managemen
       service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
     end
 
+    it 'starts a drafts run as the pusher when the work items sync branch is pushed' do
+      expect(OC::WorkItems::DraftsWorker).to receive(:perform_async).with(project.id, project.creator.id)
+
+      service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
+    end
+
     it 'does not start one for a deletion of the branch' do
       expect(OC::WorkItems::ImportWorker).not_to receive(:perform_async)
 

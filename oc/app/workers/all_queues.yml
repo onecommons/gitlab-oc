@@ -113,6 +113,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace:
+- :name: oc_work_items_drafts
+  :worker_name: OC::WorkItems::DraftsWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: oc_work_items_full_sync
   :worker_name: OC::WorkItems::FullSyncWorker
   :feature_category: :source_code_management

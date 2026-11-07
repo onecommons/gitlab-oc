@@ -40,6 +40,13 @@ module OC
         return if ::Gitlab::Git.blank_ref?(newrev)
 
         OC::WorkItems::ImportWorker.perform_async(project.id, current_user&.id)
+        enqueue_drafts
+      end
+
+      def enqueue_drafts
+        return unless current_user
+
+        OC::WorkItems::DraftsWorker.perform_async(project.id, current_user.id)
       end
 
       # The work items sync branch is machine-managed: its commit messages are
