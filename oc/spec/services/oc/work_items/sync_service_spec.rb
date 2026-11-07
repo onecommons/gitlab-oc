@@ -291,6 +291,17 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       expect(repository.commit(branch).parent_ids).to be_empty
     end
 
+    it 'does not add the starter files to the rebuilt branch' do
+      service.execute([issue])
+      seed_peer
+      repository.delete_file(project.first_owner, sync_path('_incoming/README.md'),
+        message: 'remove', branch_name: branch)
+
+      described_class.new(project).purge_own_history!
+
+      expect(sync_blob('_incoming/README.md')).to be_nil
+    end
+
     it 'carries a peer directory across, byte for byte' do
       service.execute([issue])
       seed_peer
@@ -418,6 +429,25 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       blob && YAML.safe_load(blob.data)
     end
 
+    it 'creates the branch with the drafts inbox when the project has no work items' do
+      described_class.new(project).execute_catalogs
+
+      expect(repository.commit(branch).parent_ids).to be_empty
+      expect(sync_blob('_incoming/README.md').data).to include('/help/user/project/work_items_sync/drafts.md')
+
+      sample = sync_blob('_incoming/example.yml.sample').data
+      expect(OC::WorkItems::DraftFile.parse(sample, path: sync_path('_incoming/my-issue.yml')).title).to be_present
+    end
+
+    it 'does not put the starter files back once they are deleted' do
+      described_class.new(project).execute_catalogs
+      repository.delete_file(project.first_owner, sync_path('_incoming/README.md'),
+        message: 'remove', branch_name: branch)
+
+      expect(described_class.new(project).execute_catalogs).to be_nil
+      expect(sync_blob('_incoming/README.md')).to be_nil
+    end
+
     it 'writes the project label and milestone catalogs' do
       create(:label, project: project, title: 'bug')
       create(:milestone, project: project, title: '15.11')
@@ -504,9 +534,10 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       expect(sync_blob('labels.yml')).to be_nil
     end
 
-    it 'no-ops for a project with no labels or milestones' do
+    it 'commits nothing when run again with nothing changed' do
+      described_class.new(project).execute_catalogs
+
       expect(described_class.new(project).execute_catalogs).to be_nil
-      expect(repository.branch_exists?(branch)).to be(false)
     end
   end
 

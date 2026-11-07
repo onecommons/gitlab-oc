@@ -85,7 +85,8 @@ module OC
 
         # drafts.yml is written with the drafts it describes (#draft_actions);
         # this rewrite is the backstop for a draft deleted by hand.
-        commit!(actions + [drafts_map_action(oids)].compact + identities_actions(oids, replace: true))
+        commit!(actions + [drafts_map_action(oids)].compact + identities_actions(oids, replace: true),
+          create_branch: true)
       end
 
       # Removes drafts on the branch whose key an issue was already created
@@ -198,7 +199,7 @@ module OC
         # rule biting midway is silent, immediate, partial loss that never
         # retries. The tree is already bounded by the truncation guard, so
         # there is no size argument for splitting it.
-        commit!(carried.map { |path, content| { action: :create, file_path: path, content: content } })
+        commit!(carried.map { |path, content| { action: :create, file_path: path, content: content } }, starter: false)
 
         true
       end
@@ -445,7 +446,12 @@ module OC
         Digest::SHA1.hexdigest("blob #{content.bytesize}\0#{content}") # rubocop:disable Fips/SHA1 -- git blob oids are SHA-1
       end
 
-      def commit!(actions)
+      # create_branch: commit the starter files even with nothing else to
+      # write. Only the full pass does, so turning sync on makes the branch.
+      def commit!(actions, starter: true, create_branch: false)
+        return if actions.empty? && !create_branch
+
+        actions += starter_actions if starter && !@repository.branch_exists?(SYNC_BRANCH)
         return if actions.empty?
 
         options = {
@@ -462,6 +468,39 @@ module OC
         # When the branch doesn't exist yet this creates it as an orphan
         # (no start_branch_name/start_sha => parentless first commit).
         @repository.commit_files(commit_user, **options)
+      end
+
+      # Only in the commit that creates the branch, so a project with no work
+      # items still gets one to push drafts to. Never rewritten: deleting them
+      # is fine. Not drafts, so the drafts check and runs ignore them.
+      def starter_actions
+        inbox = "#{OC::WorkItems.instance_directory}/#{DraftFile::DIRECTORY}"
+
+        [
+          { action: :create, file_path: "#{inbox}/README.md", content: <<~MARKDOWN },
+            # Issue drafts
+
+            Add a `<key>.yml` file here and push to create an issue from it.
+            Only `.yml` and `.yaml` files are drafts, so this file and
+            `example.yml.sample` are ignored. To start one:
+
+                cp example.yml.sample my-issue.yml
+
+            See #{::Gitlab.config.gitlab.url}/help/user/project/work_items_sync/drafts.md
+          MARKDOWN
+          { action: :create, file_path: "#{inbox}/example.yml.sample", content: <<~YAML }
+            _schema: issue_draft@1
+            title: One line, at most 255 characters
+            description: |
+              Markdown. Write #draft:<key> to refer to another draft.
+            # labels: [bug]
+            # milestone: "1.0"
+            # assignees: [username]
+            # due_date: 2026-12-31
+            # confidential: false
+            # type: issue
+          YAML
+        ]
       end
 
       # What this commit should claim as the watermark. A full pass supplies

@@ -19,7 +19,8 @@ Prerequisites:
   turned on for the project. While it is off, drafts wait on the branch and the
   first push after you turn it on creates them.
 - You need a local clone of the repository with the `work-items-sync` branch
-  checked out.
+  checked out, for example
+  [in its own worktree](../work_items_sync.md#check-out-the-branch-in-its-own-worktree).
 
 To create issues from drafts:
 
@@ -27,10 +28,11 @@ To create issues from drafts:
    and find your project. In the left sidebar, select **Settings** > **General**,
    then expand **Work items sync**. The ID is shown as "This installation's ID,
    for sync.yml:".
-1. On the `work-items-sync` branch, open the folder named with that ID. Create
-   a folder named `_incoming` in it if it is not there yet.
-1. In `_incoming`, add one file for each issue, named `<key>.yml`. For the
-   rules for the key, see [Draft keys](#draft-keys).
+1. On the `work-items-sync` branch, open the `_incoming` folder inside the
+   folder named with that ID.
+1. In `_incoming`, add one file for each issue, named `<key>.yml`. To start
+   from the example in that folder, copy `example.yml.sample` to
+   `<key>.yml`. For the rules for the key, see [Draft keys](#draft-keys).
 1. Write the draft. For the keys you can use, see
    [Draft format](#draft-format).
 1. Commit and push the branch.
@@ -91,7 +93,8 @@ from other drafts.
 - A key has lowercase letters, digits, `-`, and `_`. It starts with a letter or
   digit and has at most 64 characters. Any other key refuses the push.
 - Only files that end in `.yml` or `.yaml` are drafts. Other files in
-  `_incoming`, such as a README or editor backups, are ignored.
+  `_incoming`, such as `README.md`, `example.yml.sample`, or editor backups,
+  are ignored.
 - Subfolders of `_incoming` are ignored.
 - `x.yml` and `x.yaml` side by side have the same key, and the push is refused.
 

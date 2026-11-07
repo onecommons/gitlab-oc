@@ -22,6 +22,8 @@ sync.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/milestones.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/ids.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/drafts.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/README.md
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/example.yml.sample
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/fix-login.yml
 ```
 
@@ -59,7 +61,9 @@ The nightly job rewrites them, not the moment you rename something.
 Two more paths relate to creating issues offline:
 
 - `<uuid>/_incoming/` holds drafts waiting to be created. You write these
-  files. For details, see
+  files. The commit that creates the branch adds a `README.md` and an
+  `example.yml.sample` draft to copy, so the folder exists before the first
+  draft. They are not added again if you delete them. For details, see
   [Create issues offline with drafts](drafts.md).
 - `<uuid>/drafts.yml` lists each draft key and the issue number it became. It
   starts with `_schema: drafts@1`, followed by a `drafts:` mapping of key to
@@ -124,15 +128,15 @@ description: |
 
   The deploy step fails when the project is public.
 notes:
-- note: Confirmed on staging.
-  author_id: 34
-  created_at: '2026-01-02T03:02:00.000Z'
-  author:
-    name: Alex Chen
+  - note: Confirmed on staging.
+    author_id: 34
+    created_at: '2026-01-02T03:02:00.000Z'
+    author:
+      name: Alex Chen
 label_links:
-- label:
-    title: bug
-    color: "#ff0000"
+  - label:
+      title: bug
+      color: "#ff0000"
 web_url: https://unfurl.cloud/my-group/my-project/-/work_items/1
 ```
 

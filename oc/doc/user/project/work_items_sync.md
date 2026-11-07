@@ -47,13 +47,50 @@ few seconds later.
 
 ## Branch contents
 
-The branch has no code on it. It holds one directory of work item files for each
-installation that writes to it, and a `sync.yml` file at the root that you edit
-by hand. The number in an `issues` or `merge_requests` filename is the number
-shown in the interface, so `issues/42.yml` is issue `#42`.
+The branch holds no code. It is an orphan branch: its first commit has no
+parent, so it shares no history with your code branches. Do not merge it into a
+code branch, or a code branch into it. A merge would bring all the work item
+files into your code, or your code into the branch.
+
+The branch holds one directory of work item files for each installation that
+writes to it, and a `sync.yml` file at the root that you edit by hand. The
+number in an `issues` or `merge_requests` filename is the number shown in the
+interface, so `issues/42.yml` is issue `#42`.
 
 For the full layout and what each file contains, see
 [Work items sync file format](work_items_sync/file_format.md).
+
+### Check out the branch in its own worktree
+
+Because the branch has no code, work with it in a separate Git worktree. Your
+code checkout stays on its code branch, and you do not switch back and forth.
+
+Prerequisites:
+
+- You need an existing clone of the repository.
+
+To check out the branch in its own worktree, from the top folder of your clone,
+run:
+
+```shell
+git fetch origin work-items-sync
+git worktree add work-items work-items-sync
+echo "/work-items/" >> "$(git rev-parse --git-path info/exclude)"
+```
+
+Git creates a local `work-items-sync` branch that tracks
+`origin/work-items-sync`. If your remote has a different name, use it in place
+of `origin`. The last command keeps the `work-items` folder out of
+`git status` in your clone, without a change to `.gitignore`.
+
+The work item files are now in `work-items`. To get the latest sync commits,
+run `git pull` in that folder.
+
+To remove the worktree later, run this from the top folder of your clone:
+
+```shell
+git worktree remove work-items
+```
 
 ## What is synced
 
