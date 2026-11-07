@@ -48,8 +48,36 @@ module OC
           ::File.basename(path, '.yml').to_i
         end
 
+        # Our own issue files a push from oldrev to newrev changed. Adding or
+        # deleting one is not an edit; like every other file the installation
+        # writes, it is ignored and put right by the sync.
+        def changed_paths(repository, oldrev, newrev)
+          diff = ::Gitlab::Git::DiffTree.new(oldrev, newrev)
+          directory = OC::WorkItems.instance_directory
+
+          repository.find_changed_paths([diff]).filter_map do |changed|
+            next if changed.new_file? || changed.deleted_file?
+
+            changed.path if item_path?(changed.path, directory)
+          end
+        end
+
         def diff(path:, old_yaml:, new_yaml:)
           new(path, old_yaml, new_yaml)
+        end
+
+        # The editable fields of a serialized issue, compared the way #fields
+        # compares them; comments as {identity => text}.
+        def values(yaml)
+          document = ::Psych.safe_load(yaml.to_s, permitted_classes: [::Date, ::Time], aliases: false) || {}
+          due_date = document['due_date']
+
+          document.slice('title', 'description', 'state', 'confidential').merge(
+            'due_date' => due_date.is_a?(String) ? ::Date.iso8601(due_date) : due_date,
+            'label_links' => Array(document['label_links']).filter_map { |link| link.dig('label', 'title') }.sort,
+            'milestone' => document['milestone'].is_a?(Hash) ? document['milestone']['title'] : nil,
+            'notes' => Array(document['notes']).to_h { |entry| [entry.values_at(*NOTE_IDENTITY), entry['note']] }
+          )
         end
       end
 
@@ -69,7 +97,34 @@ module OC
         fields.empty? && new_notes.empty? && edited_notes.empty?
       end
 
+      # How each change stands against the item now, given a fresh
+      # serialization of it: :pending while it still has the value the push
+      # started from, :done once it has the pushed value, :conflict if it has
+      # anything else. Keyed by field name, or by EditedNote. New comments
+      # never conflict and are not listed.
+      def statuses(current_yaml)
+        current = self.class.values(current_yaml)
+
+        statuses = fields.to_h do |field, (old_value, new_value)|
+          [field, status(current[field], old_value, new_value)]
+        end
+
+        edited_notes.each do |note|
+          identity = [note.author_id, note.created_at, note.discussion_id]
+          statuses[note] = status(current['notes'][identity], note.old_note, note.note)
+        end
+
+        statuses
+      end
+
       private
+
+      def status(current, old_value, new_value)
+        return :done if current == new_value
+        return :pending if current == old_value
+
+        :conflict
+      end
 
       def compare(before, after)
         (before.keys | after.keys).each do |key|

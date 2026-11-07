@@ -11,7 +11,7 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
       'discussion_id' => 'abc', 'system' => false }
   end
 
-  let(:before) do
+  let(:original) do
     {
       '_schema' => 'issues@1', 'title' => 'Old', 'author_id' => 7, 'iid' => 42, 'state' => 'opened',
       'description' => 'Text', 'confidential' => false, 'due_date' => '2026-12-01',
@@ -21,7 +21,7 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
     }
   end
 
-  def diff(after, old = before)
+  def diff(after, old = original)
     described_class.diff(path: path, old_yaml: old.to_yaml, new_yaml: after.is_a?(String) ? after : after.to_yaml)
   end
 
@@ -43,11 +43,11 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
   end
 
   it 'is empty when nothing editable changed' do
-    expect(diff(before)).to be_empty
+    expect(diff(original)).to be_empty
   end
 
   it 'reports changed fields with their old and new values' do
-    edit = diff(before.merge('title' => 'New', 'state' => 'closed', 'confidential' => true,
+    edit = diff(original.merge('title' => 'New', 'state' => 'closed', 'confidential' => true,
       'description' => nil, 'due_date' => nil))
 
     expect(edit.iid).to eq(42)
@@ -57,59 +57,59 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
   end
 
   it 'does not count a date written differently as a change' do
-    expect(diff("#{before.except('due_date').to_yaml}due_date: '2026-12-01'\n")).to be_empty
+    expect(diff("#{original.except('due_date').to_yaml}due_date: '2026-12-01'\n")).to be_empty
   end
 
   it 'reads labels and the milestone by title' do
-    edit = diff(before.merge(
-      'label_links' => before['label_links'] + [{ 'label' => { 'title' => 'ux' } }],
+    edit = diff(original.merge(
+      'label_links' => original['label_links'] + [{ 'label' => { 'title' => 'ux' } }],
       'milestone' => { 'title' => '2.0' }))
 
     expect(edit.fields).to eq('label_links' => [%w[bug], %w[bug ux]], 'milestone' => ['1.0', '2.0'])
   end
 
   it 'removes the milestone and every label' do
-    edit = diff(before.except('label_links', 'milestone'))
+    edit = diff(original.except('label_links', 'milestone'))
 
     expect(edit.fields).to eq('label_links' => [%w[bug], []], 'milestone' => ['1.0', nil])
   end
 
   describe 'comments' do
     it 'reads a new comment, wherever it is in the list' do
-      edit = diff(before.merge('notes' => [{ 'note' => 'Offline' }, comment]))
+      edit = diff(original.merge('notes' => [{ 'note' => 'Offline' }, comment]))
 
       expect(edit.new_notes.map(&:note)).to eq(%w[Offline])
       expect(edit.edited_notes).to be_empty
     end
 
     it 'reads an edited comment by its author, time and discussion' do
-      edit = diff(before.merge('notes' => [comment.merge('note' => 'Fixed')]))
+      edit = diff(original.merge('notes' => [comment.merge('note' => 'Fixed')]))
 
       expect(edit.edited_notes.first).to have_attributes(
         author_id: 7, created_at: comment['created_at'], discussion_id: 'abc', old_note: 'First', note: 'Fixed')
     end
 
     it 'refuses deleting a comment' do
-      expect(error_for(before.merge('notes' => []))).to include('comments cannot be deleted offline')
+      expect(error_for(original.merge('notes' => []))).to include('comments cannot be deleted offline')
     end
 
     it 'refuses a new comment with anything but its text' do
-      expect(error_for(before.merge('notes' => [comment, { 'note' => 'x', 'system' => true }])))
+      expect(error_for(original.merge('notes' => [comment, { 'note' => 'x', 'system' => true }])))
         .to include('a new comment may only have "note"')
     end
 
     it 'refuses a new comment without text' do
-      expect(error_for(before.merge('notes' => [comment, { 'note' => '' }]))).to include('needs "note" text')
+      expect(error_for(original.merge('notes' => [comment, { 'note' => '' }]))).to include('needs "note" text')
     end
 
     it 'refuses changing anything but the text' do
-      expect(error_for(before.merge('notes' => [comment.merge('note' => 'x', 'system' => true)])))
+      expect(error_for(original.merge('notes' => [comment.merge('note' => 'x', 'system' => true)])))
         .to include('only the text of the comment')
     end
 
     it 'refuses editing a system note' do
       system_note = comment.merge('system' => true)
-      old = before.merge('notes' => [system_note])
+      old = original.merge('notes' => [system_note])
 
       expect { diff(old.merge('notes' => [system_note.merge('note' => 'x')]), old) }
         .to raise_error(described_class::Error, /is a system note/)
@@ -117,10 +117,39 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
 
     it 'refuses editing one of two comments it cannot tell apart' do
       twin = comment.merge('note' => 'Second')
-      old = before.merge('notes' => [comment, twin])
+      old = original.merge('notes' => [comment, twin])
 
       expect { diff(old.merge('notes' => [comment, twin.merge('note' => 'x')]), old) }
         .to raise_error(described_class::Error, /matches more than one comment/)
+    end
+  end
+
+  describe '#statuses' do
+    let(:edit) do
+      diff(original.merge('title' => 'New', 'label_links' => [], 'notes' => [comment.merge('note' => 'Fixed')]))
+    end
+
+    def statuses_with(changes)
+      edit.statuses(original.merge(changes).to_yaml).transform_keys { |key| key.is_a?(String) ? key : :comment }
+    end
+
+    it 'is pending while the item still has the values the push started from' do
+      expect(statuses_with({})).to eq('title' => :pending, 'label_links' => :pending, :comment => :pending)
+    end
+
+    it 'is done for a value the item already has' do
+      expect(statuses_with('title' => 'New')['title']).to eq(:done)
+    end
+
+    it 'is a conflict for anything else, ignoring fields the push left alone' do
+      statuses = statuses_with('title' => 'Other', 'description' => 'Other',
+        'label_links' => [{ 'label' => { 'title' => 'ux' } }], 'notes' => [comment.merge('note' => 'Web')])
+
+      expect(statuses).to eq('title' => :conflict, 'label_links' => :conflict, :comment => :conflict)
+    end
+
+    it 'is a conflict for a comment that is gone' do
+      expect(statuses_with('notes' => [])[:comment]).to eq(:conflict)
     end
   end
 
@@ -142,7 +171,7 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
 
   with_them do
     it 'refuses it, naming the file' do
-      message_text = error_for(before.merge(change))
+      message_text = error_for(original.merge(change))
 
       expect(message_text).to start_with("#{path}:")
       expect(message_text).to include(message)
@@ -150,7 +179,7 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
   end
 
   it 'refuses a title over the length limit' do
-    expect(error_for(before.merge('title' => 'x' * (Issuable::TITLE_LENGTH_MAX + 1)))).to include('longer than')
+    expect(error_for(original.merge('title' => 'x' * (Issuable::TITLE_LENGTH_MAX + 1)))).to include('longer than')
   end
 
   it 'refuses YAML that does not parse, with its line' do
@@ -158,11 +187,11 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
   end
 
   it 'refuses a duplicated key' do
-    expect(error_for("#{before.to_yaml}title: Again\n")).to include('"title" appears twice')
+    expect(error_for("#{original.to_yaml}title: Again\n")).to include('"title" appears twice')
   end
 
   it 'refuses anchors and aliases' do
-    expect(error_for("#{before.except('title', 'description').to_yaml}title: &t x\ndescription: *t\n"))
+    expect(error_for("#{original.except('title', 'description').to_yaml}title: &t x\ndescription: *t\n"))
       .to include('Alias')
   end
 end

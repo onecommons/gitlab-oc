@@ -17,6 +17,7 @@ module OC
     # the issue enqueues it (OC::Issues::BaseService).
     class DraftService
       include BranchTree
+      include IssueMetadata
 
       BATCH_SIZE = 100
 
@@ -74,10 +75,12 @@ module OC
         return 'confidential drafts are only created on private projects' if draft.confidential? && !@project.private?
         return 'you cannot create confidential issues here' if draft.confidential? && !can?(:set_confidentiality, issue)
 
-        assignee_problem(draft, issue) || label_problem(draft) || milestone_problem(draft)
+        assignee_problem(draft, issue) || label_problem(draft.labels) || milestone_problem(draft.milestone)
       end
 
       private
+
+      attr_reader :project, :user
 
       # Pass 2: once every waiting draft has an issue, point each `#draft:<key>`
       # at the issue it became. Covers drafts created by earlier jobs of the same
@@ -160,8 +163,8 @@ module OC
           issue_type: draft.type,
           confidential: draft.confidential?,
           due_date: draft.due_date,
-          label_ids: labels_for(draft).map(&:id),
-          milestone_id: milestone_for(draft)&.id,
+          label_ids: labels_for(draft.labels).map(&:id),
+          milestone_id: milestone_for(draft.milestone)&.id,
           assignee_ids: assignees_for(draft).map(&:id)
         }.compact
       end
@@ -184,51 +187,10 @@ module OC
         "#{unreadable.username} cannot be assigned here" if unreadable
       end
 
-      # rubocop:disable Gitlab/Authz/PermissionCheck -- the abilities Labels:: and Milestones::FindOrCreateService check
-      def label_problem(draft)
-        missing = draft.labels.find { |title| label_service(title).execute(find_only: true).nil? }
-        return unless missing && !can?(:admin_label, @project)
-
-        "label #{missing.inspect} does not exist, and you cannot create labels"
-      end
-
-      def milestone_problem(draft)
-        return unless draft.milestone
-        return if existing_milestone(draft.milestone) || can?(:admin_milestone, @project)
-
-        "milestone #{draft.milestone.inspect} does not exist, and you cannot create milestones"
-      end
-      # rubocop:enable Gitlab/Authz/PermissionCheck
-
-      # Found by title across the project's ancestor groups, else created on
-      # the project -- what importing does.
-      def labels_for(draft)
-        draft.labels.filter_map { |title| label_service(title).execute }
-      end
-
-      def milestone_for(draft)
-        return unless draft.milestone
-
-        ::Milestones::FindOrCreateService.new(@project, @user, 'title' => draft.milestone).execute
-      end
-
-      def existing_milestone(title)
-        groups = @project.group&.self_and_ancestors_ids
-        ::Milestone.for_projects_and_groups([@project.id], groups).find_by(title: title) # rubocop:disable CodeReuse/ActiveRecord -- Milestones::FindOrCreateService's own lookup
-      end
-
       def assignees_for(draft)
         return [] if draft.assignees.empty?
 
         ::User.by_username(draft.assignees).to_a
-      end
-
-      def label_service(title)
-        ::Labels::FindOrCreateService.new(@user, @project, title: title, include_ancestor_groups: true)
-      end
-
-      def can?(ability, subject)
-        Ability.allowed?(@user, ability, subject)
       end
 
       # Paths of the drafts waiting in our inbox, in file-name order.

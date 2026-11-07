@@ -110,6 +110,46 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
         %r{\AWork items sync: #{instance_uuid}/_incoming/fix-login\.yml:2: unknown key "titel"})
     end
 
+    describe 'offline edits to issue files' do
+      let(:issue) { create(:issue, project: project, title: 'Old') }
+      let(:issue_path) { "#{instance_uuid}/issues/#{issue.iid}.yml" }
+
+      before do
+        project.enable_work_items_sync!(true)
+      end
+
+      def sync_issue
+        OC::WorkItems::SyncService.new(project).execute([issue.reload])
+        project.repository.commit(branch).sha
+      end
+
+      it 'refuses an edit it cannot apply, saying which file' do
+        oldrev = sync_issue
+        content = YAML.safe_load(project.repository.blob_at(branch, issue_path).data, permitted_classes: [Time])
+        project.repository.commit_files(owner, branch_name: branch, message: 'edit', actions: [
+          { action: :update, file_path: issue_path, content: content.merge('author_id' => 0).to_yaml }
+        ])
+
+        push(owner_key, project, changes: "#{oldrev} #{project.repository.commit(branch).sha} refs/heads/#{branch}")
+
+        expect(response).to have_gitlab_http_status(:unauthorized)
+        expect(json_response['message'])
+          .to eq("Work items sync: #{issue_path}: \"author_id\" cannot be changed offline")
+      end
+
+      # Every sync commit rewrites issue files from a database that has moved
+      # on since the commit before it; refusing one would stop syncing.
+      it "allows the installation's own sync commit" do
+        oldrev = sync_issue
+        issue.update!(title: 'Changed on the web')
+        newrev = sync_issue
+
+        push(owner_key, project, changes: "#{oldrev} #{newrev} refs/heads/#{branch}")
+
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+    end
+
     it 'allows a push that leaves the file valid' do
       changes = commit_sync_file(valid.sub('import: all', 'import: transferred'))
 

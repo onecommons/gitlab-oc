@@ -3,7 +3,7 @@
 module OC
   module Gitlab
     module Checks
-      # Adds the sync.yml and draft checks to the ref-level checks every push runs.
+      # Adds the sync.yml, draft and offline edit checks to the ref-level checks every push runs.
       #
       # A ref-level check rather than a commit one: what matters is the file as
       # the push leaves it, not what happened to it along the way. A branch
@@ -18,6 +18,7 @@ module OC
 
           ::OC::Gitlab::Checks::SyncFileCheck.new(self).validate!
           ::OC::Gitlab::Checks::DraftFileCheck.new(self).validate!
+          ::OC::Gitlab::Checks::ItemEditCheck.new(self).validate!
         end
       end
     end
