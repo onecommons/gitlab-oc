@@ -28,6 +28,16 @@ module OC
       @overlay_super_sidebar.present?
     end
 
+    # As 15.11's unfurl_home layout: only the dashboard views get the dashboard
+    # menu; a dashboard project's other pages keep the project's own.
+    def unfurl_dashboard_view
+      @unfurl_dashboard_view = true
+    end
+
+    def unfurl_dashboard_view?
+      @unfurl_dashboard_view.present?
+    end
+
     override :nav
     def nav(name = nil)
       return super if name

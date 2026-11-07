@@ -45,6 +45,23 @@ RSpec.describe 'A dashboard project\'s own pages', feature_category: :continuous
       expect(mount_point['data-project-avatar']).to eq(project.avatar_url)
     end
 
+    # As 15.11's unfurl_home layout: the flat menu on the dashboard views only.
+    it "gives the dashboard views the dashboard menu and the project's other pages its own" do
+      sidebar = ->(path) do
+        get path
+        Gitlab::Json::SafeParser.parse(Nokogiri::HTML(response.body).at_css('.js-super-sidebar')['data-sidebar'])
+      end
+
+      dashboard = sidebar.call(project_path(project))
+      expect(dashboard['panel_type']).to eq('dashboard')
+      expect(dashboard['current_menu_items'].pluck('id')).to include('oc_settings')
+
+      tree = sidebar.call(project_tree_path(project, project.default_branch))
+      expect(tree['panel_type']).to eq('project')
+      expect(tree['current_menu_items'].pluck('id')).not_to include('oc_settings')
+      expect(tree['current_menu_items'].pluck('title')).to include('Settings')
+    end
+
     it 'serves the applications view the same way' do
       get project_unfurl_applications_path(project)
 

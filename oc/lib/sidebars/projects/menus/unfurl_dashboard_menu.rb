@@ -3,8 +3,8 @@
 module Sidebars
   module Projects
     module Menus
-      # A dashboard project is the Unfurl dashboard, so its panel is 15.11's
-      # flat list under the owner's name rather than a repository's sections.
+      # The dashboard views' panel: 15.11's flat list under the owner's name.
+      # The project's other pages keep the project's own menus.
       class UnfurlDashboardMenu < ::Sidebars::StaticMenu
         override :title
         def title
@@ -38,7 +38,7 @@ module Sidebars
 
           # rubocop:disable Gitlab/Authz/PermissionCheck -- the check SettingsMenu makes
           if can?(context.current_user, :admin_project, project)
-            add_item(item(_('Settings'), edit_project_path(project),
+            add_item(item(_('Settings'), edit_project_path(project, anchor: 'js-general-project-settings'),
               { path: 'projects#edit', controller: %w[projects/settings/repository projects/settings/ci_cd] },
               :oc_settings, 'settings'))
           end

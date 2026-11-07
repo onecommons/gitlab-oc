@@ -33,12 +33,17 @@ module OC
     # sidebar from offering pins and More features.
     override :super_sidebar_context
     def super_sidebar_context(user, group:, project:, panel:, panel_type:)
-      panel_type = 'dashboard' if panel_type == 'project' && dashboard_section?(project)
+      panel_type = 'dashboard' if panel_type == 'project' && unfurl_dashboard_view?
 
       super.merge(edition_topbar_links: topbar_links(project), sidebar_overlay: overlay_super_sidebar?)
     end
 
     private
+
+    override :project_sidebar_context_data
+    def project_sidebar_context_data(...)
+      super.merge(unfurl_dashboard_view: unfurl_dashboard_view?)
+    end
 
     def topbar_links(project)
       # `/home` resolves the user's own dashboard, so this needs no lookup here.

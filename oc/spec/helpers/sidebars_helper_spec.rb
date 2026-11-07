@@ -87,6 +87,29 @@ RSpec.describe SidebarsHelper, feature_category: :navigation do
       end
     end
 
+    describe 'panel type' do
+      subject(:panel_type) do
+        helper.super_sidebar_context(user, group: nil, project: nil, panel: panel, panel_type: 'project')
+              .fetch(:panel_type)
+      end
+
+      before do
+        allow(helper).to receive(:super_sidebar_logged_in_context) do |_user, panel_type:, **|
+          { panel_type: panel_type }
+        end
+      end
+
+      it 'stays project on ordinary project pages' do
+        expect(panel_type).to eq('project')
+      end
+
+      it 'is dashboard on the dashboard views' do
+        helper.unfurl_dashboard_view
+
+        expect(panel_type).to eq('dashboard')
+      end
+    end
+
     it "tells the topbar whether the page's sidebar is overlaid" do
       context = -> { helper.super_sidebar_context(user, group: nil, project: nil, panel: panel, panel_type: 'explore') }
 

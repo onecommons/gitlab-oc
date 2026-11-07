@@ -9,7 +9,7 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
   # rubocop: enable RSpec/FactoryBot/AvoidCreate
   let(:blueprint_menu) { Sidebars::Projects::Menus::ApplicationBlueprintMenu }
 
-  def panel(current_user = user)
+  def panel(current_user = user, dashboard_view: true)
     context = Sidebars::Projects::Context.new(
       current_user: current_user,
       container: project,
@@ -20,7 +20,8 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
       show_get_started_menu: false,
       show_discover_project_security: false,
       show_cluster_hint: false,
-      show_promotions: false
+      show_promotions: false,
+      unfurl_dashboard_view: dashboard_view
     )
 
     described_class.new(context)
@@ -79,6 +80,21 @@ RSpec.describe Sidebars::Projects::SuperSidebarPanel, feature_category: :navigat
       it 'leaves out Repository, which has no ref to show' do
         expect(panel.super_sidebar_menu_items.pluck(:title)).not_to include('Repository')
       end
+    end
+
+    it "links Settings to the general settings, as 15.11's did" do
+      settings = panel.super_sidebar_menu_items.find { |item| item[:id] == :oc_settings }
+
+      expect(settings[:link]).to eq("/#{project.full_path}/edit#js-general-project-settings")
+    end
+
+    it "keeps the project's own menus off the dashboard views" do
+      menus = panel(dashboard_view: false).instance_variable_get(:@menus).map(&:class)
+
+      expect(menus).not_to include(dashboard_menu)
+      expect(menus).to include(Sidebars::Projects::SuperSidebarMenus::ManageMenu,
+        Sidebars::Projects::Menus::SettingsMenu)
+      expect(panel(dashboard_view: false).super_sidebar_context_header).not_to be_nil
     end
 
     it 'leaves out Settings for those who cannot change them' do

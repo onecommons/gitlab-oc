@@ -33,7 +33,8 @@ module OC
         private
 
         def dashboard?
-          context.project.recorded_unfurl_type == ::OC::UNFURL_DASHBOARD
+          context.try(:unfurl_dashboard_view) &&
+            context.project.recorded_unfurl_type == ::OC::UNFURL_DASHBOARD
         end
 
         # The overview is the point of a blueprint project, so it leads the
