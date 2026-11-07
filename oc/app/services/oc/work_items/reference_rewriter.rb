@@ -32,16 +32,18 @@ module OC
     class ReferenceRewriter
       # Code is skipped wholesale. `#1` inside a fenced block or a code span is
       # not a reference, and rewriting it would corrupt content that is often
-      # the very thing being discussed.
-      #
+      # the very thing being discussed. Shared with DraftFile, so the two agree
+      # on what is code.
+      CODE = %r{
+        ^[ \t]{0,3}(?<fence>```|~~~)[\s\S]*?^[ \t]{0,3}\k<fence>[^\n]*$
+        |
+        `[^`\n]+`
+      }xm
+
       # Order matters twice: code has to win over everything, and the
       # path-qualified form has to be tried before the bare one.
       SEGMENT = %r{
-        (?<code>
-          ^[ \t]{0,3}(?<fence>```|~~~)[\s\S]*?^[ \t]{0,3}\k<fence>[^\n]*$
-          |
-          `[^`\n]+`
-        )
+        (?<code>#{CODE})
         |
         (?<xref>
           (?<![\w/])
