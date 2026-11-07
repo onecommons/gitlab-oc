@@ -88,6 +88,16 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       put project_work_items_sync_path(project), params: { enabled: 'true' }
     end
 
+    it 'leaves sync as it is when the request does not say on or off' do
+      project.enable_work_items_sync!(true)
+      sign_in(maintainer)
+
+      put project_work_items_sync_path(project)
+
+      expect(project.reload.work_items_sync_opted_in?).to be(true)
+      expect(flash[:notice]).to include('settings saved')
+    end
+
     it 'is not available to developers' do
       put_toggle(developer, 'true')
 

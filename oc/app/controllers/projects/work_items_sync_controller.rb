@@ -8,10 +8,15 @@ module Projects
     feature_category :source_code_management
 
     def update
-      enabled = Gitlab::Utils.to_boolean(sync_params[:enabled], default: false)
       was_syncing_confidential = project.sync_confidential_work_items?
 
-      project.enable_work_items_sync!(enabled)
+      # The value comes from the button that was pressed. A request without it
+      # leaves sync as it is rather than reading as "off".
+      if sync_params.key?(:enabled)
+        project.enable_work_items_sync!(Gitlab::Utils.to_boolean(sync_params[:enabled], default: false))
+      end
+
+      enabled = project.work_items_sync_enabled?(recording: false)
       project.include_work_items_sync_confidential!(
         Gitlab::Utils.to_boolean(sync_params[:sync_confidential], default: false))
 
