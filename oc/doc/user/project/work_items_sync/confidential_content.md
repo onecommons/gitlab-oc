@@ -40,6 +40,13 @@ Clearing the checkbox deletes the affected files on the next sync and rebuilds
 the branch. For details, see
 [When syncing confidential content stops](#when-syncing-confidential-content-stops).
 
+## Drafts
+
+Text of an [issue draft](drafts.md) stays in the branch history even after the
+draft is deleted. Drafts with `confidential: true` are accepted only on private
+projects. When syncing confidential content stops and the branch is rebuilt,
+waiting confidential drafts are dropped. Other waiting drafts are kept.
+
 ## Mentions
 
 When a confidential issue refers to an ordinary one, Unfurl Cloud records that

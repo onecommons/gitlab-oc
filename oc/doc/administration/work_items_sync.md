@@ -145,3 +145,6 @@ Some events are recorded only in the application log.
 |:------|:-----------------|
 | An import was skipped because the person pushing is not an Owner or Planner of the project. The push still succeeds and nothing appears in the interface. | `work items import skipped: push not authorized by an owner` |
 | An import is waiting because the `default_user` in `sync.yml` does not exist or does not qualify. Nothing is imported from that peer, and the import continues by itself after the account exists or is added. It does not fall back to the Ghost User. | `work items import waiting: default_user cannot be used` |
+| A draft was not created. The reason follows the key, and the draft stays on the branch. | `work item drafts skipped: <key>: <reason>` |
+| Drafts were not created because work items sync is off for the project. They are created by the first push after sync is turned on. | `work item drafts skipped: work items sync is off` |
+| A waiting draft was dropped when the branch was rebuilt after syncing confidential content stopped, because it was confidential or could not be read. | `work item drafts dropped by purge: <key>` |

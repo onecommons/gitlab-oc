@@ -21,6 +21,8 @@ sync.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/labels.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/milestones.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/ids.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/drafts.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/fix-login.yml
 ```
 
 The first path segment is the UUID of the installation. Everything below it
@@ -53,6 +55,15 @@ uses, so the catalogs cover what the work items do not mention:
 - The description and dates of a milestone whose issues are all closed.
 
 The nightly job rewrites them, not the moment you rename something.
+
+Two more paths relate to creating issues offline:
+
+- `<uuid>/_incoming/` holds drafts waiting to be created. You write these
+  files. For details, see
+  [Create issues offline with drafts](drafts.md).
+- `<uuid>/drafts.yml` lists each draft key and the issue number it became. It
+  starts with `_schema: drafts@1`, followed by a `drafts:` mapping of key to
+  number.
 
 ## Reference files for imported items
 
