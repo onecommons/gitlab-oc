@@ -14,6 +14,35 @@ module OC
       @developer_guide = oc_markdown('developer_guide.md')
     end
 
+    # With no docs site configured, upstream's index rather than docs.gitlab.com.
+    # Read from doc/ directly: path_to_doc would pick the fork's index.
+    override :redirect_to_docs
+    def redirect_to_docs
+      return super if documentation_base_url
+
+      @path = 'docs'
+      @markdown = markdown_for(File.join(Rails.root, 'doc', '_index.md'))
+      render :show, formats: :html
+    end
+
+    override :show
+    def show
+      # From .../page/ a browser resolves the page's relative links one folder too deep.
+      requested = request.original_fullpath.split('?').first
+      return redirect_to(requested.chomp('/'), status: :moved_permanently) if requested.end_with?('/')
+
+      # Upstream serves doc/ images except SVG, which the docs use for diagrams.
+      # An SVG opened on its own can run script, so this one runs none.
+      svg = params.permit(:path, :format)
+      return super unless svg[:format] == 'svg'
+
+      path = path_to_doc("#{Rack::Utils.clean_path_info(svg[:path])}.svg")
+      return head :not_found unless File.exist?(path)
+
+      response.headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; img-src data:"
+      send_file(path, type: 'image/svg+xml', disposition: 'inline')
+    end
+
     private
 
     # Upstream's own reader, so frontmatter is stripped the same way. Neither
