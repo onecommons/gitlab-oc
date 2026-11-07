@@ -334,5 +334,28 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
         expect(draft_lines).to be_empty
       end
     end
+
+    describe 'offline edits' do
+      let(:issue) { create(:issue, project: project) }
+      let(:issue_path) { "#{instance_uuid}/issues/#{issue.iid}.yml" }
+
+      before do
+        project.enable_work_items_sync!(true)
+      end
+
+      it 'says which issues the push edited' do
+        OC::WorkItems::SyncService.new(project).execute([issue])
+        oldrev = project.repository.commit(branch).sha
+        content = YAML.safe_load(project.repository.blob_at(branch, issue_path).data, permitted_classes: [Time])
+        project.repository.commit_files(owner, branch_name: branch, message: 'edit', actions: [
+          { action: :update, file_path: issue_path, content: content.merge('title' => 'New').to_yaml }
+        ])
+
+        post_receive(pushing: "#{oldrev} #{project.repository.commit(branch).sha} refs/heads/#{branch}")
+
+        expect(json_response['messages'].pluck('message'))
+          .to include("Work items sync: edits to 1 issue will be applied (##{issue.iid})")
+      end
+    end
   end
 end

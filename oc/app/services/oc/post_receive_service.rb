@@ -25,6 +25,7 @@ module OC
 
       report_sync_file(response)
       report_drafts(response)
+      report_item_edits(response)
 
       response
     end
@@ -84,6 +85,40 @@ module OC
       ::Gitlab::AppLogger.warn(
         message: 'work item drafts could not be reported to the pusher',
         project_id: project&.id, error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
+    end
+
+    # The push check has already refused any edit that could not be applied,
+    # so every issue edited here is about to be. Not what came of it: a field
+    # changed on the web in the next few seconds still skips the issue.
+    def report_item_edits(response)
+      change = sync_branch_change
+      return unless change && !::Gitlab::Git.blank_ref?(change[:oldrev])
+      return if ::OC::WorkItems.own_sync_commit?(project.repository.commit(change[:newrev])&.safe_message)
+
+      iids = edited_iids(change[:oldrev], change[:newrev])
+      return if iids.empty?
+
+      response.add_basic_message(
+        "#{PREFIX} edits to #{iids.size} #{'issue'.pluralize(iids.size)} will be applied " \
+          "(#{iids.map { |iid| "##{iid}" }.join(', ')})")
+    rescue ::StandardError => error
+      ::Gitlab::AppLogger.warn(
+        message: 'work item edits could not be reported to the pusher',
+        project_id: project&.id, error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
+    end
+
+    def edited_iids(oldrev, newrev)
+      ::OC::WorkItems::ItemEdit.changed_paths(project.repository, oldrev, newrev).filter_map do |path|
+        edit = ::OC::WorkItems::ItemEdit.diff(path: path, old_yaml: blob_data(oldrev, path),
+          new_yaml: blob_data(newrev, path))
+        edit.iid unless edit.empty?
+      end.sort
+    end
+
+    def blob_data(sha, path)
+      blob = project.repository.blob_at(sha, path)
+      blob.load_all_data!
+      blob.data
     end
 
     def touches_our_drafts?(change)
