@@ -229,5 +229,64 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
       expect(sync_message).to be_nil
     end
 
+    describe 'issue drafts' do
+      def push_drafts(files)
+        oldrev = project.repository.commit(branch).sha
+        actions = files.map do |name, content|
+          { action: :create, file_path: "#{instance_uuid}/_incoming/#{name}", content: content }
+        end
+        project.repository.commit_files(owner, branch_name: branch, message: 'drafts', actions: actions)
+
+        "#{oldrev} #{project.repository.commit(branch).sha} refs/heads/#{branch}"
+      end
+
+      def draft(extra = {})
+        { '_schema' => 'issue_draft@1', 'title' => 'T' }.merge(extra).to_yaml
+      end
+
+      def draft_lines
+        json_response['messages'].map { |entry| entry['message'] }.select { |text| text.include?('draft') }
+      end
+
+      before do
+        allow_next_found_instance_of(Project) do |found|
+          allow(found).to receive(:work_items_sync_enabled?).and_return(true)
+        end
+      end
+
+      it 'says which drafts will be created, which were already, and which this pusher cannot create' do
+        create(:oc_work_item_draft, project: project, key: 'old-one')
+
+        post_receive(as: developer_key, pushing: push_drafts(
+          'fix-login.yml' => draft,
+          'old-one.yml' => draft,
+          'nobody.yml' => draft('assignees' => ['nobody-here'])
+        ))
+
+        refusal = json_response['messages'].find { |entry| entry['message'].include?('cannot be created by you') }
+        expect(refusal['type']).to eq('alert')
+        expect(draft_lines.join("\n")).to include(
+          'Work items sync: 1 draft will be created (fix-login)',
+          'Work items sync: 1 draft already created and will be removed (old-one)',
+          'Work items sync: draft nobody cannot be created by you: no user nobody-here can be assigned here')
+      end
+
+      it 'says drafts wait while work items sync is off' do
+        allow_next_found_instance_of(Project) do |found|
+          allow(found).to receive(:work_items_sync_enabled?).and_return(false)
+        end
+
+        post_receive(pushing: push_drafts('a.yml' => draft))
+
+        expect(draft_lines).to include(
+          'Work items sync: drafts are not created while work items sync is off for this project')
+      end
+
+      it 'says nothing when no draft of ours changed' do
+        post_receive(pushing: push_drafts('README.md' => 'notes'))
+
+        expect(draft_lines).to be_empty
+      end
+    end
   end
 end

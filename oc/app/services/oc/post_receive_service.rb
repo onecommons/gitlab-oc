@@ -24,6 +24,7 @@ module OC
       response = super
 
       report_sync_file(response)
+      report_drafts(response)
 
       response
     end
@@ -56,6 +57,66 @@ module OC
       ::Gitlab::AppLogger.warn(
         message: 'work items sync file could not be reported to the pusher',
         project_id: project&.id, error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
+    end
+
+    # What the drafts waiting in our inbox will come to, after a push that
+    # added or changed one there. Like the sync.yml summary, this is what the
+    # run is about to try, not what came of it.
+    def report_drafts(response)
+      change = sync_branch_change
+      return unless change && touches_our_drafts?(change)
+
+      unless project.work_items_sync_enabled?(recording: false)
+        response.add_alert_message("#{PREFIX} drafts are not created while work items sync is off for this project")
+        return
+      end
+
+      lines, refusals = draft_report(change[:newrev])
+      response.add_basic_message(lines.join("\n")) if lines.any?
+      response.add_alert_message(refusals.join("\n")) if refusals.any?
+    rescue ::StandardError => error
+      ::Gitlab::AppLogger.warn(
+        message: 'work item drafts could not be reported to the pusher',
+        project_id: project&.id, error_class: error.class.name, ::Labkit::Fields::ERROR_MESSAGE => error.message)
+    end
+
+    def touches_our_drafts?(change)
+      return false if ::Gitlab::Git.blank_ref?(change[:oldrev])
+
+      diff = ::Gitlab::Git::DiffTree.new(change[:oldrev], change[:newrev])
+      project.repository.find_changed_paths([diff]).any? do |changed|
+        !changed.deleted_file? && ::OC::WorkItems::DraftFile.draft_path?(changed.path, instance_uuid)
+      end
+    end
+
+    def draft_report(sha)
+      inbox = "#{instance_uuid}/#{::OC::WorkItems::DraftFile::DIRECTORY}"
+      paths = project.repository.tree(sha, inbox).blobs.map(&:path)
+        .select { |path| ::OC::WorkItems::DraftFile.draft_path?(path, instance_uuid) }
+      keys = paths.index_by { |path| ::OC::WorkItems::DraftFile.key_for(path) }
+      used = ::OC::WorkItems::Draft.for_project(project).where(key: keys.keys).pluck(:key) # rubocop:disable CodeReuse/ActiveRecord -- one indexed lookup
+      service = ::OC::WorkItems::DraftService.new(project, user)
+
+      refused = {}
+      created = (keys.keys - used).sort.select do |key|
+        blob = project.repository.blob_at(sha, keys[key])
+        blob.load_all_data!
+        problem = service.preflight(::OC::WorkItems::DraftFile.parse(blob.data, path: keys[key]))
+        refused[key] = problem if problem
+        problem.nil?
+      end
+
+      lines = []
+      lines << "#{PREFIX} #{drafts(created.size)} will be created (#{created.join(', ')})" if created.any?
+
+      lines << "#{PREFIX} #{drafts(used.size)} already created and will be removed (#{used.sort.join(', ')})" if
+        used.any?
+
+      [lines, refused.map { |key, problem| "#{PREFIX} draft #{key} cannot be created by you: #{problem}" }]
+    end
+
+    def drafts(count)
+      "#{count} #{'draft'.pluralize(count)}"
     end
 
     def summary(file)
