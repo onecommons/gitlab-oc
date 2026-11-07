@@ -17,7 +17,9 @@
     -# The uuid sync.yml names an installation by, and its directory on the branch.
     - if (instance_uuid = Gitlab::CurrentSettings.uuid.presence)
       %p
-        = _('This installation\'s ID, for sync.yml:')
+        = _('This installation\'s ID, for')
+        = succeed ':' do
+          = link_to 'sync.yml', help_page_path('user/project/work_items_sync/sync_yml.md'), target: '_blank', rel: 'noopener noreferrer'
         %code{ data: { testid: 'work-items-sync-instance-id' } }= instance_uuid
     = form_tag project_work_items_sync_path(@project), method: :put do
       %p
@@ -29,7 +31,7 @@
           = _('It is on by default for Unfurl projects.')
       .form-check.gl-mb-2
         = check_box_tag :sync_confidential, '1', sync_confidential,
-          class: 'form-check-input', disabled: confidential_locked
+          class: 'form-check-input js-work-items-sync-confidential', disabled: confidential_locked
         = label_tag :sync_confidential, _('Also sync confidential content'), class: 'form-check-label'
       %p.form-text.text-muted.gl-mb-3
         - if confidential_locked
@@ -38,12 +40,15 @@
           = _('Includes confidential issues and internal notes, which are left out by default. Anything committed stays readable in the branch history even after it is deleted, so only turn this on if the repository is meant to hold it.')
       -# Every button carries the `enabled` value it means, so no hidden field is
       -# needed and the submitted state never depends on parameter ordering.
+      -# js-no-auto-disable: main.js disables submit buttons on submit, and a
+      -# disabled button's value is not sent.
+      -# Shown by work_items_sync.js once the checkbox changes.
       = button_tag _('Save changes'), type: 'submit', name: 'enabled', value: enabled.to_s,
-        class: 'gl-button btn btn-confirm'
+        class: 'gl-button btn btn-confirm gl-hidden js-work-items-sync-save js-no-auto-disable gl-mr-3'
       - if enabled
         = button_tag _('Disable work items sync'), type: 'submit', name: 'enabled', value: 'false',
-          class: 'gl-button btn btn-danger gl-ml-3'
+          class: 'gl-button btn btn-danger js-no-auto-disable'
       - else
         = button_tag _('Enable work items sync'), type: 'submit', name: 'enabled', value: 'true',
-          class: 'gl-button btn btn-confirm gl-ml-3',
+          class: 'gl-button btn btn-confirm js-no-auto-disable',
           data: { confirm: _('All existing issues and merge requests will be committed to the sync branch. Continue?') }
