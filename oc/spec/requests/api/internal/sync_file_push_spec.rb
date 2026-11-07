@@ -95,6 +95,21 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
         %r{\AWork items sync: sync\.yml:\d+: unknown key "improt" in "us/sync/them"})
     end
 
+    # The draft check goes through the same hop, so it reaches the pusher too.
+    it 'refuses a push with a malformed issue draft, saying which file and line' do
+      oldrev = project.repository.commit(branch).sha
+      project.repository.create_file(
+        owner, "#{instance_uuid}/_incoming/fix-login.yml", "_schema: issue_draft@1\ntitel: T\n",
+        message: 'draft', branch_name: branch)
+      changes = "#{oldrev} #{project.repository.commit(branch).sha} refs/heads/#{branch}"
+
+      push(owner_key, project, changes: changes)
+
+      expect(response).to have_gitlab_http_status(:unauthorized)
+      expect(json_response['message']).to match(
+        %r{\AWork items sync: #{instance_uuid}/_incoming/fix-login\.yml:2: unknown key "titel"})
+    end
+
     it 'allows a push that leaves the file valid' do
       changes = commit_sync_file(valid.sub('import: all', 'import: transferred'))
 
@@ -213,5 +228,6 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
 
       expect(sync_message).to be_nil
     end
+
   end
 end
