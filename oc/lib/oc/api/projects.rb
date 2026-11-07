@@ -42,7 +42,7 @@ module OC
         end
 
         resource :projects, requirements: ::API::NAMESPACE_OR_PROJECT_REQUIREMENTS do
-          desc 'Enable or disable syncing work items into the gitlab-work-items branch'
+          desc 'Enable or disable syncing work items into the work-items-sync branch'
           params do
             requires :enabled, type: Grape::API::Boolean, desc: 'Whether to sync work items'
             optional :sync_confidential, type: Grape::API::Boolean,

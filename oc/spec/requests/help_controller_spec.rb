@@ -19,7 +19,7 @@ RSpec.describe 'Help pages from oc/doc', feature_category: :source_code_manageme
 
       expect(response).to have_gitlab_http_status(:ok)
       expect(response.body).to include('Work items sync')
-      expect(response.body).to include('gitlab-work-items')
+      expect(response.body).to include('work-items-sync')
     end
 
     it 'serves the fork help landing page, with its guides and contact footer' do
@@ -92,7 +92,7 @@ RSpec.describe 'Help pages from oc/doc', feature_category: :source_code_manageme
       get help_page_path('user/project/work_items_sync.md')
 
       expect(response).to have_gitlab_http_status(:ok)
-      expect(response.body).to include('gitlab-work-items')
+      expect(response.body).to include('work-items-sync')
     end
 
     it 'redirects an upstream page' do

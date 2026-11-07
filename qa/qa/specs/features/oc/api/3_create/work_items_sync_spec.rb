@@ -21,7 +21,7 @@ module QA
   # second installation would add is the writing side, which the publishing
   # example below already covers from this end.
   RSpec.describe 'OneCommons work items sync', feature_category: :source_code_management do
-    let(:branch) { 'gitlab-work-items' }
+    let(:branch) { 'work-items-sync' }
     let(:peer_uuid) { '11111111-2222-3333-4444-555555555555' }
     let(:api_client) { Runtime::API::Client.as_admin }
 

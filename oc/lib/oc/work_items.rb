@@ -2,7 +2,7 @@
 
 module OC
   module WorkItems
-    SYNC_BRANCH = 'gitlab-work-items'
+    SYNC_BRANCH = 'work-items-sync'
 
     # How long a sync waits before it runs, so that a burst of edits to one
     # item becomes one commit instead of five. Ten seconds is the right answer

@@ -166,7 +166,7 @@ module OC
       import_data&.data&.dig('is_mirror').present?
     end
 
-    # Work items sync (issues/MRs mirrored into the gitlab-work-items branch)
+    # Work items sync (issues/MRs mirrored into the work-items-sync branch)
     # defaults to on for unfurl projects and off for everything else. An
     # explicit choice made on the settings page or through the API always wins,
     # so an unfurl project can turn it off.

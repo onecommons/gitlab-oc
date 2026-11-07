@@ -97,7 +97,7 @@ That is what made this spec fail intermittently before it was isolated.
 ## Regenerating the work item snapshots
 
 `oc/spec/fixtures/work_items/*.yml` record, byte for byte, what the work items
-sync commits to the `gitlab-work-items` branch, one file per relation. They
+sync commits to the `work-items-sync` branch, one file per relation. They
 double as documentation of the format: the placeholders carry inline `# e.g.`
 comments, which `WorkItemSnapshots#strip_example_comments` removes before the
 comparison. `oc/spec/services/oc/work_items/record_serializer_snapshot_spec.rb`

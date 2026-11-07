@@ -4,7 +4,7 @@ title: Work items sync
 
 Work items sync keeps a copy of your project's issues, merge requests, and
 commit comments in the project's own Git repository, as plain YAML files on a
-branch called `gitlab-work-items`.
+branch called `work-items-sync`.
 
 Every time you open an issue, edit a description, leave a comment, or react with
 an emoji, Unfurl Cloud commits the updated file to that branch a few seconds
@@ -457,7 +457,7 @@ content out of the branch unless the repository is meant to hold it permanently.
 
 ## Bringing in another installation's items
 
-Push the `gitlab-work-items` branch from another Unfurl Cloud installation to
+Push the `work-items-sync` branch from another Unfurl Cloud installation to
 this project, name that installation in the branch's `sync.yml`, and the issues
 and merge requests it carries are copied here as read-only items. There is no
 configuration to exchange, no tokens, and no network path between the two
@@ -922,7 +922,7 @@ could have found anyway.
   changes. Two things you push *do* have an effect: another installation's
   directory, and `sync.yml` — see
   [Bringing in another installation's items](#bringing-in-another-installations-items).
-- **No pipelines run** for the `gitlab-work-items` branch, including for commits
+- **No pipelines run** for the `work-items-sync` branch, including for commits
   you push to it yourself.
 - **Each sync commit records where it came from** in Git trailers:
   `Unfurl-Cloud-Version` (the same value the help page shows as "Current
@@ -957,7 +957,7 @@ could have found anyway.
 - **If the branch is protected** in a way that blocks the project owner from
   pushing to it, sync stops silently. Check your protected branch rules if the
   branch stops updating.
-- Merge requests that target or come from `gitlab-work-items` itself are never
+- Merge requests that target or come from `work-items-sync` itself are never
   synced.
 
 ## Administration

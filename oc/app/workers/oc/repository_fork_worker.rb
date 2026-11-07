@@ -13,7 +13,7 @@ module OC
       remove_work_items_sync_branch(target_project)
     end
 
-    # A fork copies every branch, including the parent's gitlab-work-items
+    # A fork copies every branch, including the parent's work-items-sync
     # branch -- but issues/MRs live in the database and are NOT forked, so
     # the inherited branch describes another project's work items (and, for
     # a private parent, can expose confidential issues to fork members).
