@@ -38,7 +38,7 @@ module OC
           action_for(issuable, oids) if OC::WorkItems.syncable?(issuable)
         end
 
-        commit!(actions + identities_actions(oids))
+        commit!(actions + draft_actions(issuables, oids) + identities_actions(oids))
       end
 
       # commit_ids: enumerable of commit shas whose notes changed. Each sha's
@@ -83,7 +83,21 @@ module OC
             oids)
         end
 
-        commit!(actions + identities_actions(oids, replace: true))
+        # drafts.yml is written with the drafts it describes (#draft_actions);
+        # this rewrite is the backstop for a draft deleted by hand.
+        commit!(actions + [drafts_map_action(oids)].compact + identities_actions(oids, replace: true))
+      end
+
+      # Removes drafts on the branch whose key an issue was already created
+      # from -- an old copy merged back. Never recreated: the key is spent.
+      def remove_drafts(paths)
+        return unless commit_user
+
+        oids = branch_blob_oids
+        deletions = paths.select { |path| oids.key?(path) }.map { |path| { action: :delete, file_path: path } }
+        return if deletions.empty?
+
+        commit!(deletions + [drafts_map_action(oids)].compact)
       end
 
       # Removes the file for an issuable that no longer exists.
@@ -168,7 +182,7 @@ module OC
       # Returns true when a branch was actually deleted.
       def purge_own_history!
         branch_sha = head_sha
-        carried = branch_sha ? foreign_files(branch_sha) : {}
+        carried = branch_sha ? foreign_files(branch_sha).merge(waiting_drafts(branch_sha)) : {}
 
         return false unless delete_branch!
 
@@ -255,6 +269,61 @@ module OC
           files[path] = blob.data
         end
       end
+
+      # Drafts still waiting in our inbox, to survive a purge -- except a
+      # confidential one, which is the kind of text a purge exists to remove,
+      # and one that does not parse, whose confidentiality cannot be read.
+      def waiting_drafts(branch_sha)
+        directory = OC::WorkItems.instance_directory
+
+        blob_oids_at(@repository, branch_sha, "#{directory}/#{DraftFile::DIRECTORY}").keys
+          .select { |path| DraftFile.draft_path?(path, directory) }
+          .each_with_object({}) do |path, drafts|
+            blob = @repository.blob_at(branch_sha, path)
+            blob.load_all_data!
+            content = blob.data
+
+            if DraftFile.parse(content, path: path).confidential?
+              ::Gitlab::AppLogger.info(message: "work item drafts dropped by purge: #{DraftFile.key_for(path)}",
+                project_id: @project.id)
+              next
+            end
+
+            drafts[path] = content
+          rescue DraftFile::Error
+            ::Gitlab::AppLogger.info(message: "work item drafts dropped by purge: #{DraftFile.key_for(path)}",
+              project_id: @project.id)
+          end
+      end
+
+      # Deletes the drafts the issues in this commit were created from, and
+      # updates drafts.yml with them, so the branch never shows an issue
+      # without its draft gone or a draft gone without its issue published.
+      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      def draft_actions(issuables, oids)
+        issue_ids = issuables.grep(::Issue).map(&:id)
+        return [] if issue_ids.empty?
+
+        keys = OC::WorkItems::Draft.for_project(@project).where(issue_id: issue_ids).pluck(:key)
+        return [] if keys.empty?
+
+        inbox = "#{OC::WorkItems.instance_directory}/#{DraftFile::DIRECTORY}"
+        deletions = keys.flat_map do |key|
+          DraftFile::EXTENSIONS.map { |extension| "#{inbox}/#{key}#{extension}" }.select { |path| oids.key?(path) }
+        end
+
+        deletions.map { |path| { action: :delete, file_path: path } } + [drafts_map_action(oids)].compact
+      end
+
+      # drafts.yml: each draft key and the issue number it became, so a clone
+      # can see it offline. nil (deleted) once there are none.
+      def drafts_map_action(oids)
+        drafts = OC::WorkItems::Draft.for_project(@project).order(:key).pluck(:key, :iid)
+        content = ({ '_schema' => 'drafts@1', 'drafts' => drafts.to_h }.to_yaml if drafts.any?)
+
+        file_action("#{OC::WorkItems.instance_directory}/drafts.yml", content, oids)
+      end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def action_for(issuable, oids)
         file_action(@serializer.file_path(issuable), @serializer.to_yaml(issuable), oids)

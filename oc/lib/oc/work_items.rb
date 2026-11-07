@@ -75,6 +75,17 @@ module OC
       "#{COMMIT_MESSAGE}\n\n#{trailers.map { |key, value| "#{key}: #{value}\n" }.join}"
     end
 
+    # Whether message is one of this installation's own sync commits. Every
+    # sync commit, purge replay included, is a single commit_files commit, so
+    # the newest commit of a push says whether the push was ours. Faking the
+    # message only stops the faker's own drafts being created.
+    def self.own_sync_commit?(message)
+      id = instance_id
+      return false if id.blank? || message.blank?
+
+      message.start_with?(COMMIT_MESSAGE) && message.include?("#{INSTANCE_TRAILER}: #{id}")
+    end
+
     # nil on an instance that has neither -- possible in test environments,
     # where an empty trailer would be worse than no trailer.
     def self.instance_id

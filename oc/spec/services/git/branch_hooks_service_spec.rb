@@ -90,6 +90,17 @@ RSpec.describe Git::BranchHooksService, feature_category: :source_code_managemen
       service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
     end
 
+    it 'does not start a drafts run for one of our own sync commits' do
+      allow(OC::WorkItems).to receive(:instance_id).and_return('uuid https://example.com')
+      allow(project.repository).to receive(:commit).and_call_original
+      allow(project.repository).to receive(:commit).with(project.commit.id)
+        .and_return(double('commit', safe_message: OC::WorkItems.commit_message)) # rubocop:disable RSpec/VerifiedDoubles -- Commit delegates safe_message by method_missing
+
+      expect(OC::WorkItems::DraftsWorker).not_to receive(:perform_async)
+
+      service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
+    end
+
     it 'starts a drafts run as the pusher when the work items sync branch is pushed' do
       expect(OC::WorkItems::DraftsWorker).to receive(:perform_async).with(project.id, project.creator.id)
 

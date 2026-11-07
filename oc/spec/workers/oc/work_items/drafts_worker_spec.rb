@@ -23,6 +23,17 @@ RSpec.describe OC::WorkItems::DraftsWorker, feature_category: :source_code_manag
     described_class.new.perform(project.id, user.id)
   end
 
+  it 'removes drafts whose key was already used' do
+    result.stale = ['uuid/_incoming/old.yml']
+    allow_next_instance_of(OC::WorkItems::DraftService) { |service| allow(service).to receive(:execute).and_return(result) }
+
+    expect_next_instance_of(OC::WorkItems::SyncService, project, triggered_by: user) do |sync|
+      expect(sync).to receive(:remove_drafts).with(['uuid/_incoming/old.yml'])
+    end
+
+    described_class.new.perform(project.id, user.id)
+  end
+
   it 'leaves drafts alone while work items sync is off' do
     allow(project).to receive(:work_items_sync_enabled?).and_return(false)
 

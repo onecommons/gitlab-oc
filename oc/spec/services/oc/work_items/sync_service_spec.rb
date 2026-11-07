@@ -189,6 +189,83 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
   # A purge exists to make our own past content unreachable. Since the move to
   # per-instance directories the branch is not only ours, and a peer's
   # directory cannot be rebuilt from local records the way ours can.
+  describe 'drafts' do
+    let(:owner) { project.first_owner }
+
+    def put_draft(name, extra = {})
+      content = { '_schema' => 'issue_draft@1', 'title' => 'T' }.merge(extra).to_yaml
+      repository.create_file(owner, sync_path("_incoming/#{name}"), content, message: 'draft', branch_name: branch)
+    end
+
+    def drafts_map
+      blob = sync_blob('drafts.yml')
+      blob && YAML.safe_load(blob.data)
+    end
+
+    def on_branch?(path)
+      repository.blob_at(repository.commit(branch).sha, sync_path(path)).present?
+    end
+
+    it 'deletes the draft and updates drafts.yml in the commit that publishes its issue' do
+      put_draft('fix-login.yml')
+      create(:oc_work_item_draft, project: project, issue: issue, key: 'fix-login')
+
+      service.execute([issue])
+
+      commit = repository.commit(branch)
+      changed = repository.find_changed_paths([Gitlab::Git::DiffTree.new(commit.parent_id, commit.id)]).map(&:path)
+      expect(changed).to include(sync_path("issues/#{issue.iid}.yml"), sync_path('_incoming/fix-login.yml'),
+        sync_path('drafts.yml'))
+      expect(on_branch?('_incoming/fix-login.yml')).to be(false)
+      expect(drafts_map).to eq('_schema' => 'drafts@1', 'drafts' => { 'fix-login' => issue.iid })
+    end
+
+    it 'leaves drafts alone when syncing an issue no draft made' do
+      put_draft('waiting.yml')
+
+      service.execute([issue])
+
+      expect(on_branch?('_incoming/waiting.yml')).to be(true)
+      expect(drafts_map).to be_nil
+    end
+
+    it 'removes stale drafts on request' do
+      service.execute([issue])
+      put_draft('old.yml')
+      create(:oc_work_item_draft, project: project, issue: issue, key: 'old')
+
+      described_class.new(project).remove_drafts([sync_path('_incoming/old.yml')])
+
+      expect(on_branch?('_incoming/old.yml')).to be(false)
+      expect(drafts_map['drafts']).to eq('old' => issue.iid)
+    end
+
+    it 'is left alone by orphan collection' do
+      service.execute([issue])
+      put_draft('waiting.yml')
+      create(:oc_work_item_draft, project: project, issue: issue, key: 'x')
+      described_class.new(project).execute_catalogs
+
+      described_class.new(project).remove_orphans
+
+      expect(on_branch?('_incoming/waiting.yml')).to be(true)
+      expect(on_branch?('drafts.yml')).to be(true)
+    end
+
+    it 'keeps waiting drafts through a purge, except confidential or unreadable ones' do
+      service.execute([issue])
+      put_draft('plain.yml')
+      put_draft('secret.yml', 'confidential' => true)
+      repository.create_file(owner, sync_path('_incoming/broken.yml'), "nope: [\n", message: 'x', branch_name: branch)
+
+      described_class.new(project).purge_own_history!
+
+      expect(on_branch?('_incoming/plain.yml')).to be(true)
+      expect(on_branch?('_incoming/secret.yml')).to be(false)
+      expect(on_branch?('_incoming/broken.yml')).to be(false)
+    end
+  end
+
   describe '#purge_own_history!' do
     let(:peer) { '11111111-2222-3333-4444-555555555555' }
     let(:peer_path) { "#{peer}/issues/42.yml" }

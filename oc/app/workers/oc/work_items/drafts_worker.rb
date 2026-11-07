@@ -43,6 +43,7 @@ module OC
         try_obtain_lease do
           held = true
           result = DraftService.new(@project, user).execute
+          SyncService.new(@project, triggered_by: user).remove_drafts(result.stale) if result.stale.any?
           self.class.perform_async(project_id, user_id) if result.more
         end
 

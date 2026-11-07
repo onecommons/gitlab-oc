@@ -43,8 +43,12 @@ module OC
         enqueue_drafts
       end
 
+      # Not for our own sync commits: they are pushed as the project owner, and
+      # a draft left waiting because its pusher lacked a permission would be
+      # created as the owner on the next one.
       def enqueue_drafts
         return unless current_user
+        return if OC::WorkItems.own_sync_commit?(project.repository.commit(newrev)&.safe_message)
 
         OC::WorkItems::DraftsWorker.perform_async(project.id, current_user.id)
       end
