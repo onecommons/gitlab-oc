@@ -147,4 +147,5 @@ Some events are recorded only in the application log.
 | An import is waiting because the `default_user` in `sync.yml` does not exist or does not qualify. Nothing is imported from that peer, and the import continues by itself after the account exists or is added. It does not fall back to the Ghost User. | `work items import waiting: default_user cannot be used` |
 | A draft was not created. The reason follows the key, and the draft stays on the branch. | `work item drafts skipped: <key>: <reason>` |
 | Drafts were not created because work items sync is off for the project. They are created by the first push after sync is turned on. | `work item drafts skipped: work items sync is off` |
+| An offline edit to an issue was not applied, because someone changed an edited field after the push, the pusher lacked permission, or an error occurred. The issue is synced back to its Unfurl Cloud version. | `work item edits skipped: #<iid>: <reason>` |
 | A waiting draft was dropped when the branch was rebuilt after syncing confidential content stopped, because it was confidential or could not be read. | `work item drafts dropped by purge: <key>` |

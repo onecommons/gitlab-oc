@@ -124,6 +124,9 @@ You can also create issues offline by pushing draft files to the branch. For
 more information, see
 [Create issues offline with drafts](work_items_sync/drafts.md).
 
+To change existing issues offline, see
+[Edit issues offline](work_items_sync/offline_edits.md).
+
 ## Forks
 
 Forking copies the repository but not the issues, so a fork would otherwise
@@ -133,12 +136,14 @@ first time one of its own work items changes.
 
 ## Things to know
 
-- Editing your own files does nothing, except for files you add under your
-  installation's `_incoming/` folder, which are issue drafts. For details, see
+- You can edit some fields of your installation's issue files and push, and
+  Unfurl Cloud applies the edits to the issue. For details, see
+  [Edit issues offline](work_items_sync/offline_edits.md). Files you add under
+  `_incoming/` are issue drafts. For details, see
   [Create issues offline with drafts](work_items_sync/drafts.md). The rest of the
-  directory this installation writes is generated output. If you edit a YAML
-  file in it and push, the issue doesn't change, and your edit is overwritten the
-  next time that item changes. Two other things you push have an effect: another
+  directory this installation writes is generated output. If you edit one of
+  those files and push, nothing changes, and your edit is overwritten the next
+  time that item changes. Two other things you push have an effect: another
   installation's directory, and `sync.yml`. See
   [Import work items from another installation](work_items_sync/import.md) and
   [Work items sync configuration file](work_items_sync/sync_yml.md).
@@ -164,6 +169,7 @@ first time one of its own work items changes.
 - [Work items sync file format](work_items_sync/file_format.md)
 - [Confidential content in work items sync](work_items_sync/confidential_content.md)
 - [Create issues offline with drafts](work_items_sync/drafts.md)
+- [Edit issues offline](work_items_sync/offline_edits.md)
 - [Import work items from another installation](work_items_sync/import.md)
 - [Transfer work items to another installation](work_items_sync/transfer.md)
 - [Work items sync configuration file](work_items_sync/sync_yml.md)

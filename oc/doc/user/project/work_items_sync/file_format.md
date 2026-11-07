@@ -35,7 +35,8 @@ and push its own sync on top, the two sets of files sit side by side instead of
 colliding at `issues/1.yml`.
 Each installation only ever writes to, and cleans up, its own directory.
 
-`sync.yml` is the only file meant to be edited by hand.
+`sync.yml` is the only file meant to be edited by hand, apart from some fields
+of issue files that you can [edit offline](offline_edits.md).
 It sits outside every installation directory because it describes an arrangement
 between installations, not the contents of one.
 No installation writes it, and none deletes it.

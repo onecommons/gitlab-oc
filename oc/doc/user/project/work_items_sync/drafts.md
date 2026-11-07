@@ -211,6 +211,7 @@ draft.
 
 - [Work items sync](../work_items_sync.md)
 - [Work items sync file format](file_format.md)
+- [Edit issues offline](offline_edits.md)
 - [Confidential content in work items sync](confidential_content.md)
 - [Import work items from another installation](import.md)
 - [Work items sync configuration file](sync_yml.md)
