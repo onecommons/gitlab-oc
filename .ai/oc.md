@@ -530,6 +530,14 @@ belong at `oc/doc/img/...` and need no code to be served.
 - **That title cannot contain a colon.** The regex takes the rest of the line
   verbatim rather than parsing YAML, so a quoted scalar renders its quotes and
   an unquoted YAML scalar cannot hold `: `.
+- **The `gitlab-docs-change` and `gitlab-docs-review` skills** (from
+  gitlab-org/ai/skills) fit this tree with these differences: the target is
+  `oc/doc`, and an `oc/doc` page at a `doc/` path replaces upstream's there;
+  `/help` renders the pages itself, so there is no docs-gitlab-com navigation
+  or redirect stub to update and no Hugo preview. Write for Unfurl Cloud users, name the
+  product Unfurl Cloud, and don't send them to docs.gitlab.com for something
+  the fork changes or hides. Diagrams can be SVG: `OC::HelpController` serves
+  them with a script-blocking CSP.
 - **Quantise screenshots before the first commit.** `pngquant --quality=70-95
   --speed 1` then `oxipng -o 4 --strip safe` took the getting started set from
   3.6 MB to 820 KB at full resolution with no visible loss on UI text.
