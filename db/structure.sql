@@ -25519,6 +25519,26 @@ CREATE SEQUENCE oc_replicated_work_items_id_seq
 
 ALTER SEQUENCE oc_replicated_work_items_id_seq OWNED BY oc_replicated_work_items.id;
 
+CREATE TABLE oc_work_item_drafts (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    issue_id bigint,
+    iid integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    key text NOT NULL,
+    CONSTRAINT check_f30eb8d664 CHECK ((char_length(key) <= 64))
+);
+
+CREATE SEQUENCE oc_work_item_drafts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_work_item_drafts_id_seq OWNED BY oc_work_item_drafts.id;
+
 CREATE TABLE onboarding_progresses (
     id bigint NOT NULL,
     namespace_id bigint NOT NULL,
@@ -37369,6 +37389,8 @@ ALTER TABLE ONLY oc_environment_providers ALTER COLUMN id SET DEFAULT nextval('o
 
 ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_work_item_drafts ALTER COLUMN id SET DEFAULT nextval('oc_work_item_drafts_id_seq'::regclass);
+
 ALTER TABLE ONLY onboarding_progresses ALTER COLUMN id SET DEFAULT nextval('onboarding_progresses_id_seq'::regclass);
 
 ALTER TABLE ONLY operations_feature_flags ALTER COLUMN id SET DEFAULT nextval('operations_feature_flags_id_seq'::regclass);
@@ -41140,6 +41162,9 @@ ALTER TABLE ONLY oc_environment_providers
 
 ALTER TABLE ONLY oc_replicated_work_items
     ADD CONSTRAINT oc_replicated_work_items_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_work_item_drafts
+    ADD CONSTRAINT oc_work_item_drafts_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY onboarding_progresses
     ADD CONSTRAINT onboarding_progresses_pkey PRIMARY KEY (id);
@@ -49363,6 +49388,10 @@ CREATE UNIQUE INDEX index_oc_replicated_work_items_on_issue_id ON oc_replicated_
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_merge_request_id ON oc_replicated_work_items USING btree (merge_request_id) WHERE (merge_request_id IS NOT NULL);
 
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_source ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_path);
+
+CREATE UNIQUE INDEX index_oc_work_item_drafts_on_issue_id ON oc_work_item_drafts USING btree (issue_id) WHERE (issue_id IS NOT NULL);
+
+CREATE UNIQUE INDEX index_oc_work_item_drafts_on_project_id_and_key ON oc_work_item_drafts USING btree (project_id, key);
 
 CREATE UNIQUE INDEX index_ofas_organization_id_on_reference ON organization_foundational_agent_statuses USING btree (organization_id, reference);
 
@@ -61211,6 +61240,9 @@ ALTER TABLE ONLY achievements
 ALTER TABLE ONLY ai_feature_settings
     ADD CONSTRAINT fk_rails_8907fb7bbb FOREIGN KEY (ai_self_hosted_model_id) REFERENCES ai_self_hosted_models(id) ON DELETE CASCADE;
 
+ALTER TABLE ONLY oc_work_item_drafts
+    ADD CONSTRAINT fk_rails_8916c49410 FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+
 ALTER TABLE ONLY custom_dashboard_versions
     ADD CONSTRAINT fk_rails_8984e20b50 FOREIGN KEY (custom_dashboard_id) REFERENCES custom_dashboards(id);
 
@@ -61312,6 +61344,9 @@ ALTER TABLE ONLY alert_management_alert_assignees
 
 ALTER TABLE ONLY scim_identities
     ADD CONSTRAINT fk_rails_9421a0bffb FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY oc_work_item_drafts
+    ADD CONSTRAINT fk_rails_94588083fc FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE SET NULL;
 
 ALTER TABLE ONLY packages_debian_project_distributions
     ADD CONSTRAINT fk_rails_94b95e1f84 FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE SET NULL;

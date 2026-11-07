@@ -1,0 +1,14 @@
+---
+table_name: oc_work_item_drafts
+classes:
+- OC::WorkItems::Draft
+feature_categories:
+- source_code_management
+description: Issues created from draft files pushed to a project's work items sync
+  branch, keyed by the draft's file name
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_org
+sharding_key:
+  project_id: projects
+table_size: small
