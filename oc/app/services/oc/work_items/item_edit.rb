@@ -66,6 +66,11 @@ module OC
           new(path, old_yaml, new_yaml)
         end
 
+        # A key of #statuses, for a message.
+        def describe(key)
+          key.is_a?(String) ? key.inspect : "the comment of #{key.created_at}"
+        end
+
         # The editable fields of a serialized issue, compared the way #fields
         # compares them; comments as {identity => text}.
         def values(yaml)

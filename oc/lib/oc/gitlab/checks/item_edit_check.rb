@@ -78,12 +78,8 @@ module OC
           return if conflicts.empty?
 
           ::OC::WorkItems.enqueue_sync(issue, user_access.user)
-          fail!(edit.path, "issue ##{edit.iid}: #{describe(conflicts.first)} changed since your copy; " \
-            'pull and push again')
-        end
-
-        def describe(key)
-          key.is_a?(String) ? key.inspect : "the comment of #{key.created_at}"
+          what = ::OC::WorkItems::ItemEdit.describe(conflicts.first)
+          fail!(edit.path, "issue ##{edit.iid}: #{what} changed since your copy; pull and push again")
         end
 
         def content_at(revision, path)

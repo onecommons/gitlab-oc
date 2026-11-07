@@ -95,6 +95,45 @@ RSpec.describe OC::WorkItems::ItemEditService, feature_category: :source_code_ma
     expect(issue.reload.title).to eq('Old')
   end
 
+  describe 'when the issue moved on after the push' do
+    it 'skips the whole issue if a field it changes was changed on the web, and syncs it' do
+      revisions = push_edit { |doc| doc.merge!('title' => 'Mine', 'description' => 'Mine too') }
+      issue.update_column(:title, 'Changed on the web')
+
+      expect(OC::WorkItems).to receive(:enqueue_sync).with(issue, user)
+
+      result = apply(revisions)
+
+      expect(result.skipped).to eq(issue.iid => '"title" changed after the push')
+      expect(issue.reload.description).not_to eq('Mine too')
+    end
+
+    it 'applies it anyway when only other fields changed' do
+      revisions = push_edit { |doc| doc['title'] = 'Mine' }
+      issue.update_column(:description, 'Changed on the web')
+
+      expect(apply(revisions).applied).to eq([issue.iid])
+      expect(issue.reload.title).to eq('Mine')
+    end
+  end
+
+  it 'syncs an issue it could not apply' do
+    revisions = push_edit { |doc| doc['title'] = 'New' }
+    allow(Issues::UpdateService).to receive(:new).and_raise('boom')
+
+    expect(OC::WorkItems).to receive(:enqueue_sync).with(issue, user)
+
+    expect(apply(revisions).skipped).to eq(issue.iid => 'it could not be applied: boom')
+  end
+
+  it 'does not post a new comment twice when retried' do
+    revisions = push_edit { |doc| doc['notes'] = Array(doc['notes']) + [{ 'note' => 'Once' }] }
+
+    2.times { apply(revisions) }
+
+    expect(issue.notes.user.where(note: 'Once').count).to eq(1)
+  end
+
   it 'does nothing again for a change the issue already has' do
     revisions = push_edit { |doc| doc['title'] = 'New' }
     apply(revisions)

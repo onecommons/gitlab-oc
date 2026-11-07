@@ -27,6 +27,7 @@ module OC
       # since. Returns the iids applied and {iid => reason} for those skipped.
       def execute(oldrev, newrev)
         result = Result.new(applied: [], skipped: {})
+        @pushed_at = project.repository.commit(newrev)&.committed_date
 
         ItemEdit.changed_paths(project.repository, oldrev, newrev).each do |path|
           edit = ItemEdit.diff(path: path, old_yaml: content_at(oldrev, path), new_yaml: content_at(newrev, path))
@@ -83,15 +84,26 @@ module OC
       attr_reader :project, :user
 
       # One issue is allowed to fail, and only that issue. Returns the issue,
-      # or why it was skipped.
+      # or why it was skipped. A skipped issue is synced, so the branch does
+      # not go on showing an edit nobody applied.
       def apply(edit)
         issue = project.issues.find_by_iid(edit.iid)
         return 'the issue no longer exists' unless issue
 
+        outcome = apply_to(issue, edit)
+        OC::WorkItems.enqueue_sync(issue, user) if outcome.is_a?(String)
+        outcome
+      end
+
+      def apply_to(issue, edit)
         current = RecordSerializer.new.to_yaml(issue)
         return 'the issue cannot be edited offline' unless current.is_a?(String)
 
+        # Someone changed a field on the web between the push check and now.
         statuses = edit.statuses(current)
+        conflict = statuses.find { |_key, status| status == :conflict }&.first
+        return "#{ItemEdit.describe(conflict)} changed after the push" if conflict
+
         problem = preflight(edit, issue)
         return problem if problem
 
@@ -143,11 +155,18 @@ module OC
         end
       end
 
+      # A retried job must not post the same comment twice: one already made by
+      # this user with this text since the push counts as this one.
+      # rubocop:disable CodeReuse/ActiveRecord -- a retry guard, not a finder
       def create_notes(issue, new_notes)
         new_notes.each do |new_note|
+          posted = issue.notes.where(author: user, note: new_note.note)
+          next if @pushed_at && posted.where(created_at: @pushed_at..).exists?
+
           ::Notes::CreateService.new(project, user, noteable: issue, note: new_note.note).execute
         end
       end
+      # rubocop:enable CodeReuse/ActiveRecord
 
       def content_at(revision, path)
         blob = project.repository.blob_at(revision, path)
