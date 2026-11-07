@@ -153,6 +153,16 @@
   :idempotent: true
   :tags: []
   :queue_namespace:
+- :name: oc_work_items_item_edits
+  :worker_name: OC::WorkItems::ItemEditsWorker
+  :feature_category: :source_code_management
+  :has_external_dependencies: false
+  :urgency: :low
+  :resource_boundary: :unknown
+  :weight: 1
+  :idempotent: true
+  :tags: []
+  :queue_namespace:
 - :name: oc_work_items_sync
   :worker_name: OC::WorkItems::SyncWorker
   :feature_category: :source_code_management

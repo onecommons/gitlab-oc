@@ -41,6 +41,7 @@ module OC
 
         OC::WorkItems::ImportWorker.perform_async(project.id, current_user&.id)
         enqueue_drafts
+        enqueue_item_edits
       end
 
       # Not for our own sync commits: they are pushed as the project owner, and
@@ -51,6 +52,16 @@ module OC
         return if OC::WorkItems.own_sync_commit?(project.repository.commit(newrev)&.safe_message)
 
         OC::WorkItems::DraftsWorker.perform_async(project.id, current_user.id)
+      end
+
+      # Only for an update: a push creating the branch has nothing to compare
+      # against, and ItemEditCheck let it through unchecked (a purge replay).
+      def enqueue_item_edits
+        return unless current_user
+        return if ::Gitlab::Git.blank_ref?(oldrev)
+        return if OC::WorkItems.own_sync_commit?(project.repository.commit(newrev)&.safe_message)
+
+        OC::WorkItems::ItemEditsWorker.perform_async(project.id, current_user.id, oldrev, newrev)
       end
 
       # The work items sync branch is machine-managed: its commit messages are

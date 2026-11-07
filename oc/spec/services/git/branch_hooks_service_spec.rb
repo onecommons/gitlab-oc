@@ -76,11 +76,11 @@ RSpec.describe Git::BranchHooksService, feature_category: :source_code_managemen
   describe '#execute' do
     let(:project) { create(:project, :repository) }
 
-    def service_for(ref:, newrev: project.commit.id)
+    def service_for(ref:, newrev: project.commit.id, oldrev: Gitlab::Git::SHA1_BLANK_SHA)
       described_class.new(
         project,
         project.creator,
-        change: { oldrev: Gitlab::Git::SHA1_BLANK_SHA, newrev: newrev, ref: ref }
+        change: { oldrev: oldrev, newrev: newrev, ref: ref }
       )
     end
 
@@ -103,6 +103,21 @@ RSpec.describe Git::BranchHooksService, feature_category: :source_code_managemen
 
     it 'starts a drafts run as the pusher when the work items sync branch is pushed' do
       expect(OC::WorkItems::DraftsWorker).to receive(:perform_async).with(project.id, project.creator.id)
+
+      service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
+    end
+
+    it 'applies offline edits as the pusher when the branch is updated' do
+      oldrev = project.commit.parent_id
+
+      expect(OC::WorkItems::ItemEditsWorker).to receive(:perform_async)
+        .with(project.id, project.creator.id, oldrev, project.commit.id)
+
+      service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}", oldrev: oldrev).execute
+    end
+
+    it 'does not look for offline edits when the branch is created' do
+      expect(OC::WorkItems::ItemEditsWorker).not_to receive(:perform_async)
 
       service_for(ref: "refs/heads/#{OC::WorkItems::SYNC_BRANCH}").execute
     end

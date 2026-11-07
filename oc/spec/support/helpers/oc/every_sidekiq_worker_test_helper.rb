@@ -13,6 +13,7 @@ module OC
         'OC::WorkItems::ImportRefreshWorker' => 3,
         'OC::WorkItems::ImportWorker' => 3,
         'OC::WorkItems::DraftsWorker' => 3,
+        'OC::WorkItems::ItemEditsWorker' => 3,
         'OC::WorkItems::SyncWorker' => 3
       )
     end

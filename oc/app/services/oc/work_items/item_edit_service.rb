@@ -13,10 +13,33 @@ module OC
       include IssueMetadata
 
       METADATA_FIELDS = %w[due_date label_links milestone].freeze
+      UPDATE_FIELDS = %w[title description confidential due_date].freeze
+
+      Result = Struct.new(:applied, :skipped, keyword_init: true)
 
       def initialize(project, user)
         @project = project
         @user = user
+      end
+
+      # Applies the edits a push from oldrev to newrev made. Reads the two
+      # revisions rather than the branch, which the sync may have rewritten
+      # since. Returns the iids applied and {iid => reason} for those skipped.
+      def execute(oldrev, newrev)
+        result = Result.new(applied: [], skipped: {})
+
+        ItemEdit.changed_paths(project.repository, oldrev, newrev).each do |path|
+          edit = ItemEdit.diff(path: path, old_yaml: content_at(oldrev, path), new_yaml: content_at(newrev, path))
+          next if edit.empty?
+
+          outcome = apply(edit)
+          outcome.is_a?(String) ? result.skipped[edit.iid] = outcome : result.applied << edit.iid
+        rescue ItemEdit::Error => error
+          result.skipped[ItemEdit.iid_for(path)] = error.message
+        end
+
+        log(result)
+        result
       end
 
       # Why `edit` cannot be applied to `issue` by this user, or nil when it
@@ -58,6 +81,86 @@ module OC
       private
 
       attr_reader :project, :user
+
+      # One issue is allowed to fail, and only that issue. Returns the issue,
+      # or why it was skipped.
+      def apply(edit)
+        issue = project.issues.find_by_iid(edit.iid)
+        return 'the issue no longer exists' unless issue
+
+        current = RecordSerializer.new.to_yaml(issue)
+        return 'the issue cannot be edited offline' unless current.is_a?(String)
+
+        statuses = edit.statuses(current)
+        problem = preflight(edit, issue)
+        return problem if problem
+
+        pending = statuses.filter_map { |key, status| key if status == :pending }
+        update_issue(issue, edit, pending)
+        edit_notes(issue, pending.grep(ItemEdit::EditedNote))
+        create_notes(issue, edit.new_notes)
+        issue
+      rescue ::StandardError => error
+        ::Gitlab::ErrorTracking.track_exception(error, project_id: project.id, iid: edit.iid)
+        "it could not be applied: #{error.message}"
+      end
+
+      def update_issue(issue, edit, pending)
+        params = update_params(edit, pending)
+        if params.any?
+          ::Issues::UpdateService.new(container: project, current_user: user, params: params).execute(issue)
+          raise issue.errors.full_messages.to_sentence if issue.errors.any?
+        end
+
+        return unless pending.include?('state')
+
+        if edit.fields['state'].last == 'closed'
+          ::Issues::CloseService.new(container: project, current_user: user).execute(issue)
+        else
+          ::Issues::ReopenService.new(container: project, current_user: user).execute(issue)
+        end
+      end
+
+      def update_params(edit, pending)
+        params = (pending & UPDATE_FIELDS).to_h { |field| [field.to_sym, edit.fields[field].last] }
+
+        if pending.include?('label_links')
+          old_titles, new_titles = edit.fields['label_links']
+          params[:add_label_ids] = labels_for(new_titles - old_titles).map(&:id)
+          params[:remove_label_ids] = (old_titles - new_titles).filter_map do |title|
+            label_service(title).execute(find_only: true)&.id
+          end
+        end
+
+        params[:milestone_id] = milestone_for(edit.fields['milestone'].last)&.id if pending.include?('milestone')
+        params
+      end
+
+      def edit_notes(issue, edited_notes)
+        edited_notes.each do |edited_note|
+          note = find_note(issue, edited_note)
+          ::Notes::UpdateService.new(project, user, note: edited_note.note).execute(note)
+        end
+      end
+
+      def create_notes(issue, new_notes)
+        new_notes.each do |new_note|
+          ::Notes::CreateService.new(project, user, noteable: issue, note: new_note.note).execute
+        end
+      end
+
+      def content_at(revision, path)
+        blob = project.repository.blob_at(revision, path)
+        blob.load_all_data!
+        blob.data
+      end
+
+      def log(result)
+        result.skipped.each do |iid, reason|
+          ::Gitlab::AppLogger.info(message: "work item edits skipped: ##{iid}: #{reason}",
+            project_id: project.id, ::Labkit::Fields::GL_USER_ID => user.id)
+        end
+      end
 
       def metadata_problem(fields)
         old_labels, new_labels = fields['label_links']

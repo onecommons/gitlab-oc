@@ -851,6 +851,8 @@
   - 1
 - - oc_work_items_drafts
   - 1
+- - oc_work_items_item_edits
+  - 1
 - - oc_work_items_full_sync
   - 1
 - - oc_work_items_import
