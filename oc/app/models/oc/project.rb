@@ -170,16 +170,18 @@ module OC
     # defaults to on for unfurl projects and off for everything else. An
     # explicit choice made on the settings page or through the API always wins,
     # so an unfurl project can turn it off.
-    def work_items_sync_enabled?
+    # recording: false for a page render, which must not classify (that writes).
+    def work_items_sync_enabled?(recording: true)
       case work_items_sync_setting
       when 'enabled' then true
       when 'disabled' then false
-      else work_items_sync_on_by_default?
+      else work_items_sync_on_by_default?(recording: recording)
       end
     end
 
-    def work_items_sync_on_by_default?
-      unfurl_blueprint? || unfurl_dashboard?
+    def work_items_sync_on_by_default?(recording: true)
+      type = recording ? unfurl_type : unfurl_type_without_recording
+      [OC::UNFURL_BLUEPRINT, OC::UNFURL_DASHBOARD].include?(type)
     end
 
     def work_items_sync_opted_in?

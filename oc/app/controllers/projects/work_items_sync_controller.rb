@@ -25,7 +25,7 @@ module Projects
         OC::WorkItems::FullSyncWorker.perform_async(project.id)
       end
 
-      redirect_to project_settings_repository_path(project, anchor: 'js-work-items-sync-settings'),
+      redirect_to edit_project_path(project, anchor: 'js-work-items-sync-settings'),
         notice: notice_for(enabled)
     end
 

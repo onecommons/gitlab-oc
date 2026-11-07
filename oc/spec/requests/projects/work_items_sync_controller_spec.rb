@@ -25,7 +25,7 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       put_toggle(maintainer, 'true')
 
       expect(response).to redirect_to(
-        project_settings_repository_path(project, anchor: 'js-work-items-sync-settings'))
+        edit_project_path(project, anchor: 'js-work-items-sync-settings'))
       expect(flash[:notice]).to include('settings saved')
       expect(project.reload.work_items_sync_opted_in?).to be(true)
     end
@@ -96,16 +96,18 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
     end
   end
 
-  describe 'settings section rendering (GET repository settings)' do
-    it 'shows the toggle for regular projects' do
+  describe 'settings section rendering (GET general settings)' do
+    it 'shows the toggle for regular projects, and the uuid sync.yml names this installation by' do
+      allow(::Gitlab::CurrentSettings).to receive(:uuid).and_return('9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43')
       sign_in(maintainer)
 
-      get project_settings_repository_path(project)
+      get edit_project_path(project)
 
       expect(response).to have_gitlab_http_status(:ok)
       expect(response.body).to include('Work items sync')
       expect(response.body).to include('Enable work items sync')
       expect(response.body).to include(help_page_path('user/project/work_items_sync.md'))
+      expect(response.body).to include('9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43')
     end
 
     it 'shows unfurl projects as on by default, with a way to turn it off' do
@@ -114,7 +116,7 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       unfurl_project.add_maintainer(maintainer)
       sign_in(maintainer)
 
-      get project_settings_repository_path(unfurl_project)
+      get edit_project_path(unfurl_project)
 
       expect(response.body).to include('on by default for Unfurl projects')
       expect(response.body).to include('Disable work items sync')
@@ -126,7 +128,7 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       public_project.add_maintainer(maintainer)
       sign_in(maintainer)
 
-      get project_settings_repository_path(public_project)
+      get edit_project_path(public_project)
 
       expect(response.body).to include('never synced on public and internal projects')
       expect(confidential_checkbox(response.body)).to include('disabled')
@@ -138,7 +140,7 @@ RSpec.describe Projects::WorkItemsSyncController, feature_category: :source_code
       private_project.add_maintainer(maintainer)
       sign_in(maintainer)
 
-      get project_settings_repository_path(private_project)
+      get edit_project_path(private_project)
 
       expect(response.body).to include('Also sync confidential content')
       expect(response.body).to include('left out by default')

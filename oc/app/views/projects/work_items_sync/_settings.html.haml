@@ -1,5 +1,5 @@
--# OC Change -- work items sync settings section (Settings > Repository)
-- enabled = @project.work_items_sync_enabled?
+-# OC Change -- work items sync settings section (Settings > General)
+- enabled = @project.work_items_sync_enabled?(recording: false)
 - confidential_locked = !@project.private?
 - sync_confidential = @project.sync_confidential_work_items?
 
@@ -14,13 +14,18 @@
     -# Served from oc/doc/user/project/work_items_sync.md
     = link_to _('How does work items sync work?'), help_page_path('user/project/work_items_sync.md'), target: '_blank', rel: 'noopener noreferrer'
   - c.with_body do
+    -# The uuid sync.yml names an installation by, and its directory on the branch.
+    - if (instance_uuid = Gitlab::CurrentSettings.uuid.presence)
+      %p
+        = _('This installation\'s ID, for sync.yml:')
+        %code{ data: { testid: 'work-items-sync-instance-id' } }= instance_uuid
     = form_tag project_work_items_sync_path(@project), method: :put do
       %p
         - if enabled
           = _('Work items sync is enabled for this project.')
         - else
           = _('Work items sync is disabled for this project.')
-        - if @project.work_items_sync_on_by_default?
+        - if @project.work_items_sync_on_by_default?(recording: false)
           = _('It is on by default for Unfurl projects.')
       .form-check.gl-mb-2
         = check_box_tag :sync_confidential, '1', sync_confidential,
