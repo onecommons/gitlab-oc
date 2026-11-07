@@ -32,6 +32,9 @@ module OC
       # path such as `docs#draft:x` is not a reference.
       REFERENCE = %r{(?<![\w/])#draft:(?<key>[a-z0-9][a-z0-9_-]{0,63})(?![a-z0-9_-])}
 
+      # Code first, so a reference inside it is consumed as code and kept.
+      CODE_OR_REFERENCE = /(?<code>#{ReferenceRewriter::CODE})|#{REFERENCE}/
+
       class Error < StandardError
         attr_reader :path, :line
 
@@ -66,6 +69,17 @@ module OC
           new(path, yaml.to_s)
         end
 
+        # text with each `#draft:<key>` outside code replaced by `#<iid>`. Keys
+        # with no iid are left as written.
+        def rewrite_references(text, iids_by_key)
+          return text if text.blank?
+
+          text.gsub(CODE_OR_REFERENCE) do
+            match = ::Regexp.last_match
+            iid = iids_by_key[match[:key]] unless match[:code]
+            iid ? "##{iid}" : match[0]
+          end
+        end
       end
 
       def initialize(path, yaml)

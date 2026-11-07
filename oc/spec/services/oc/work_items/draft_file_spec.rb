@@ -116,6 +116,15 @@ RSpec.describe OC::WorkItems::DraftFile, feature_category: :source_code_manageme
     end
   end
 
+  describe '.rewrite_references' do
+    it 'replaces known keys outside code and leaves the rest' do
+      text = "#draft:a, `#draft:a`, #draft:a-2, #draft:zz\n```\n#draft:a\n```"
+
+      expect(described_class.rewrite_references(text, 'a' => 7, 'a-2' => 8))
+        .to eq("#7, `#draft:a`, #8, #draft:zz\n```\n#draft:a\n```")
+    end
+  end
+
   describe '#draft_references' do
     def references(description)
       parse({ '_schema' => 'issue_draft@1', 'title' => 'T', 'description' => description }.to_yaml)

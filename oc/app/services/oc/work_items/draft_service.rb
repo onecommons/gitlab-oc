@@ -20,6 +20,12 @@ module OC
 
       BATCH_SIZE = 100
 
+      # How far back pass 2 looks for draft-made issues still carrying
+      # `#draft:` text. Long enough for a stopped run to be picked up by the
+      # next push; short enough that a description someone wrote `#draft:`
+      # into later is left alone.
+      REWRITE_WINDOW = 7.days
+
       Result = Struct.new(:created, :skipped, :stale, :more, keyword_init: true)
 
       def initialize(project, user)
@@ -49,6 +55,7 @@ module OC
           outcome.is_a?(::Issue) ? result.created << outcome : result.skipped[DraftFile.key_for(path)] = outcome
         end
 
+        rewrite_references unless result.more
         log_skipped(result.skipped)
         result
       end
@@ -71,6 +78,36 @@ module OC
       end
 
       private
+
+      # Pass 2: once every waiting draft has an issue, point each `#draft:<key>`
+      # at the issue it became. Covers drafts created by earlier jobs of the same
+      # push, and a run that stopped between the two passes, by looking at every
+      # recent draft-made issue still carrying the text rather than only this
+      # job's.
+      #
+      # Saved on the model, not through Issues::UpdateService: that would add a
+      # "changed the description" note to a brand-new issue. Saving still
+      # refreshes the rendered description and the mention index; the sync is
+      # enqueued here because only the services enqueue it.
+      # rubocop:disable CodeReuse/ActiveRecord -- the drafts table has no finder
+      def rewrite_references
+        drafts = OC::WorkItems::Draft.for_project(@project)
+        recent = drafts.where(created_at: REWRITE_WINDOW.ago..).where.not(issue_id: nil).includes(:issue)
+        return if recent.none? { |row| row.issue.description&.include?('#draft:') }
+
+        # Every key, not only recent ones: a new draft may name an old key.
+        iids_by_key = drafts.pluck(:key, :iid).to_h
+
+        recent.each do |row|
+          issue = row.issue
+          rewritten = DraftFile.rewrite_references(issue.description, iids_by_key)
+          next if rewritten == issue.description
+
+          issue.update!(description: rewritten)
+          OC::WorkItems.enqueue_sync(issue, @user)
+        end
+      end
+      # rubocop:enable CodeReuse/ActiveRecord
 
       # One draft is allowed to fail, and only that draft -- the import's stance.
       def create(path)

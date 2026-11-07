@@ -190,6 +190,77 @@ RSpec.describe OC::WorkItems::DraftService, feature_category: :source_code_manag
     expect(run.created).to be_empty
   end
 
+  describe 'references between drafts' do
+    def issue_for(key)
+      OC::WorkItems::Draft.find_by(project: project, key: key).issue
+    end
+
+    it 'points #draft: keys at the issues they became, in any order, including cycles and self' do
+      push_draft('a.yml', description: 'blocks #draft:b; is #draft:a')
+      push_draft('b.yml', description: 'blocked by #draft:a. See #42.')
+
+      run
+
+      a = issue_for('a')
+      b = issue_for('b')
+      expect(a.description).to eq("blocks ##{b.iid}; is ##{a.iid}")
+      expect(b.description).to eq("blocked by ##{a.iid}. See #42.")
+    end
+
+    it 'resolves a key created by an earlier push' do
+      push_draft('first.yml')
+      run
+      push_draft('second.yml', description: 'after #draft:first')
+
+      run
+
+      expect(issue_for('second').description).to eq("after ##{issue_for('first').iid}")
+    end
+
+    it 'leaves code, unknown keys and longer keys alone' do
+      push_draft('fix-login.yml', description: "`#draft:fix-login` #draft:nope #draft:fix-login-2 #draft:fix-login")
+
+      run
+
+      iid = issue_for('fix-login').iid
+      expect(issue_for('fix-login').description).to eq("`#draft:fix-login` #draft:nope #draft:fix-login-2 ##{iid}")
+    end
+
+    it 'adds no system note for the rewrite, and syncs the result' do
+      push_draft('a.yml', description: 'self #draft:a')
+
+      expect(OC::WorkItems).to receive(:enqueue_sync).at_least(:once).and_call_original
+
+      run
+
+      expect(issue_for('a').notes.system.map(&:note).grep(/description/)).to be_empty
+    end
+
+    it 'waits for the last batch before rewriting' do
+      stub_const("#{described_class}::BATCH_SIZE", 1)
+      push_draft('a.yml', description: 'see #draft:b')
+      push_draft('b.yml')
+
+      run
+      expect(issue_for('a').description).to eq('see #draft:b')
+
+      run
+      expect(issue_for('a').description).to eq("see ##{issue_for('b').iid}")
+    end
+
+    it 'finishes a rewrite an earlier run did not reach' do
+      push_draft('a.yml', description: 'self #draft:a')
+      interrupted = described_class.new(project, developer)
+      allow(interrupted).to receive(:rewrite_references)
+      interrupted.execute
+      expect(issue_for('a').description).to eq('self #draft:a')
+
+      run
+
+      expect(issue_for('a').description).to eq("self ##{issue_for('a').iid}")
+    end
+  end
+
   # A peer importing our directory reads only issue, merge request and commit
   # notes documents, so it never sees drafts.
   it 'is invisible to a peer importing our directory' do
