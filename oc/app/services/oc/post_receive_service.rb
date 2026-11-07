@@ -29,6 +29,12 @@ module OC
       response
     end
 
+    # Nobody merges the sync branch (OC::WorkItems.syncable? leaves such merge
+    # requests out), so a push to it gets no link to open one.
+    def merge_request_urls
+      super.reject { |entry| entry[:branch_name] == ::OC::WorkItems::SYNC_BRANCH }
+    end
+
     private
 
     # Nothing here may cost anybody a push. The push has already succeeded by

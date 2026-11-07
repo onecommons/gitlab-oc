@@ -220,6 +220,12 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
       end
     end
 
+    it 'does not offer to open a merge request from the sync branch' do
+      post_receive
+
+      expect(json_response['messages'].pluck('message').join("\n")).not_to include('merge request')
+    end
+
     # The other silent one: the file is right, and the push cannot act on it.
     it 'warns a pusher who cannot authorize an import' do
       post_receive(as: developer_key)
