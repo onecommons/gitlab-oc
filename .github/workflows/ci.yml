@@ -88,8 +88,13 @@ jobs:
       - name: Install
         run: yarn install --immutable
 
+      # Jest reads each path as a regex on absolute paths, and the checkout is
+      # .../gitlab-oc/gitlab-oc, so a bare oc/spec/frontend matches every
+      # upstream spec too.
       - name: Jest
-        run: yarn jest --ci oc/spec/frontend $(ruby oc/scripts/upstream_jest_specs.rb)
+        run: |
+          yarn jest --ci "$PWD/oc/spec/frontend/" \
+            $(ruby oc/scripts/upstream_jest_specs.rb | sed "s|^|$PWD/|")
 
   # e2e only when yarn.lock changed: that is where the oc-pages pin lives, so a
   # changed lock is a changed unfurl-gui to test against this commit. Other

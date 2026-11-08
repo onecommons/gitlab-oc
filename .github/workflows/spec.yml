@@ -193,6 +193,9 @@ jobs:
     env:
       QA_GITLAB_URL: http://gdk.test:3000
       GITHUB_FIXTURE: aszs/gitlab-qa-import-fixture
+      # Job-wide so `bundle exec` agrees with the install. The development
+      # group's ruby-debug-ide does not build on this Ruby.
+      BUNDLE_WITHOUT: development
     steps:
       - uses: actions/checkout@v4
 
