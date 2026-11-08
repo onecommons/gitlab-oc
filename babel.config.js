@@ -46,6 +46,8 @@ if (isJest) {
         },
       },
     ],
+    // oc-pages is written partly in TypeScript; rspack compiles it with swc
+    ['@babel/preset-typescript', { onlyRemoveTypeImports: true, allowDeclareFields: true }],
   ];
 } else {
   env.istanbul = {

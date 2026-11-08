@@ -298,7 +298,7 @@ module.exports = (path, options = {}) => {
     globals,
     clearMocks: true,
     testMatch,
-    moduleFileExtensions: ['js', 'json', 'vue', 'gql', 'graphql', 'yaml', 'yml', 'html'],
+    moduleFileExtensions: ['js', 'ts', 'json', 'vue', 'gql', 'graphql', 'yaml', 'yml', 'html'],
     moduleNameMapper,
     collectCoverageFrom,
     coverageDirectory: coverageDirectory(),
@@ -324,7 +324,7 @@ module.exports = (path, options = {}) => {
     transform: {
       '^.+\\.(gql|graphql)$': './spec/frontend/__helpers__/graphql_transformer.js',
       '^.+_worker\\.js$': './spec/frontend/__helpers__/web_worker_transformer.js',
-      '^.+\\.m?js$': 'babel-jest',
+      '^.+\\.(m?js|ts)$': 'babel-jest',
       '^.+\\.(svg|gif|png|mp4)$': './spec/frontend/__helpers__/static_file_transformer.js',
       '^.+\\.vue$': VUE_JEST_TRANSFORMER,
       'spec/frontend/editor/schema/ci/yaml_tests/.+\\.(yml|yaml)$':
