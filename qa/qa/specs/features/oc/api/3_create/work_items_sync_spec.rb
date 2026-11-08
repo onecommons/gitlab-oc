@@ -12,7 +12,9 @@ module QA
   #   prefix on it and git's in front of that;
   # * the message a successful push prints back;
   # * the whole worker chain -- push, PostReceive, ImportWorker, SyncWorker --
-  #   running for real, in order, on its own.
+  #   running for real, in order, on its own;
+  # * who pushed, carried through the hook to the workers that create and
+  #   edit issues as that person.
   #
   # The peer is synthetic: its directory is a few files written by hand. That
   # is not a shortcut around a second installation, it is what a peer *is* --
@@ -30,6 +32,14 @@ module QA
     end
 
     let(:issue) { create(:issue, project: project, title: 'Published by the sync', api_client: api_client) }
+
+    # Not the admin the rest of the suite pushes as: drafts and offline edits
+    # act as whoever pushed, which only shows when that is somebody else.
+    let(:developer) do
+      create(:user, :with_personal_access_token, api_client: api_client).tap do |user|
+        project.add_member(user, Resource::Members::AccessLevel::DEVELOPER)
+      end
+    end
 
     def api(path)
       Runtime::API::Request.new(api_client, path).url
@@ -103,8 +113,8 @@ module QA
     # which is where the messages under test appear. The sync commits to the
     # same branch on its own schedule, so a push that lost that race is made
     # again from a fresh clone, as a person would after pulling.
-    def push(files, message: 'peer push', attempts: 3)
-      push_once(files, message)
+    def push(files, message: 'peer push', as: nil, attempts: 3)
+      push_once(files, message, as)
     rescue Support::Run::CommandError => e
       attempts -= 1
       raise unless attempts > 0 && e.message.match?(/\[rejected\].*\((fetch first|non-fast-forward)\)/)
@@ -112,24 +122,43 @@ module QA
       retry
     end
 
-    def push_once(files, message)
+    def push_once(files, message, user)
+      with_clone(user) do |repository|
+        files.each { |path, content| repository.add_file(path, content) }
+        repository.commit(message)
+        repository.push_changes(branch)
+      end
+    end
+
+    # The sync branch checked out, with the admin's credentials or user's.
+    def with_clone(user = nil)
       Git::Repository.perform do |repository|
         repository.uri = project.repository_http_location.uri
 
         # The token rather than use_default_credentials: that reads a password
         # this suite is never given, and without one no netrc is written at
         # all, so git asks for a password nobody is there to type.
-        repository.username = Runtime::User::Store.admin_user.username
-        repository.password = api_client.personal_access_token
+        repository.username = user ? user.username : Runtime::User::Store.admin_user.username
+        repository.password = user ? user.personal_access_token.token : api_client.personal_access_token
 
         repository.clone
         repository.configure_identity('GitLab QA', 'root@gitlab.com')
         repository.checkout(branch)
 
-        files.each { |path, content| repository.add_file(path, content) }
-        repository.commit(message)
-        repository.push_changes(branch)
+        yield repository
       end
+    end
+
+    def issue_titled(title)
+      response = Support::API.get(api("#{project.api_get_path}/issues?#{URI.encode_www_form(search: title)}"))
+      Support::API.parse_body(response).find { |found| found[:title] == title }
+    end
+
+    # Who the system note for a title change names, once there is one.
+    def title_changed_by(iid)
+      response = Support::API.get(api("#{project.api_get_path}/issues/#{iid}/notes?per_page=100"))
+      note = Support::API.parse_body(response).find { |found| found[:system] && found[:body].include?('changed title') }
+      note&.dig(:author, :username)
     end
 
     def peer_document(iid:, title:, transferred_from: nil)
@@ -215,6 +244,81 @@ module QA
 
       expect { push({ 'sync.yml' => broken }, message: 'break the control file') }
         .to raise_error(Support::Run::CommandError, /Work items sync: sync\.yml:\d+: unknown key "improt"/)
+    end
+
+    it 'creates an issue from a pushed draft, as the pusher',
+      :requires_admin do
+      draft = <<~YAML
+        _schema: issue_draft@1
+        title: Login fails after password reset
+      YAML
+
+      output = push({ "#{instance_uuid}/_incoming/fix-login.yml" => draft }, message: 'a draft', as: developer)
+
+      expect(output).to include('Work items sync: 1 draft will be created (fix-login)')
+
+      created = nil
+      Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
+        message: 'the draft to become an issue') do
+        created = issue_titled('Login fails after password reset')
+      end
+
+      expect(created.dig(:author, :username)).to eq(developer.username)
+
+      # Published under the draft's name, and gone from the inbox.
+      Support::Waiter.wait_until(max_duration: 90, sleep_interval: 1, raise_on_failure: true,
+        message: 'the draft to be published and removed') do
+        own_item_path(created[:iid])&.end_with?("/#{created[:iid]}-fix-login.yml") &&
+          tree("#{instance_uuid}/_incoming").none? { |item| item[:name] == 'fix-login.yml' }
+      end
+    end
+
+    it 'applies an edit made in the issue file, as the pusher',
+      :requires_admin do
+      document = own_item_file(issue.iid)
+      edited = document.sub(/^title: .*$/, 'title: Edited offline')
+      raise 'the issue file has no title line to edit' if edited == document
+
+      output = push({ own_item_path(issue.iid) => edited }, message: 'an offline edit', as: developer)
+
+      expect(output).to include("Work items sync: edits to 1 issue will be applied (##{issue.iid})")
+
+      Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
+        message: 'the edit to be applied') do
+        title_changed_by(issue.iid)
+      end
+
+      expect(title_changed_by(issue.iid)).to eq(developer.username)
+      expect(Support::API.parse_body(Support::API.get(api("#{project.api_get_path}/issues/#{issue.iid}")))[:title])
+        .to eq('Edited offline')
+    end
+
+    # Taking the branch back to an older copy would read every field the copy
+    # predates as an edit, and write the old values into the issue.
+    it 'refuses a force push that changes an issue file, and says why',
+      :requires_admin do
+      Support::API.put(api("#{project.api_get_path}/issues/#{issue.iid}"), title: 'Changed on the web')
+
+      Support::Waiter.wait_until(max_duration: 90, sleep_interval: 1, raise_on_failure: true,
+        message: 'the web edit to be published') do
+        own_item_file(issue.iid)&.include?('Changed on the web')
+      end
+
+      query = URI.encode_www_form(ref_name: branch, path: own_item_path(issue.iid))
+      commits = Support::API.parse_body(Support::API.get(api("#{project.api_get_path}/repository/commits?#{query}")))
+      older = commits[1]&.dig(:id)
+      raise 'no older copy of the issue file on the branch' unless older
+
+      # A commit of the pusher's own on top: a push whose newest commit is one
+      # of the sync's is never read as edits at all. A + refspec forces it.
+      with_clone do |repository|
+        repository.checkout(older)
+        repository.add_file("#{instance_uuid}/ids.yml", "---\n")
+        repository.commit('an older copy')
+
+        expect { repository.push_changes("+HEAD:#{branch}", max_attempts: 1) }
+          .to raise_error(Support::Run::CommandError, /Work items sync: .*a force push cannot edit issues/)
+      end
     end
 
     it 'tells a successful push what the file it accepted means',
