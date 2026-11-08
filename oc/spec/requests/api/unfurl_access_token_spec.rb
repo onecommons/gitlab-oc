@@ -10,8 +10,8 @@ RSpec.describe API::UnfurlAccessToken, feature_category: :system_access do
     get api('/unfurl_access_token', user, personal_access_token: api_token)
   end
 
-  def stored_value
-    user.custom_attributes.find_by(key: described_class::TOKEN_ATTRIBUTE_KEY)&.value
+  def stored
+    OC::Authn::UnfurlGitToken.find_by(user: user)
   end
 
   it 'creates and stores a repository-scoped token without notifying the user' do
@@ -26,11 +26,12 @@ RSpec.describe API::UnfurlAccessToken, feature_category: :system_access do
     created = user.personal_access_tokens.find(json_response['id'])
     expect(created).to have_attributes(
       name: OC::GIT_TOKEN_NAME,
-      scopes: described_class::TOKEN_SCOPES,
+      scopes: OC::Authn::UnfurlGitTokenService::TOKEN_SCOPES,
       expire_notification_delivered: true,
       after_expiry_notification_delivered: true
     )
-    expect(stored_value).to eq("#{created.id}|#{json_response['token']}")
+    expect(stored).to have_attributes(personal_access_token_id: created.id, token: json_response['token'])
+    expect(user.custom_attributes).to be_empty
   end
 
   it 'hands back the stored token while it is still live' do
@@ -50,7 +51,7 @@ RSpec.describe API::UnfurlAccessToken, feature_category: :system_access do
 
     expect(json_response['id']).not_to eq(expired.id)
     expect(PersonalAccessToken.exists?(expired.id)).to be(false)
-    expect(stored_value).to eq("#{json_response['id']}|#{json_response['token']}")
+    expect(stored).to have_attributes(personal_access_token_id: json_response['id'], token: json_response['token'])
   end
 
   it 'does not expose a token to an unauthenticated request' do
