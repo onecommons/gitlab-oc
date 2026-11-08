@@ -59,6 +59,18 @@ module QA
       response.code == Support::API::HTTP_STATUS_OK ? response.body : nil
     end
 
+    # This installation names its files <iid>-<name>.yml, the name taken from
+    # the title, so the file is found by number.
+    def own_item_path(iid)
+      pattern = %r{\A#{iid}(-[^/]*)?\.yml\z}
+      tree("#{instance_uuid}/issues").find { |item| item[:name].match?(pattern) }&.dig(:path)
+    end
+
+    def own_item_file(iid)
+      path = own_item_path(iid)
+      path && file_on_branch(path)
+    end
+
     # This installation's uuid is not exposed by any API, but the branch is
     # named after it: the one directory the sync writes is it.
     def instance_uuid
@@ -70,10 +82,13 @@ module QA
       end
     end
 
+    # Turning sync on creates the branch at once, with only the drafts inbox,
+    # so this waits for the first sync to publish the issue: a push cloned
+    # before that commit lands is rejected as non-fast-forward.
     def wait_for_branch
       Support::Waiter.wait_until(max_duration: 90, sleep_interval: 1, raise_on_failure: true,
-        message: 'the sync branch to be written') do
-        tree.any? { |item| item[:type] == 'tree' }
+        message: 'the sync to publish the issue') do
+        tree.any? { |item| item[:type] == 'tree' } && own_item_file(issue.iid)
       end
     end
 
@@ -85,8 +100,19 @@ module QA
     end
 
     # Pushes files onto the sync branch and hands back everything git printed,
-    # which is where the messages under test appear.
-    def push(files, message: 'peer push')
+    # which is where the messages under test appear. The sync commits to the
+    # same branch on its own schedule, so a push that lost that race is made
+    # again from a fresh clone, as a person would after pulling.
+    def push(files, message: 'peer push', attempts: 3)
+      push_once(files, message)
+    rescue Support::Run::CommandError => e
+      attempts -= 1
+      raise unless attempts > 0 && e.message.match?(/\[rejected\].*\((fetch first|non-fast-forward)\)/)
+
+      retry
+    end
+
+    def push_once(files, message)
       Git::Repository.perform do |repository|
         repository.uri = project.repository_http_location.uri
 
@@ -173,7 +199,7 @@ module QA
       document = nil
 
       Support::Waiter.wait_until(max_duration: 90, sleep_interval: 1, raise_on_failure: true) do
-        document = file_on_branch("#{instance_uuid}/issues/#{issue.iid}.yml")
+        document = own_item_file(issue.iid)
       end
 
       expect(document).to include('_schema: issues@1')
@@ -239,6 +265,9 @@ module QA
         here_sync: "  sync:\n    peer:\n      transfer:\n        - issues/#{issue.iid}.yml",
         peer_sync: "  sync:\n    here:\n      import: transferred")
 
+      # The peer stamps the path it read the document from, which carries the
+      # name this installation gave the file.
+      given_away = own_item_path(issue.iid)
       push({ 'sync.yml' => transfer }, message: 'promise it away')
 
       Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
@@ -251,7 +280,7 @@ module QA
         "#{peer_uuid}/ids.yml" => peer_identities,
         "#{peer_uuid}/issues/7.yml" => peer_document(
           iid: 7, title: 'Theirs now',
-          transferred_from: "#{instance_uuid}/issues/#{issue.iid}.yml")
+          transferred_from: given_away)
       }, message: 'the new owner publishes it')
 
       Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
@@ -268,7 +297,7 @@ module QA
       # And our own directory now points at theirs instead of holding it.
       Support::Waiter.wait_until(max_duration: 90, sleep_interval: 1, raise_on_failure: true,
         message: 'the pointer to replace the document') do
-        file_on_branch("#{instance_uuid}/issues/#{issue.iid}.yml")&.include?('issue_reference@1')
+        own_item_file(issue.iid)&.include?('issue_reference@1')
       end
 
       # A copy rather than a snapshot: what we are left with goes on following
@@ -276,7 +305,7 @@ module QA
       push({
         "#{peer_uuid}/issues/7.yml" => peer_document(
           iid: 7, title: 'Theirs now, and edited',
-          transferred_from: "#{instance_uuid}/issues/#{issue.iid}.yml")
+          transferred_from: given_away)
       }, message: 'the new owner edits it')
 
       Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
@@ -317,7 +346,7 @@ module QA
 
       Support::Waiter.wait_until(max_duration: 120, sleep_interval: 1, raise_on_failure: true,
         message: 'our own document for it to be published') do
-        document = file_on_branch("#{instance_uuid}/issues/#{taken[:iid]}.yml")
+        document = own_item_file(taken[:iid])
         document&.include?('transferred_from')
       end
 
