@@ -3,8 +3,8 @@ name: ci
 
 "on":
   pull_request:
+  # Every branch: these jobs take minutes, unlike spec.yml's.
   push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:

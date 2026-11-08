@@ -871,10 +871,10 @@ CI is GitHub Actions on [`onecommons/gitlab-oc`](https://github.com/onecommons/g
 `.github/workflows/`. `.gitlab/ci` is upstream's and unused.
 
 - **Branches.** `main` is the default branch; work lands on `oc-patches` and
-  `main` is fast-forwarded to it. `ci` and `spec` run on pushes to `main` and
-  on pull requests, so while iterating on CI push only `oc-patches` and start
-  workflows by hand with `gh workflow run <workflow> --ref oc-patches`;
-  fast-forward and push `main` once green. `git push -o ci.skip` is GitLab-only
+  `main` is fast-forwarded to it. `ci` runs on every push and pull request.
+  `spec` runs on pushes to `main` and on pull requests, so push only
+  `oc-patches`, start it by hand with `gh workflow run spec.yml --ref
+  oc-patches`, and fast-forward and push `main` once green. `git push -o ci.skip` is GitLab-only
   and GitHub ignores it.
 - **`ci.yml`** runs RuboCop on the Ruby files the push or PR changed, matching
   lefthook's rule that an offense is yours if you touched the file. Its
