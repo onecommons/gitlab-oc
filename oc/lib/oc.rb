@@ -28,6 +28,8 @@ module OC
   UNFURL_CLOUDMAP_PROJECT = 'onecommons/cloudmap'
 
   GIT_TOKEN_NAME = 'UNFURL_GIT_ACCESS'
+  # The cloudmap's project bot token (OC::Authn::UnfurlGitTokenService.for_project_bot).
+  CLOUDMAP_PUSH_TOKEN_NAME = 'UNFURL_CLOUDMAP_PUSH'
 
   # A dashboard's deployments push their results back with this token, and
   # nothing rotates it, so it is exempt from expiry. Matched by name, which the

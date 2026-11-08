@@ -18,4 +18,18 @@ RSpec.describe NotificationService, feature_category: :system_access do
       described_class.new.access_token_created(user, 'my token')
     end
   end
+
+  describe '#access_token_rotated' do
+    it 'stays quiet about the cloudmap bot token being rotated' do
+      expect(Notify).not_to receive(:access_token_rotated_email)
+
+      described_class.new.access_token_rotated(user, OC::CLOUDMAP_PUSH_TOKEN_NAME)
+    end
+
+    it 'still announces a rotation the user asked for' do
+      expect(Notify).to receive(:access_token_rotated_email).with(user, 'my token').and_call_original
+
+      described_class.new.access_token_rotated(user, 'my token')
+    end
+  end
 end

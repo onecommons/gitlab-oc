@@ -58,4 +58,65 @@ RSpec.describe OC::Authn::UnfurlGitTokenService, feature_category: :system_acces
     expect(service.execute).to have_attributes(status: :error, message: 'nope')
     expect(stored).to be_nil
   end
+
+  describe '.for_project_bot' do
+    let_it_be(:project) { create(:project) }
+
+    subject(:bot_service) { described_class.for_project_bot(project) }
+
+    def bot_token
+      OC::Authn::UnfurlGitToken.find_by(user_id: project.bots.pluck(:id))&.personal_access_token
+    end
+
+    it 'creates a project bot that can push, with a write-only token' do
+      response = bot_service.execute
+
+      expect(response).to be_success
+      token = PersonalAccessToken.find(response[:id])
+      expect(token.user).to be_project_bot
+      expect(token).to have_attributes(name: OC::CLOUDMAP_PUSH_TOKEN_NAME, scopes: %w[write_repository],
+        expire_notification_delivered: true)
+      expect(project.team.max_member_access(token.user_id)).to eq(Gitlab::Access::MAINTAINER)
+      expect(response[:username]).to eq(token.user.username)
+    end
+
+    it 'reuses the token until a day before it expires' do
+      first = bot_service.execute
+
+      expect { described_class.for_project_bot(project).execute }.not_to change { PersonalAccessToken.count }
+      expect(bot_token.id).to eq(first[:id])
+    end
+
+    it 'rotates it within a day of expiry, keeping the bot' do
+      first = PersonalAccessToken.find(bot_service.execute[:id])
+      first.update_column(:expires_at, Date.tomorrow)
+
+      expect(Notify).not_to receive(:access_token_rotated_email)
+      response = described_class.for_project_bot(project).execute
+
+      expect(response[:id]).not_to eq(first.id)
+      expect(first.reload).to be_revoked
+      expect(bot_token.user).to eq(first.user)
+    end
+
+    it 'makes a new bot when the token was revoked' do
+      first = PersonalAccessToken.find(bot_service.execute[:id])
+      first.revoke!
+
+      response = described_class.for_project_bot(project).execute
+
+      expect(PersonalAccessToken.find(response[:id]).user).not_to eq(first.user)
+      expect(OC::Authn::UnfurlGitToken.where(user_id: first.user_id)).to be_empty
+    end
+
+    it 'never takes another bot of the project for its own' do
+      other_bot = create(:user, :project_bot)
+      project.add_maintainer(other_bot)
+      create(:personal_access_token, user: other_bot)
+
+      response = bot_service.execute
+
+      expect(PersonalAccessToken.find(response[:id]).user).not_to eq(other_bot)
+    end
+  end
 end
