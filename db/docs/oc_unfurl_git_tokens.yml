@@ -1,0 +1,14 @@
+---
+table_name: oc_unfurl_git_tokens
+classes:
+- OC::Authn::UnfurlGitToken
+feature_categories:
+- system_access
+description: The encrypted git access token each user, or the cloudmap's project
+  bot, hands the Unfurl server
+introduced_by_url:
+milestone: '19.3'
+gitlab_schema: gitlab_main_user
+sharding_key:
+  user_id: users
+table_size: small

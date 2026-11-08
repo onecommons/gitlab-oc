@@ -25519,6 +25519,25 @@ CREATE SEQUENCE oc_replicated_work_items_id_seq
 
 ALTER SEQUENCE oc_replicated_work_items_id_seq OWNED BY oc_replicated_work_items.id;
 
+CREATE TABLE oc_unfurl_git_tokens (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    personal_access_token_id bigint NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    token text NOT NULL,
+    CONSTRAINT check_28f7f76f3b CHECK ((char_length(token) <= 2048))
+);
+
+CREATE SEQUENCE oc_unfurl_git_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oc_unfurl_git_tokens_id_seq OWNED BY oc_unfurl_git_tokens.id;
+
 CREATE TABLE oc_work_item_drafts (
     id bigint NOT NULL,
     project_id bigint NOT NULL,
@@ -37389,6 +37408,8 @@ ALTER TABLE ONLY oc_environment_providers ALTER COLUMN id SET DEFAULT nextval('o
 
 ALTER TABLE ONLY oc_replicated_work_items ALTER COLUMN id SET DEFAULT nextval('oc_replicated_work_items_id_seq'::regclass);
 
+ALTER TABLE ONLY oc_unfurl_git_tokens ALTER COLUMN id SET DEFAULT nextval('oc_unfurl_git_tokens_id_seq'::regclass);
+
 ALTER TABLE ONLY oc_work_item_drafts ALTER COLUMN id SET DEFAULT nextval('oc_work_item_drafts_id_seq'::regclass);
 
 ALTER TABLE ONLY onboarding_progresses ALTER COLUMN id SET DEFAULT nextval('onboarding_progresses_id_seq'::regclass);
@@ -41162,6 +41183,9 @@ ALTER TABLE ONLY oc_environment_providers
 
 ALTER TABLE ONLY oc_replicated_work_items
     ADD CONSTRAINT oc_replicated_work_items_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY oc_unfurl_git_tokens
+    ADD CONSTRAINT oc_unfurl_git_tokens_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY oc_work_item_drafts
     ADD CONSTRAINT oc_work_item_drafts_pkey PRIMARY KEY (id);
@@ -49390,6 +49414,8 @@ CREATE UNIQUE INDEX index_oc_replicated_work_items_on_merge_request_id ON oc_rep
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_source ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_path);
 
 CREATE INDEX index_oc_replicated_work_items_on_source_iid ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_kind, source_iid);
+
+CREATE UNIQUE INDEX index_oc_unfurl_git_tokens_on_user_id ON oc_unfurl_git_tokens USING btree (user_id);
 
 CREATE UNIQUE INDEX index_oc_work_item_drafts_on_issue_id ON oc_work_item_drafts USING btree (issue_id) WHERE (issue_id IS NOT NULL);
 
@@ -60083,6 +60109,9 @@ ALTER TABLE ONLY related_epic_links
 
 ALTER TABLE ONLY ci_runner_controller_tokens
     ADD CONSTRAINT fk_rails_0b9e370fc6 FOREIGN KEY (runner_controller_id) REFERENCES ci_runner_controllers(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY oc_unfurl_git_tokens
+    ADD CONSTRAINT fk_rails_0ba17b8ecd FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY audit_events_external_audit_event_destinations
     ADD CONSTRAINT fk_rails_0bc80a4edc FOREIGN KEY (namespace_id) REFERENCES namespaces(id) ON DELETE CASCADE;

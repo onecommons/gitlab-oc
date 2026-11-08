@@ -64,6 +64,7 @@ RSpec.describe 'Database schema',
       user_audit_events: %w[author_id user_id target_id],
       group_audit_events: %w[author_id group_id target_id],
       project_audit_events: %w[author_id project_id target_id],
+      oc_unfurl_git_tokens: %w[personal_access_token_id], # OC Change -- personal_access_tokens is gitlab_main_org
       iam_outbox: %w[entity_id], # generic source-row id (entity_type, entity_id), not a single-table FK
       govern_policy_enforcements: %w[project_id], # No FK: the Policy Store owns its integrity so it can be extracted, per GOVERN-008
       instance_audit_events: %w[author_id target_id],
