@@ -268,7 +268,7 @@ module.exports = {
   output: buildOutput({ hashChunks: !NO_HASHED_CHUNKS }),
 
   resolve: {
-    extensions: ['.mjs', '.js'],
+    extensions: ['.mjs', '.js', '.ts'], // OC Change: eslint's import resolver reads this; oc-pages is TypeScript
     alias,
   },
 
