@@ -21,8 +21,8 @@ module.exports = {
   presets: [tailwindDefaults],
   darkMode: ['variant', ['&:where(.dark *)']],
   content: [
-    // OC Change: oc/ added to the edition globs
-    './{ee,jh,oc,}/app/assets/javascripts/**/*.{vue,js}',
+    // OC Change: oc/ added to the edition globs, and .ts for oc-pages
+    './{ee,jh,oc,}/app/assets/javascripts/**/*.{vue,js,ts}',
     '!./app/assets/javascripts/locale/',
     './{ee,jh,oc,}/app/helpers/**/*.rb',
     './{ee,jh,oc,}/app/components/**/*.{haml,rb}',
