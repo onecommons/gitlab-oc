@@ -73,7 +73,7 @@ const infectionRules = USE_VUE3
   : [
       {
         enforce: 'pre',
-        test: /\.(js|mjs)$/,
+        test: /\.(js|mjs|ts)$/, // OC Change: oc-pages is written in TypeScript
         use: [{ loader: INFECTION_LOADER_PATH }],
       },
       {

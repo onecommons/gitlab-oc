@@ -433,6 +433,40 @@ describe('infection scanner', () => {
       });
     });
 
+    // OC Change: oc-pages is written in TypeScript. A .ts file the scanner
+    // cannot resolve drops out of the graph silently, so it never takes ?vue3.
+    describe('TypeScript sources', () => {
+      const ts = (...parts) => fixture('ts_resolution', ...parts);
+      let result;
+
+      beforeAll(async () => {
+        result = await analyze({
+          rootPath: ts(),
+          entrypoints: { main: ts('entry.js') },
+          infectionSpecifiers: ['infection-pkg'],
+        });
+      });
+
+      it('resolves extensionless and index imports to .ts', () => {
+        const tsResolver = createResolver({ aliasMap: {}, rootPath: ts() });
+        expect(tsResolver.resolveModule('./leaf', ts('entry.js'))).toBe(ts('leaf.ts'));
+        expect(tsResolver.resolveModule('./lib', ts('entry.js'))).toBe(ts('lib', 'index.ts'));
+      });
+
+      it('walks .ts files, including those imported from a lang="ts" block', () => {
+        expect(result.graph[ts('leaf.ts')]).toBeDefined();
+        expect(result.graph[ts('lib', 'index.ts')]).toBeDefined();
+        expect(result.graph[ts('widget.vue')]).toBeDefined();
+        expect(result.graph[ts('typed.ts')]).toBeDefined();
+      });
+
+      it('propagates infection through a .ts file', () => {
+        expect(result.graph[ts('leaf.ts')].infected).toBe(true);
+        expect(result.graph[ts('entry.js')].infected).toBe(true);
+        expect(result.graph[ts('typed.ts')].infected).toBe(false);
+      });
+    });
+
     describe('app root as infection barrier', () => {
       let result;
 

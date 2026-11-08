@@ -130,7 +130,7 @@ export default {
   entry: entries,
   output,
   resolve: {
-    extensions: ['.mjs', '.js'],
+    extensions: ['.mjs', '.js', '.ts'], // OC Change: oc-pages is written in TypeScript
     // OC Change: keep oc-pages in the one path space its aliases and the Vue 3
     // infection scanner are written against, rather than resolving through the
     // symlinks to a second identity for every file.

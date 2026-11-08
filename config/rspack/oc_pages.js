@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const { IS_OC, ROOT_PATH } = require('../webpack.constants');
 const { aliases } = require('../helpers/aliases');
-const { OC_PAGES_SOURCE } = require('./loader_rules');
+const { OC_PAGES_SOURCE, buildSwcOptions } = require('./loader_rules');
 
 // `link:` installs none of the linked package's dependencies, and
 // resolve.symlinks is off (see the resolve block in rspack.config.mjs), so a
@@ -104,6 +104,12 @@ const warnUnclassifiedOcPagesDeps = (scannerGraph, classifiedPackages) => {
   );
 };
 
+const tsSwcOptions = () => {
+  const options = buildSwcOptions();
+  options.jsc.parser = { syntax: 'typescript', tsx: false, decorators: false, dynamicImport: true };
+  return options;
+};
+
 const ocPagesRules = IS_OC
   ? [
       // oc-pages imports an .svg as its markup unless the import asks for a URL.
@@ -112,6 +118,13 @@ const ocPagesRules = IS_OC
         include: OC_PAGES_SOURCE,
         resourceQuery: { not: [/url/] },
         type: 'asset/source',
+      },
+      // oc-pages is written in TypeScript; the fork's own code is not.
+      {
+        test: /\.ts$/,
+        include: OC_PAGES_SOURCE,
+        loader: 'builtin:swc-loader',
+        options: tsSwcOptions(),
       },
     ]
   : [];

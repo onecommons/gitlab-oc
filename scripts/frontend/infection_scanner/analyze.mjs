@@ -11,7 +11,8 @@ import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { init, parse } from 'es-module-lexer';
 
-const EXTENSIONS = ['.mjs', '.js'];
+// OC Change: oc-pages is written in TypeScript; same order as rspack's resolve.extensions.
+const EXTENSIONS = ['.mjs', '.js', '.ts'];
 const CONCURRENCY = 64;
 
 /**
@@ -68,13 +69,14 @@ export function createResolver({ aliasMap = {}, rootPath, fallbackResolve }) {
       if (tryFile(absPath + ext)) return absPath + ext;
     }
 
-    if (absPath.endsWith('.vue') || absPath.endsWith('.mjs') || absPath.endsWith('.js')) {
+    if (['.vue', ...EXTENSIONS].some((ext) => absPath.endsWith(ext))) {
       return null;
     }
 
     const indexCandidates = [
       path.join(absPath, 'index.mjs'),
       path.join(absPath, 'index.js'),
+      path.join(absPath, 'index.ts'),
       path.join(absPath, 'index.vue'),
     ];
     for (const candidate of indexCandidates) {
@@ -365,7 +367,7 @@ async function parseFile(filePath) {
 
 function isJsOrVue(resolved) {
   if (!resolved) return false;
-  return resolved.endsWith('.js') || resolved.endsWith('.mjs') || resolved.endsWith('.vue');
+  return ['.vue', ...EXTENSIONS].some((ext) => resolved.endsWith(ext));
 }
 
 async function buildGraph(entrypoints, resolver, { onProgress } = {}) {

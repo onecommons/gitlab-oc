@@ -123,6 +123,13 @@ describe('config/helpers/vue3_infection_shared', () => {
       expect(isInfectable(INFECTABLE_PATH)).toBe(true);
     });
 
+    // OC Change: oc-pages is written in TypeScript.
+    it('treats .ts files as infectable', () => {
+      const isInfectable = createIsInfectable(null);
+
+      expect(isInfectable('/repo/node_modules/oc-pages/vue_shared/client_utils/x.ts')).toBe(true);
+    });
+
     it('ignores query strings when checking the path', () => {
       const isInfectable = createIsInfectable(null);
 

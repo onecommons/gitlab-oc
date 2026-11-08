@@ -22,7 +22,7 @@ const CONTEXT_ALIASES = {
   ),
 };
 
-const INFECTABLE_RE = /\.(js|mjs|vue)$/;
+const INFECTABLE_RE = /\.(js|mjs|ts|vue)$/; // OC Change: oc-pages is written in TypeScript
 const INFECTION_BLOCKLIST = [
   // Global state vars should not be duplicated
   'app/assets/javascripts/lib/utils/breadcrumbs_state.js',

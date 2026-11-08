@@ -220,4 +220,4 @@ function buildLoaderRules({ vueLoaderOptions = {} } = {}) {
   ].filter(Boolean);
 }
 
-module.exports = { buildLoaderRules, shouldExcludeFromCompiling, OC_PAGES_SOURCE };
+module.exports = { buildLoaderRules, buildSwcOptions, shouldExcludeFromCompiling, OC_PAGES_SOURCE }; // OC Change
