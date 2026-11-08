@@ -15,7 +15,7 @@ name: spec
         default: ghcr.io/onecommons/gitlab-oc/gdk:latest
       only:
         description: >-
-          Stages to run, comma-separated without spaces, from static,fast,oc,upstream,heavy.
+          Stages to run, comma-separated without spaces, from static,fast,oc,upstream,heavy,qa.
           Empty runs them all. Each runs as its own job, in parallel.
         required: false
         default: ''
@@ -34,6 +34,7 @@ jobs:
       actions: read
     outputs:
       stages: ${{ steps.plan.outputs.stages }}
+      qa: ${{ steps.plan.outputs.qa }}
     steps:
       # A nightly with nothing new to test is skipped: same commit and same
       # image as the last nightly that passed. The image is rebuilt weekly, so
@@ -68,7 +69,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           UNCHANGED: ${{ steps.nightly.outputs.unchanged }}
         run: |
-          stages="static fast oc upstream"
+          stages="static fast oc upstream qa"
           case "$EVENT" in schedule|workflow_dispatch) stages="$stages heavy" ;; esac
           if [ -n "$ONLY" ]; then
             stages=$(for s in $stages; do case ",$ONLY," in *",$s,"*) echo "$s" ;; esac; done)
@@ -77,6 +78,8 @@ jobs:
             echo "Nothing new since the last passing nightly; skipping."
             stages=
           fi
+          case " $stages " in *" qa "*) echo "qa=true" >> "$GITHUB_OUTPUT" ;; esac
+          stages=$(for s in $stages; do [ "$s" = qa ] || echo "$s"; done)
           echo "stages=$(printf '%s\n' $stages | jq -R . | jq -sc 'map(select(length > 0))')" >> "$GITHUB_OUTPUT"
 
   rspec:
@@ -174,6 +177,109 @@ jobs:
 
       # A killed run leaves a transaction open on `shards` that poisons every
       # later suite, so a cancelled job should not leave the container behind.
+      - name: Stop the container
+        if: ${{ always() }}
+        run: docker rm -f gdk || true
+
+  # The fork's QA end-to-end specs (qa/qa/specs/features/oc), against a
+  # running GDK: everything starts, Sidekiq included, since every step they
+  # check is asynchronous. They run on the runner, as oc/spec/README.md runs
+  # them, with the QA bundle rather than the GDK's.
+  qa:
+    name: qa
+    needs: plan
+    if: ${{ needs.plan.outputs.qa == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      QA_GITLAB_URL: http://gdk.test:3000
+      GITHUB_FIXTURE: aszs/gitlab-qa-import-fixture
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve gdk.test
+        run: echo "127.0.0.1 gdk.test" | sudo tee -a /etc/hosts
+
+      - name: Pull the GDK image
+        run: docker pull "$GDK_IMAGE"
+
+      # As e2e.yml starts it; see the notes there. The one-second sync delay
+      # is oc/spec/README.md's: the default ten lands on the critical path
+      # eight times.
+      - name: Start the GDK
+        id: gdk
+        run: |
+          docker run -d --name gdk --network host \
+            --add-host gdk.test:127.0.0.1 \
+            "$GDK_IMAGE" sleep infinity
+          docker exec -u gdk -e REF="$GITHUB_SHA" gdk bash -c '
+            set -e
+            eval "$(~/.local/bin/mise activate bash)"
+            cd /gitlab-gdk/gitlab-development-kit
+            echo "export OC_WORK_ITEMS_SYNC_DELAY=1" >> env.runit
+            cd gitlab
+            git fetch --depth=1 origin "$REF"
+            git checkout --force FETCH_HEAD
+            mise x -- bundle install --jobs 4
+            mise x -- yarn install --immutable
+            mise x -- bin/rake gettext:compile
+            mise x -- gdk start postgresql redis
+            RAILS_ENV=development mise x -- bin/rake db:migrate
+            mise x -- gdk stop'
+          docker exec -d gdk /home/gdk/gdk-container-startup.sh
+          SECONDS=0
+          while [ $SECONDS -lt 600 ]; do
+            code=$(curl -s --max-time 20 -o /dev/null -w '%{http_code}' "$QA_GITLAB_URL/users/sign_in" || true)
+            [ "$code" = "200" ] && { echo "up after ${SECONDS}s"; break; }
+            echo "${SECONDS}s: HTTP $code"
+            sleep 10
+          done
+          [ "$code" = "200" ] || {
+            timeout 120 docker exec -u gdk gdk bash -c 'cd /gitlab-gdk/gitlab-development-kit &&
+              ~/.local/bin/mise x -- gdk status; tail -n 40 log/*/current gitlab/log/development.log' || true
+            exit 1
+          }
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.11'
+          working-directory: qa
+          bundler-cache: true
+
+      # The GDK's seeded root token is the framework's default admin token, so
+      # nothing is passed for it.
+      - name: Work items sync
+        working-directory: qa
+        run: bundle exec rspec qa/specs/features/oc/api/3_create/work_items_sync_spec.rb
+
+      # These import a real repository, so they need a GitHub token with repo
+      # scope, which a fork's PR is never given.
+      - name: GitHub import
+        if: ${{ !cancelled() && steps.gdk.outcome == 'success' }}
+        working-directory: qa
+        env:
+          QA_GITHUB_ACCESS_TOKEN: ${{ secrets.QA_GITHUB_ACCESS_TOKEN }}
+          QA_GITHUB_IMPORT_REPOSITORY: ${{ env.GITHUB_FIXTURE }}
+        run: |
+          if [ -z "$QA_GITHUB_ACCESS_TOKEN" ]; then
+            echo "::notice::No QA_GITHUB_ACCESS_TOKEN secret; skipping the GitHub import specs."
+            exit 0
+          fi
+          bundle exec rspec \
+            qa/specs/features/oc/api/1_manage/import/github_mirroring_opt_out_spec.rb \
+            qa/specs/features/oc/browser_ui/1_manage/import/github_pull_mirroring_spec.rb
+
+      # Each import leaves a webhook on the fixture pointing at gdk.test, which
+      # GitHub can never reach, and a repository holds at most 20.
+      - name: Remove the fixture's gdk.test webhooks
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ secrets.QA_GITHUB_ACCESS_TOKEN }}
+        run: |
+          [ -n "$GH_TOKEN" ] || exit 0
+          gh api "repos/$GITHUB_FIXTURE/hooks" --paginate \
+            -q '.[] | select(.config.url | contains("gdk.test")) | .id' |
+            while read -r id; do gh api -X DELETE "repos/$GITHUB_FIXTURE/hooks/$id"; done
+
       - name: Stop the container
         if: ${{ always() }}
         run: docker rm -f gdk || true

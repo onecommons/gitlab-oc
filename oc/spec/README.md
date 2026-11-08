@@ -236,7 +236,10 @@ will bite again on a fresh machine:
   at `gdk.test:3000`, which GitHub cannot reach. They accumulate, and GitHub
   caps a repository at 20. Prune them occasionally.
 
-There is no CI job for the QA suite in this port yet.
+In CI, the `qa` job of `.github/workflows/spec.yml` runs all three against a
+GDK container. The GitHub import specs run only when the repository has a
+`QA_GITHUB_ACCESS_TOKEN` secret, and the job removes the webhooks they leave
+on the fixture.
 
 ## Jest
 
