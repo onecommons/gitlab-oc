@@ -11,12 +11,13 @@ exports[`Experimental new project creation app creates correct panels 1`] = `
     "title": "Create blank project",
   },
   {
-    "description": "Create a project pre-populated with the necessary files to get you started quickly.",
+    "description": "Create a new deployment dashboard, testbed, or blueprint project.",
+    "hideTemplateContributionLink": true,
     "imageSrc": "file-mock-project-create-from-template-sm.svg",
     "key": "template",
     "name": "create_from_template",
     "selector": "#create-from-template-pane",
-    "title": "Create from template",
+    "title": "Create an Unfurl project",
   },
   {
     "description": "Migrate your data from an external source like GitHub, Bitbucket, or another instance of GitLab.",

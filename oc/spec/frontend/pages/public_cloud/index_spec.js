@@ -1,4 +1,4 @@
-jest.mock('oc/public_cloud', () => jest.fn());
+jest.mock('oc/public_cloud', () => jest.fn(() => Promise.resolve()));
 
 describe('public-cloud page entry point', () => {
   // The entry point runs its work on import, so each example has to load it
