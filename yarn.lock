@@ -17714,9 +17714,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oc-pages@https://github.com/onecommons/unfurl-gui#head=typescript&workspace=oc-pages":
+"oc-pages@https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages":
   version: 0.1.0
-  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=23f92dc556bcb81059157746792984abc7b62369"
+  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=aeedd17df4e984a71d1c4ea540121609bb21420a"
   dependencies:
     "@formily/core": ~2.2.0
     "@formily/reactive-vue": ~2.3.0
@@ -17744,7 +17744,7 @@ __metadata:
   peerDependenciesMeta:
     vue:
       optional: false
-  checksum: 54008e96aa5b79253a37287af377a7ca11ee4cfd9c5fa4cfa3c61e26e868b8caf2a8b98a7637d18600b44072259e471cea0996af153f6a1d4a17bcd1e966f7f7
+  checksum: 56b5df64b3a541e1e4b45cf57e9ed5571158bff46327a4d5428cf91216cab569247bbabc231543afa06678f29d01281d20024587ce5d40cd8bb4cd21cbf14e27
   languageName: node
   linkType: hard
 
@@ -20165,7 +20165,7 @@ __metadata:
     mousetrap: 1.6.5
     msw: 1.3.5
     nodemon: ^2.0.19
-    oc-pages: "https://github.com/onecommons/unfurl-gui#head=typescript&workspace=oc-pages"
+    oc-pages: "https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages"
     orderedmap: ^2.1.1
     papaparse: ^5.3.1
     patch-package: 8.0.1
