@@ -42,6 +42,13 @@ module OC
         end
 
         def check_limits!(paths)
+          # The diff is only the pusher's edits when the push builds on the
+          # branch. A force push of an older copy would read every field it
+          # takes back as an edit, and write the old values into the issues.
+          if ::Gitlab::Checks::ForcePush.force_push?(project, oldrev, newrev)
+            fail!(paths.first, 'a force push cannot edit issues; pull, merge, and push again')
+          end
+
           if paths.size > MAX_ITEMS
             fail!(paths.first, "this push edits #{paths.size} issues; at most #{MAX_ITEMS} can be edited at once")
           end

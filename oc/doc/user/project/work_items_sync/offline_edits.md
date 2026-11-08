@@ -132,6 +132,8 @@ names the file. The reasons are:
   a milestone, or a due date, change confidentiality, or comment, or the comment
   is not yours.
 - The issue no longer exists.
+- The push is a force push. A force push cannot edit issues: pull, merge, and
+  push again.
 - Work items sync is off for the project.
 - The push edits more than 100 issues.
 - A file is larger than 1 MiB.

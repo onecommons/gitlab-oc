@@ -99,6 +99,27 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
     expect(refusal(old, new)).to be_nil
   end
 
+  it 'does not stand in the way of a full sync pass' do
+    old = sync(issue)
+    issue.update!(title: 'Changed on the web')
+    OC::WorkItems::FullSyncWorker.new.perform(project.id)
+
+    expect(refusal(old, project.repository.commit(branch).sha)).to be_nil
+  end
+
+  # A force push of an older copy would read every field it takes back as
+  # an edit, and write the old values into the issue.
+  it 'refuses a force push that changes issue files' do
+    old_copy = sync(issue)
+    issue.update!(title: 'Changed on the web')
+    current = sync(issue)
+    project.repository.commit_files(user, branch_name: 'older', start_sha: old_copy, message: 'older',
+      actions: [{ action: :update, file_path: "#{uuid}/ids.yml", content: "---\n" }])
+    older = project.repository.commit('older').sha
+
+    expect(refusal(current, older)).to include('a force push cannot edit issues')
+  end
+
   describe 'conflicts' do
     it 'refuses an edit to a field that changed since the copy, and syncs the item' do
       old = sync(issue)
@@ -144,6 +165,13 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
     it "refuses an edit to someone else's comment" do
       expect(edit_comment(other_user)).to include('you can only change your own comments')
     end
+  end
+
+  it 'refuses a confidentiality change the pusher may not make' do
+    allow(Ability).to receive(:allowed?).and_call_original
+    allow(Ability).to receive(:allowed?).with(user, :set_confidentiality, anything).and_return(false)
+
+    expect(edit { |doc| doc['confidential'] = true }).to include('whether this issue is confidential')
   end
 
   it 'refuses a change the pusher may not make' do

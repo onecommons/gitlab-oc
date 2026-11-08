@@ -27,7 +27,6 @@ module OC
       # since. Returns the iids applied and {iid => reason} for those skipped.
       def execute(oldrev, newrev)
         result = Result.new(applied: [], skipped: {})
-        @pushed_at = project.repository.commit(newrev)&.committed_date
 
         ItemEdit.changed_paths(project.repository, oldrev, newrev).each do |path|
           edit = ItemEdit.diff(path: path, old_yaml: content_at(oldrev, path), new_yaml: content_at(newrev, path))
@@ -100,7 +99,7 @@ module OC
         return 'the issue cannot be edited offline' unless current.is_a?(String)
 
         # Someone changed a field on the web between the push check and now.
-        statuses = edit.statuses(current)
+        statuses = edit.statuses(current, author_id: user.id)
         conflict = statuses.find { |_key, status| status == :conflict }&.first
         return "#{ItemEdit.describe(conflict)} changed after the push" if conflict
 
@@ -110,7 +109,7 @@ module OC
         pending = statuses.filter_map { |key, status| key if status == :pending }
         update_issue(issue, edit, pending)
         edit_notes(issue, pending.grep(ItemEdit::EditedNote))
-        create_notes(issue, edit.new_notes)
+        create_notes(issue, pending.grep(ItemEdit::NewNote))
         issue
       rescue ::StandardError => error
         ::Gitlab::ErrorTracking.track_exception(error, project_id: project.id, iid: edit.iid)
@@ -155,21 +154,18 @@ module OC
         end
       end
 
-      # A retried job must not post the same comment twice: one already made by
-      # this user with this text since the push counts as this one.
-      # rubocop:disable CodeReuse/ActiveRecord -- a retry guard, not a finder
       def create_notes(issue, new_notes)
         new_notes.each do |new_note|
-          posted = issue.notes.where(author: user, note: new_note.note)
-          next if @pushed_at && posted.where(created_at: @pushed_at..).exists?
-
           ::Notes::CreateService.new(project, user, noteable: issue, note: new_note.note).execute
         end
       end
-      # rubocop:enable CodeReuse/ActiveRecord
 
+      # The job can run after the push's revisions are gone (a force push and
+      # a garbage collection in between).
       def content_at(revision, path)
         blob = project.repository.blob_at(revision, path)
+        raise ItemEdit::Error.new("is no longer in the repository at #{revision}", path: path) unless blob
+
         blob.load_all_data!
         blob.data
       end

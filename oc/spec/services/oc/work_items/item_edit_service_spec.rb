@@ -126,6 +126,14 @@ RSpec.describe OC::WorkItems::ItemEditService, feature_category: :source_code_ma
     expect(apply(revisions).skipped).to eq(issue.iid => 'it could not be applied: boom')
   end
 
+  it 'skips a file whose revision is gone by the time the job runs' do
+    oldrev, newrev = push_edit { |doc| doc['title'] = 'New' }
+    allow(project.repository).to receive(:blob_at).and_call_original
+    allow(project.repository).to receive(:blob_at).with(newrev, path).and_return(nil)
+
+    expect(apply([oldrev, newrev]).skipped[issue.iid]).to include('is no longer in the repository')
+  end
+
   it 'does not post a new comment twice when retried' do
     revisions = push_edit { |doc| doc['notes'] = Array(doc['notes']) + [{ 'note' => 'Once' }] }
 

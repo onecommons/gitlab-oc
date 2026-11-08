@@ -148,6 +148,17 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
       expect(statuses).to eq('title' => :conflict, 'label_links' => :conflict, :comment => :conflict)
     end
 
+    it 'is done for a new comment once its author has posted one with its text' do
+      edit = diff(original.merge('notes' => [comment, { 'note' => 'New' }]))
+      posted = comment.merge('note' => 'New', 'created_at' => '2026-02-01T00:00:00.000Z')
+      new_note = edit.new_notes.first
+
+      expect(edit.statuses(original.to_yaml, author_id: 7)[new_note]).to eq(:pending)
+      expect(edit.statuses(original.merge('notes' => [comment, posted]).to_yaml, author_id: 7)[new_note]).to eq(:done)
+      expect(edit.statuses(original.merge('notes' => [comment, posted]).to_yaml, author_id: 8)[new_note])
+        .to eq(:pending)
+    end
+
     it 'is a conflict for a comment that is gone' do
       expect(statuses_with('notes' => [])[:comment]).to eq(:conflict)
     end

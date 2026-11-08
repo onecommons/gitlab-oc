@@ -105,9 +105,10 @@ module OC
       # How each change stands against the item now, given a fresh
       # serialization of it: :pending while it still has the value the push
       # started from, :done once it has the pushed value, :conflict if it has
-      # anything else. Keyed by field name, or by EditedNote. New comments
-      # never conflict and are not listed.
-      def statuses(current_yaml)
+      # anything else. Keyed by field name, EditedNote or NewNote. A new
+      # comment never conflicts; it is :done once `author_id` has a comment
+      # with its text that the push did not start from.
+      def statuses(current_yaml, author_id: nil)
         current = self.class.values(current_yaml)
 
         statuses = fields.to_h do |field, (old_value, new_value)|
@@ -117,6 +118,16 @@ module OC
         edited_notes.each do |note|
           identity = [note.author_id, note.created_at, note.discussion_id]
           statuses[note] = status(current['notes'][identity], note.old_note, note.note)
+        end
+
+        posted = current['notes'].filter_map do |identity, text|
+          text if identity.first == author_id && @old_note_identities.exclude?(identity)
+        end
+
+        new_notes.each do |note|
+          index = posted.index(note.note)
+          statuses[note] = index ? :done : :pending
+          posted.delete_at(index) if index
         end
 
         statuses
@@ -228,6 +239,7 @@ module OC
 
       def compare_notes(before, after)
         old_by_identity = before.group_by { |entry| note_identity(entry) }
+        @old_note_identities = old_by_identity.keys.to_set
 
         after.each do |entry|
           fail!('each of "notes" must be a mapping') unless entry.is_a?(Hash)
