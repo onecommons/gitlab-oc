@@ -248,28 +248,22 @@ jobs:
           working-directory: qa
           bundler-cache: true
 
-      # The GDK's seeded root token is the framework's default admin token, so
-      # nothing is passed for it.
-      - name: Work items sync
-        working-directory: qa
-        run: bundle exec rspec qa/specs/features/oc/api/3_create/work_items_sync_spec.rb
-
-      # These import a real repository, so they need a GitHub token with repo
-      # scope, which a fork's PR is never given.
-      - name: GitHub import
-        if: ${{ !cancelled() && steps.gdk.outcome == 'success' }}
+      # Every spec under oc/, so a new one needs no entry here. The GDK's
+      # seeded root token is the framework's default admin token. The GitHub
+      # import specs (:github) need a token with repo scope, which a fork's PR
+      # is never given, so without one they are left out.
+      - name: QA specs
         working-directory: qa
         env:
           QA_GITHUB_ACCESS_TOKEN: ${{ secrets.QA_GITHUB_ACCESS_TOKEN }}
           QA_GITHUB_IMPORT_REPOSITORY: ${{ env.GITHUB_FIXTURE }}
         run: |
+          tags=
           if [ -z "$QA_GITHUB_ACCESS_TOKEN" ]; then
             echo "::notice::No QA_GITHUB_ACCESS_TOKEN secret; skipping the GitHub import specs."
-            exit 0
+            tags='--tag ~github'
           fi
-          bundle exec rspec \
-            qa/specs/features/oc/api/1_manage/import/github_mirroring_opt_out_spec.rb \
-            qa/specs/features/oc/browser_ui/1_manage/import/github_pull_mirroring_spec.rb
+          bundle exec rspec $tags qa/specs/features/oc
 
       # Each import leaves a webhook on the fixture pointing at gdk.test, which
       # GitHub can never reach, and a repository holds at most 20.

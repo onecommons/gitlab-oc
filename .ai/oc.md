@@ -825,8 +825,8 @@ Where tests belong:
   file if it covers code the fork edits (see [CI](#ci)).
 - `qa/qa/specs/features/oc/**` — end-to-end, separate `qa/` bundle. Written
   with the `create(:project)` factories (`QA/FabricateUsage`) and a
-  `feature_category`, not `product_group`. Run by `spec.yml`'s `qa` job; a new
-  one needs adding there, since the job names each file.
+  `feature_category`, not `product_group`. Run by `spec.yml`'s `qa` job, which
+  runs the whole directory; ones that import from GitHub need the `:github` tag.
 - **User docs live in `oc/doc/`**, mirroring `doc/`. `OC::HelpController`
   serves a page from there before `doc/`, so `help_page_path('user/x.md')`
   resolves; the `Gitlab/DocumentationLinks/Link` cop looks there too
@@ -894,9 +894,10 @@ CI is GitHub Actions on [`onecommons/gitlab-oc`](https://github.com/onecommons/g
   - `heavy`: four slow upstream files.
   - `qa`: a separate job, not a matrix entry, running the QA specs under
     `qa/qa/specs/features/oc` from the runner against a fully started GDK
-    container. The GitHub import ones need a `QA_GITHUB_ACCESS_TOKEN` repo
-    secret (classic PAT, `repo` scope) and are skipped with a notice without
-    it; the job deletes the webhooks they leave on the fixture repository.
+    container. The GitHub import ones (`:github`) need a
+    `QA_GITHUB_ACCESS_TOKEN` repo secret and are skipped with a notice
+    without it; the job deletes the webhooks they leave on the fixture
+    repository.
 
   A push or PR runs all but `heavy` (~30 min). The nightly schedule (03:41 UTC,
   on `main`) and manual runs add `heavy`. A manual run takes `-f only=heavy` or
