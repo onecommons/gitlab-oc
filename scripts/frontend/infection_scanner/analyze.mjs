@@ -14,6 +14,8 @@ import { init, parse } from 'es-module-lexer';
 // OC Change: oc-pages is written in TypeScript; same order as rspack's resolve.extensions.
 const EXTENSIONS = ['.mjs', '.js', '.ts'];
 const CONCURRENCY = 64;
+// `import type X`, `import type {X}`, `import type * as X` -- not a default import named `type`
+const TYPE_ONLY_IMPORT = /^import\s+type(?:\s*[{*]|\s+(?!from\b)[\w$])/;
 
 /**
  * Create a module resolver that handles aliases, file extensions, index files,
@@ -352,6 +354,11 @@ async function parseFile(filePath) {
     const [parsed] = parse(code);
     imports = parsed
       .filter((imp) => imp.n)
+      // OC Change: `import type` is erased at build, so it is no edge. The
+      // lexer reports it as a static import; one naming vue would otherwise put
+      // a module that only uses vue's types in the Vue 3 lane. (`import {type X}`
+      // stays an edge: under verbatimModuleSyntax the import itself survives.)
+      .filter((imp) => !(imp.d === -1 && TYPE_ONLY_IMPORT.test(code.slice(imp.ss, imp.ss + 32))))
       .map((imp) => ({
         source: imp.n,
         dynamic: imp.d >= 0,

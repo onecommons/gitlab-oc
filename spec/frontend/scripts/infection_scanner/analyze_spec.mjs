@@ -465,6 +465,19 @@ describe('infection scanner', () => {
         expect(result.graph[ts('entry.js')].infected).toBe(true);
         expect(result.graph[ts('typed.ts')].infected).toBe(false);
       });
+
+      // `import type` is erased at build, so it is no edge -- even to an
+      // infection source. Counting it put type-only users of vue in the Vue 3 lane.
+      it('ignores type-only imports', async () => {
+        const typesOnly = await analyze({
+          rootPath: ts(),
+          entrypoints: { main: ts('entry_types.js') },
+          infectionSpecifiers: ['infection-pkg'],
+        });
+        expect(typesOnly.graph[ts('types_only.ts')].infected).toBe(false);
+        expect(typesOnly.graph[ts('entry_types.js')].infected).toBe(false);
+        expect(typesOnly.graph[ts('typed.ts')]).toBeDefined();
+      });
     });
 
     describe('app root as infection barrier', () => {
