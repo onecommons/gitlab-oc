@@ -151,12 +151,12 @@ RSpec.describe 'work items ownership transfer', feature_category: :source_code_m
     # The document and the pointer swap places, at the paths they already
     # occupied, so nothing is left over anywhere.
     it 'swaps the document and the pointer' do
-      ours = contents(staging)["#{staging_uuid}/issues/#{issue.iid}.yml"]
-      theirs = contents(prod)["#{prod_uuid}/issues/#{issue_on(prod, 'Fix the deploy').iid}.yml"]
+      ours = contents(staging)["#{staging_uuid}/issues/#{issue.iid}-fix-the-deploy.yml"]
+      theirs = contents(prod)["#{prod_uuid}/issues/#{issue_on(prod, 'Fix the deploy').iid}-fix-the-deploy.yml"]
 
       expect(YAML.safe_load(ours)['_schema']).to eq('issue_reference@1')
       expect(YAML.safe_load(theirs)).to include(
-        '_schema' => 'issues@1', 'transferred_from' => "#{staging_uuid}/issues/#{issue.iid}.yml")
+        '_schema' => 'issues@1', 'transferred_from' => "#{staging_uuid}/issues/#{issue.iid}-fix-the-deploy.yml")
     end
 
     it 'follows the new owner edits from then on' do

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../support/helpers/work_item_sync_paths'
 
 RSpec.describe OC::WorkItems::ItemEditService, feature_category: :source_code_management do
   let(:user) { create(:user) }
@@ -8,7 +9,7 @@ RSpec.describe OC::WorkItems::ItemEditService, feature_category: :source_code_ma
   let(:issue) { create(:issue, project: project, title: 'Old') }
   let(:branch) { OC::WorkItems::SYNC_BRANCH }
   let(:uuid) { '11111111-2222-3333-4444-555555555555' }
-  let(:path) { "#{uuid}/issues/#{issue.iid}.yml" }
+  let(:path) { WorkItemSyncPaths.item_file(project.repository, uuid, issue.iid) }
 
   before do
     project.add_maintainer(user)

@@ -52,7 +52,7 @@ module OC
         decisions(sha, @sync_file.transfers_to(us), own: false) do |peer, path, iid, oid|
           rows ||= replica_rows
           Decision.new(kind: :promote, peer: peer, path: path, source_iid: iid, oid: oid,
-            replica: rows[path])
+            replica: rows[[peer, iid]])
         end
       end
 
@@ -106,10 +106,14 @@ module OC
       end
 
       # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      # Our copies of peers' issues, by peer and number: the file a promise
+      # names may have been renamed since it was imported. Only rows whose path
+      # is in the peer's own directory -- see ReplicatedWorkItem.for_source.
       def replica_rows
         OC::WorkItems::ReplicatedWorkItem
-          .where(project_id: @project.id)
-          .index_by(&:source_path)
+          .where(project_id: @project.id, source_kind: :issue)
+          .select { |row| row.source_path.start_with?("#{row.source_instance_uuid}/") }
+          .index_by { |row| [row.source_instance_uuid, row.source_iid] }
       end
       # rubocop: enable CodeReuse/ActiveRecord
     end

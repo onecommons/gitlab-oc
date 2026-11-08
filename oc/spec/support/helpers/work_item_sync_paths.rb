@@ -30,6 +30,15 @@ module WorkItemSyncPaths
     "#{OC::WorkItems.instance_directory}/#{suffix}"
   end
 
+  # The file in `directory` for an issue, found by its number on the branch;
+  # for specs that pin their own uuid rather than including this module.
+  def self.item_file(repository, directory, iid, relation: :issues)
+    repository.ls_files(OC::WorkItems::SYNC_BRANCH).sort.find do |file|
+      OC::WorkItems::RecordSerializer.parse_path(file)&.values_at(:directory, :relation, :iid) ==
+        [directory, relation, iid]
+    end || "#{directory}/#{relation}/#{iid}.yml"
+  end
+
   # Our own file for an item, found by its number: the rest of a file's name
   # is for people and depends on the title or draft key it was written with.
   # The bare `<iid>.yml` path when the branch has none.

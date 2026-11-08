@@ -34,8 +34,10 @@ module OC
 
         issuables = with_preloads(issuables)
         oids = branch_blob_oids
-        actions = issuables.filter_map do |issuable|
-          action_for(issuable, oids) if OC::WorkItems.syncable?(issuable)
+        @draft_keys = draft_keys_for(issuables)
+        @existing_paths = item_paths(oids)
+        actions = issuables.flat_map do |issuable|
+          OC::WorkItems.syncable?(issuable) ? actions_for(issuable, oids) : []
         end
 
         commit!(actions + draft_actions(issuables, oids) + identities_actions(oids))
@@ -83,10 +85,10 @@ module OC
             oids)
         end
 
-        # drafts.yml is written with the drafts it describes (#draft_actions);
-        # this rewrite is the backstop for a draft deleted by hand.
-        commit!(actions + [drafts_map_action(oids)].compact + identities_actions(oids, replace: true),
-          create_branch: true)
+        # drafts.yml was written by earlier versions; nothing writes it now.
+        leftover = file_action("#{OC::WorkItems.instance_directory}/drafts.yml", nil, oids)
+
+        commit!(actions + [leftover].compact + identities_actions(oids, replace: true), create_branch: true)
       end
 
       # Removes drafts on the branch whose key an issue was already created
@@ -98,7 +100,7 @@ module OC
         deletions = paths.select { |path| oids.key?(path) }.map { |path| { action: :delete, file_path: path } }
         return if deletions.empty?
 
-        commit!(deletions + [drafts_map_action(oids)].compact)
+        commit!(deletions)
       end
 
       # Removes the file for an issuable that no longer exists.
@@ -127,10 +129,10 @@ module OC
         return unless branch_sha
 
         key = RecordSerializer::RELATION_KEYS.fetch(issuable_type)
-        path = RecordSerializer.file_path(key, iid)
-        return unless @repository.blob_at(branch_sha, path)
+        paths = item_paths(blob_oids_at(@repository, branch_sha, RecordSerializer.branch_path(key.to_s)))
+          .fetch([key, iid], [])
 
-        commit!([{ action: :delete, file_path: path }])
+        commit!(paths.map { |path| { action: :delete, file_path: path } })
       end
 
       # Deletes the sync branch outright, discarding its history.
@@ -184,6 +186,10 @@ module OC
       def purge_own_history!
         branch_sha = head_sha
         carried = branch_sha ? foreign_files(branch_sha).merge(waiting_drafts(branch_sha)) : {}
+        # The rebuild that follows (FullSyncWorker, this same instance) keeps
+        # every item's name: worked out again from today's titles, a renamed
+        # file would read to every peer as one item gone and another new.
+        @kept_paths = branch_sha ? item_paths(branch_blob_oids).transform_values(&:first) : {}
 
         return false unless delete_branch!
 
@@ -217,6 +223,11 @@ module OC
         orphan_paths(branch_sha).each_slice(GC_BATCH_SIZE) do |paths|
           commit!(paths.map { |path| { action: :delete, file_path: path } })
         end
+
+        # An item with more than one file is written again rather than having
+        # one picked by name: writing keeps the item's own file and deletes the
+        # rest (#path_for), so a copy cannot win over the file it copied.
+        duplicated_items(branch_sha).each_slice(GC_BATCH_SIZE) { |items| execute(items) }
       end
 
       private
@@ -297,37 +308,82 @@ module OC
           end
       end
 
-      # Deletes the drafts the issues in this commit were created from, and
-      # updates drafts.yml with them, so the branch never shows an issue
-      # without its draft gone or a draft gone without its issue published.
-      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      # Deletes the drafts the issues in this commit were created from, in the
+      # commit that publishes them as `<iid>-<key>.yml`, so the branch never
+      # shows an issue without its draft gone or a draft gone without its issue.
       def draft_actions(issuables, oids)
-        issue_ids = issuables.grep(::Issue).map(&:id)
-        return [] if issue_ids.empty?
-
-        keys = OC::WorkItems::Draft.for_project(@project).where(issue_id: issue_ids).pluck(:key)
-        return [] if keys.empty?
-
         inbox = "#{OC::WorkItems.instance_directory}/#{DraftFile::DIRECTORY}"
-        deletions = keys.flat_map do |key|
-          DraftFile::EXTENSIONS.map { |extension| "#{inbox}/#{key}#{extension}" }.select { |path| oids.key?(path) }
-        end
 
-        deletions.map { |path| { action: :delete, file_path: path } } + [drafts_map_action(oids)].compact
+        keys = issuables.grep(::Issue).filter_map { |issue| @draft_keys[issue.id] }
+        paths = keys.product(DraftFile::EXTENSIONS).map { |key, extension| "#{inbox}/#{key}#{extension}" }
+
+        paths.select { |path| oids.key?(path) }.map { |path| { action: :delete, file_path: path } }
       end
 
-      # drafts.yml: each draft key and the issue number it became, so a clone
-      # can see it offline. nil (deleted) once there are none.
-      def drafts_map_action(oids)
-        drafts = OC::WorkItems::Draft.for_project(@project).order(:key).pluck(:key, :iid)
-        content = ({ '_schema' => 'drafts@1', 'drafts' => drafts.to_h }.to_yaml if drafts.any?)
+      # {issue id => draft key} for the issues among issuables made from drafts.
+      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      def draft_keys_for(issuables)
+        issue_ids = issuables.grep(::Issue).map(&:id)
+        return {} if issue_ids.empty?
 
-        file_action("#{OC::WorkItems.instance_directory}/drafts.yml", content, oids)
+        OC::WorkItems::Draft.for_project(@project).where(issue_id: issue_ids).pluck(:issue_id, :key).to_h
       end
       # rubocop: enable CodeReuse/ActiveRecord
 
-      def action_for(issuable, oids)
-        file_action(@serializer.file_path(issuable), @serializer.to_yaml(issuable), oids)
+      # An item keeps the name its file already has, including one a person
+      # gave it offline. A new or bare file is named from the draft key or the
+      # title. Any other file for the item goes in the same commit.
+      def actions_for(issuable, oids)
+        content = @serializer.to_yaml(issuable)
+        return [] if content == RecordSerializer::LEAVE_ALONE
+
+        relation = @serializer.relation_key(issuable)
+        existing = @existing_paths.fetch([relation, issuable.iid], [])
+        path = path_for(issuable, relation, existing, content, oids)
+
+        [file_action(path, content, oids)].compact +
+          (existing - [path]).map { |other| { action: :delete, file_path: other } }
+      end
+
+      def path_for(issuable, relation, existing, content, oids)
+        draft_key = @draft_keys&.dig(issuable.id) if issuable.is_a?(::Issue)
+        name = RecordSerializer.item_name(issuable.title, draft_key: draft_key)
+        generated = RecordSerializer.file_path(relation, issuable.iid, name)
+
+        kept = own_file(existing, generated, content, oids) || @kept_paths&.dig([relation, issuable.iid])
+        return kept if kept && named?(kept)
+
+        name ? generated : (kept || generated)
+      end
+
+      # Of several files for one item, the one this installation was writing:
+      # the file already holding what it is about to write, else the one with
+      # the name it would give, else the first. A copy someone left or edited
+      # then never takes the place of the file it was copied from.
+      def own_file(existing, generated, content, oids)
+        return existing.first if existing.size < 2
+
+        current_oid = blob_oid(content) if content.is_a?(String)
+        existing.find { |path| current_oid && oids[path] == current_oid } ||
+          existing.find { |path| path == generated } || existing.first
+      end
+
+      def named?(path)
+        ::File.basename(path, '.yml').include?('-')
+      end
+
+      # {[relation, iid] => [paths]} for our own item files among paths, the
+      # first in sorted order being the item's file and the rest duplicates. A
+      # named file sorts before a bare one (`1-a.yml` < `1.yml`).
+      def item_paths(oids)
+        directory = OC::WorkItems.instance_directory
+
+        oids.keys.sort.each_with_object({}) do |path, found|
+          parsed = RecordSerializer.parse_path(path)
+          next unless parsed && parsed[:iid] && parsed[:directory] == directory
+
+          (found[[parsed[:relation], parsed[:iid]]] ||= []) << path
+        end
       end
 
       # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
@@ -522,6 +578,16 @@ module OC
       end
 
       # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      # Records that have more than one file on the branch.
+      def duplicated_items(branch_sha)
+        files_by_relation = branch_files(branch_sha)
+
+        { 'issues' => @project.issues, 'merge_requests' => @project.merge_requests }.flat_map do |key, relation|
+          iids = (files_by_relation[key] || {}).filter_map { |iid, paths| iid if paths.size > 1 }
+          iids.empty? ? [] : relation.where(iid: iids).to_a
+        end
+      end
+
       def orphan_paths(branch_sha)
         files_by_relation = branch_files(branch_sha)
 
@@ -547,11 +613,14 @@ module OC
           next [] if files.blank?
 
           existing = relation.where(column => files.keys).pluck(column).to_set
-          files.filter_map { |key, path| path unless existing.include?(key) }
+          # Every file of a record that is gone. A record that remains with
+          # more than one file is #duplicated_items' business.
+          files.flat_map { |key, paths| existing.include?(key) ? [] : paths }
         end
       end
 
-      # Maps each relation directory on the branch to {record key => path}.
+      # Maps each relation directory on the branch to {record key => [paths]},
+      # sorted, so the first is the record's own file (see #item_paths).
       # Issue/MR keys are integer iids; commit note keys are sha strings.
       #
       # Scoped to our own instance directory, and that scoping is load-bearing:
@@ -563,11 +632,11 @@ module OC
         files_by_relation = Hash.new { |hash, key| hash[key] = {} }
         directory = OC::WorkItems.instance_directory
 
-        @repository.ls_files(branch_sha).each do |path|
+        @repository.ls_files(branch_sha).sort.each do |path|
           parsed = RecordSerializer.parse_path(path)
           next unless parsed && parsed[:directory] == directory
 
-          files_by_relation[parsed[:relation].to_s][parsed[:iid] || parsed[:commit_id]] = path
+          (files_by_relation[parsed[:relation].to_s][parsed[:iid] || parsed[:commit_id]] ||= []) << path
         end
 
         files_by_relation

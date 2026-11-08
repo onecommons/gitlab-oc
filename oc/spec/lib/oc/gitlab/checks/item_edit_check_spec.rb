@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../../support/helpers/work_item_sync_paths'
 
 RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code_management do
   let(:user) { create(:user) }
@@ -9,7 +10,7 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
   let(:user_access) { Gitlab::UserAccess.new(user, container: project) }
   let(:branch) { OC::WorkItems::SYNC_BRANCH }
   let(:uuid) { '11111111-2222-3333-4444-555555555555' }
-  let(:path) { "#{uuid}/issues/#{issue.iid}.yml" }
+  let(:path) { WorkItemSyncPaths.item_file(project.repository, uuid, issue.iid) }
   let(:logger) { Gitlab::Checks::TimedLogger.new(timeout: Gitlab::GitAccess::INTERNAL_TIMEOUT) }
 
   before do
@@ -70,6 +71,19 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
       .to eq("Work items sync: #{path}: \"author_id\" cannot be changed offline")
   end
 
+  # git reports a rename as a delete and an add; under one number they are
+  # one edit, checked like any other.
+  it 'checks an edit made in a renamed file, naming the new path' do
+    old = sync(issue)
+    renamed = "#{uuid}/issues/#{issue.iid}-mine.yml"
+    project.repository.commit_files(user, branch_name: branch, message: 'rename', actions: [
+      { action: :move, previous_path: path, file_path: renamed, content: file.merge('author_id' => 0).to_yaml }
+    ])
+
+    expect(refusal(old, project.repository.commit(branch).sha))
+      .to eq("Work items sync: #{renamed}: \"author_id\" cannot be changed offline")
+  end
+
   it 'refuses edits while sync is off' do
     old = sync(issue)
     project.enable_work_items_sync!(false)
@@ -84,7 +98,7 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
     new = push({
       "#{uuid}/ids.yml" => "edited: true\n",
       "#{uuid}/issues/9999.yml" => "title: added\n",
-      "#{uuid}/issues/#{other.iid}.yml" => nil
+      WorkItemSyncPaths.item_file(project.repository, uuid, other.iid) => nil
     })
 
     expect(refusal(old, new)).to be_nil
@@ -192,10 +206,8 @@ RSpec.describe OC::Gitlab::Checks::ItemEditCheck, feature_category: :source_code
     stub_const("#{described_class}::MAX_ITEMS", 1)
     other = create(:issue, project: project)
     old = sync(issue, other)
-    new = push({
-      path => file.merge('title' => 'A'),
-      "#{uuid}/issues/#{other.iid}.yml" => file("#{uuid}/issues/#{other.iid}.yml").merge('title' => 'B')
-    })
+    other_path = WorkItemSyncPaths.item_file(project.repository, uuid, other.iid)
+    new = push({ path => file.merge('title' => 'A'), other_path => file(other_path).merge('title' => 'B') })
 
     expect(refusal(old, new)).to include('this push edits 2 issues; at most 1')
   end

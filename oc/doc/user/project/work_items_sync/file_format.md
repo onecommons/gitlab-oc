@@ -14,14 +14,13 @@ export. For what an export holds, see
 
 ```plaintext
 sync.yml
-9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/issues/1.yml
-9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/issues/2.yml
-9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/merge_requests/1.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/issues/1-login-fails.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/issues/2-session-cache.yml
+9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/merge_requests/1-update-readme.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/commit_notes/f0c7d1a94e3b6528d0b1f4a27c9e83b5d6a10f42.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/labels.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/milestones.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/ids.yml
-9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/drafts.yml
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/README.md
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/example.yml.sample
 9f3c1e77-4b2a-4d18-9a6e-2c5f8b710d43/_incoming/fix-login.yml
@@ -32,7 +31,7 @@ is described relative to that directory.
 The directory lets the branch hold the work items of more than one installation.
 If you fetch this branch into a project on another Unfurl Cloud installation
 and push its own sync on top, the two sets of files sit side by side instead of
-colliding at `issues/1.yml`.
+colliding at `issues/1-login-fails.yml`.
 Each installation only ever writes to, and cleans up, its own directory.
 
 `sync.yml` is the only file meant to be edited by hand, apart from some fields
@@ -42,9 +41,29 @@ between installations, not the contents of one.
 No installation writes it, and none deletes it.
 For its keys, see [Work items sync configuration file](sync_yml.md).
 
-The number in an `issues/` or `merge_requests/` filename is the issue or merge
-request number as it appears in the interface, so `issues/42.yml` is issue
-`#42`.
+An `issues/` or `merge_requests/` filename is `<number>-<name>.yml`, or
+`<number>.yml` when the title gives no usable name. The number is the issue or
+merge request number as it appears in the interface, and it identifies the item.
+For example, `issues/42-login-fails.yml` is issue `#42`. The name is for people,
+and everything that reads the branch ignores it. A file is an item file only if
+its name is `<number>.yml` or starts with `<number>-`. Any other file, such as
+`42_login.yml` or `42login.yml`, is ignored.
+
+- For an issue created from a [draft](drafts.md), the name is the draft key.
+- Otherwise, the name comes from the title when the file is first written. It is
+  lowercase ASCII words joined by `-`, shortened at a word boundary to at most
+  50 characters. A title with nothing usable, such as only emoji, leaves the
+  file as `<number>.yml`.
+- The name stays the same when the title changes. A file named `<number>.yml`
+  gets a name the next time it is written.
+- You can rename a file, as long as the new name starts with `<number>-`. The
+  installation keeps your name. If you rename it to plain `<number>.yml`, it
+  gets a generated name again the next time it is written.
+- If two files have the same number, for example a copy left behind, the
+  installation keeps the item's own file, the one it was already writing, and
+  rewrites it. It deletes the others the next time it writes that item, or in
+  the nightly job at the latest.
+
 Comments left on a commit are grouped by the SHA of that commit, so
 `commit_notes/<sha>.yml` holds every comment on that one commit.
 
@@ -59,16 +78,11 @@ uses, so the catalogs cover what the work items do not mention:
 
 The nightly job rewrites them, not the moment you rename something.
 
-Two more paths relate to creating issues offline:
-
-- `<uuid>/_incoming/` holds drafts waiting to be created. You write these
-  files. The commit that creates the branch adds a `README.md` and an
-  `example.yml.sample` draft to copy, so the folder exists before the first
-  draft. They are not added again if you delete them. For details, see
-  [Create issues offline with drafts](drafts.md).
-- `<uuid>/drafts.yml` lists each draft key and the issue number it became. It
-  starts with `_schema: drafts@1`, followed by a `drafts:` mapping of key to
-  number.
+`<uuid>/_incoming/` holds drafts of issues waiting to be created. You write
+these files. The commit that creates the branch adds a `README.md` and an
+`example.yml.sample` draft to copy, so the folder exists before the first
+draft. They are not added again if you delete them. For details, see
+[Create issues offline with drafts](drafts.md).
 
 ## Reference files for imported items
 
@@ -79,7 +93,7 @@ Its file says that it is a copy and does not repeat the contents:
 
 ```yaml
 _schema: issue_reference@1
-source_path: 9f3c1e77-.../issues/42.yml
+source_path: 9f3c1e77-.../issues/42-login-fails.yml
 source_web_url: https://other.unfurl.cloud/group/project/-/issues/42
 web_url: https://unfurl.cloud/my-group/my-project/-/work_items/7
 ids:
@@ -168,7 +182,7 @@ ones you expect. For how versions are handled, see
 It is recorded on the commit, not in the file:
 
 ```shell
-git log -1 --format='%(trailers:key=Work-Items-Export-Schema)' -- <installation-uuid>/issues/42.yml
+git log -1 --format='%(trailers:key=Work-Items-Export-Schema)' -- <installation-uuid>/issues/42-login-fails.yml
 ```
 
 ## Included and excluded data

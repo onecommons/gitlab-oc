@@ -445,6 +445,34 @@ RSpec.describe OC::WorkItems::SyncFile, feature_category: :source_code_managemen
       expect(error_from(yaml).message).to include('issues/42.yml').and include('both')
     end
 
+    it 'refuses one issue given to two instances under two names' do
+      yaml = <<~YAML
+        ---
+        _schema: sync@1
+        a:
+          uuid: 1
+          sync:
+            b:
+              transfer:
+                - issues/42.yml
+            c:
+              transfer:
+                - issues/42-fix-the-deploy.yml
+        b:
+          uuid: 2
+          sync:
+            a:
+              import: transferred
+        c:
+          uuid: 3
+          sync:
+            a:
+              import: transferred
+      YAML
+
+      expect(error_from(yaml).message).to include('issues/42-fix-the-deploy.yml').and include('both')
+    end
+
     it 'refuses transferring everything to one instance and items to another' do
       yaml = <<~YAML
         ---

@@ -48,18 +48,32 @@ module OC
           RecordSerializer.parse_path(path)&.dig(:iid)
         end
 
-        # Our own issue files a push from oldrev to newrev changed. Adding or
-        # deleting one is not an edit; like every other file the installation
-        # writes, it is ignored and put right by the sync.
+        # Our own issue files a push from oldrev to newrev changed, as
+        # [old path, new path]. A file renamed is one edit: git reports it as
+        # one deleted and one added under the same number, and the sync keeps
+        # the new name. Otherwise adding or deleting a file is not an edit;
+        # like every other file the installation writes, it is ignored and put
+        # right by the sync.
         def changed_paths(repository, oldrev, newrev)
           diff = ::Gitlab::Git::DiffTree.new(oldrev, newrev)
           directory = OC::WorkItems.instance_directory
+          edited = []
+          added = {}
+          deleted = {}
 
-          repository.find_changed_paths([diff]).filter_map do |changed|
-            next if changed.new_file? || changed.deleted_file?
+          repository.find_changed_paths([diff]).each do |changed|
+            next unless item_path?(changed.path, directory)
 
-            changed.path if item_path?(changed.path, directory)
+            if changed.new_file?
+              added[iid_for(changed.path)] = changed.path
+            elsif changed.deleted_file?
+              deleted[iid_for(changed.path)] = changed.path
+            else
+              edited << [changed.renamed_file? ? changed.old_path : changed.path, changed.path]
+            end
           end
+
+          edited + (deleted.keys & added.keys).map { |iid| [deleted[iid], added[iid]] }
         end
 
         def diff(path:, old_yaml:, new_yaml:)

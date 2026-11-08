@@ -30,8 +30,13 @@ To edit an issue offline:
    then expand **Work items sync**. The ID is shown as "This installation's ID,
    for sync.yml:".
 1. On the `work-items-sync` branch, pull the latest commits.
-1. Open `<uuid>/issues/<number>.yml`, where `<uuid>` is the ID of your
-   installation.
+1. Open the issue file, for example `<uuid>/issues/42-login-fails.yml`, where
+   `<uuid>` is the ID of your installation. The file name starts with the issue
+   number and a hyphen. A file with no name is `<number>.yml`.
+
+   You can rename the file if the new name starts with `<number>-`. The
+   installation keeps your name. If you rename it to `<number>.yml`, it gets a
+   generated name again the next time it is written.
 1. Change the fields you want. For the fields you can change, see
    [Fields you can edit](#fields-you-can-edit).
 1. Commit and push the branch.
@@ -96,7 +101,7 @@ A push is refused if a field you changed was also changed in Unfurl Cloud since
 your copy, unless the change is the same as yours. For example:
 
 ```plaintext
-Work items sync: <uuid>/issues/42.yml: issue #42: "title" changed since your copy; pull and push again
+Work items sync: <uuid>/issues/42-login-fails.yml: issue #42: "title" changed since your copy; pull and push again
 ```
 
 Only the fields you edited are compared. A change to another field, or a new
@@ -126,7 +131,7 @@ names the file. The reasons are:
 - A read-only field changed. For example:
 
   ```plaintext
-  Work items sync: <uuid>/issues/42.yml: "author_id" cannot be changed offline
+  Work items sync: <uuid>/issues/42-login-fails.yml: "author_id" cannot be changed offline
   ```
 
 - The YAML or a value is invalid.
@@ -149,9 +154,15 @@ Fix the file and push again.
 These changes are ignored, and the installation overwrites them:
 
 - Adding or deleting issue files.
+- A copy of an issue file. If you copy a file and edit the copy, the edit is
+  ignored and the installation removes the copy. Rename the file instead.
 - Edits to every other file the installation writes, including merge request
-  files, `commit_notes`, `labels.yml`, `milestones.yml`, `ids.yml`, and
-  `drafts.yml`.
+  files, `commit_notes`, `labels.yml`, `milestones.yml`, and `ids.yml`.
+
+A rename is not ignored. If you rename an issue file to a new name that starts
+with `<number>-`, the rename is applied together with any edits you made to the
+file in the same push. Any other file name, such as `42_login.yml`, is not an
+issue file and is ignored.
 
 Merge requests cannot be edited offline.
 

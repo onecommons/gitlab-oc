@@ -147,6 +147,16 @@ RSpec.describe OC::WorkItems::TransferReconciler, feature_category: :source_code
       expect(reconciler(taking('all')).promotions(sha: sha).first.replica).to eq(replica)
     end
 
+    # The row keeps the path it was imported from; the peer may have named the
+    # file since. The number is the item.
+    it 'attaches the row for the same number when the file has been renamed since' do
+      seed("#{peer}/issues/7-fix-the-deploy.yml")
+      replica = create(:oc_replicated_work_item, project: project,
+        source_instance_uuid: peer, source_path: "#{peer}/issues/7.yml")
+
+      expect(reconciler(taking('all')).promotions(sha: sha).first.replica).to eq(replica)
+    end
+
     # Not an error: the document may simply not have been imported yet, and a
     # declaration is standing intent rather than an instruction to act now.
     it 'attaches nothing when we hold no row for it' do

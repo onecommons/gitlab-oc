@@ -14,8 +14,106 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
 
   # Paths are given relative to the instance directory throughout; sync_path
   # supplies the prefix the service writes under.
+  # An item file asked for as `issues/<iid>.yml` is found by its number,
+  # whatever name the sync gave it.
   def sync_blob(path)
-    repository.blob_at(repository.commit(branch).sha, sync_path(path))
+    item = path.match(%r{\A(issues|merge_requests)/(\d+)\.yml\z})
+    full = item ? sync_item_path(repository, item[1], item[2].to_i) : sync_path(path)
+    repository.blob_at(repository.commit(branch).sha, full)
+  end
+
+  describe 'file names' do
+    let(:issue) { create(:issue, project: project, title: 'Login fails after reset!') }
+
+    def item_files
+      repository.ls_files(branch).grep(%r{/issues/})
+    end
+
+    def put(path, content = "_schema: issues@1\n")
+      repository.create_file(project.first_owner, sync_path(path), content, message: 'put', branch_name: branch)
+    end
+
+    it 'names a new file from the title' do
+      service.execute([issue])
+
+      expect(item_files).to eq([sync_path("issues/#{issue.iid}-login-fails-after-reset.yml")])
+    end
+
+    it 'keeps the name when the title changes' do
+      service.execute([issue])
+      issue.update!(title: 'Something else')
+      described_class.new(project).execute([issue.reload])
+
+      expect(item_files).to eq([sync_path("issues/#{issue.iid}-login-fails-after-reset.yml")])
+      expect(YAML.safe_load(sync_blob("issues/#{issue.iid}.yml").data)['title']).to eq('Something else')
+    end
+
+    it 'gives a bare file a name once, and keeps a name a person chose' do
+      other = create(:issue, project: project, title: 'Other')
+      service.execute([create(:issue, project: project)])
+      put("issues/#{issue.iid}.yml")
+      put("issues/#{other.iid}-my-own-name.yml")
+
+      described_class.new(project).execute([issue, other])
+
+      expect(item_files).to include(sync_path("issues/#{issue.iid}-login-fails-after-reset.yml"),
+        sync_path("issues/#{other.iid}-my-own-name.yml"))
+      expect(item_files).not_to include(sync_path("issues/#{issue.iid}.yml"))
+    end
+
+    it 'leaves the file bare when the title leaves nothing to name it by' do
+      issue.update!(title: '🎉🎉')
+      service.execute([issue])
+
+      expect(item_files).to eq([sync_path("issues/#{issue.iid}.yml")])
+    end
+
+    it 'cuts a long name at a word' do
+      expect(OC::WorkItems::RecordSerializer.item_name("#{'word ' * 20}end"))
+        .to eq(('word-' * 10).delete_suffix('-')).and(satisfy { |name| name.length <= 50 })
+    end
+
+    # `1-copy.yml` sorts before `1-login-fails...yml`: picking by name would
+    # keep the copy and delete the real file.
+    it 'removes a copy left beside an item on the next full pass, keeping the real file' do
+      service.execute([issue])
+      put("issues/#{issue.iid}-copy.yml")
+
+      described_class.new(project).remove_orphans
+
+      expect(item_files).to eq([sync_path("issues/#{issue.iid}-login-fails-after-reset.yml")])
+      expect(YAML.safe_load(sync_blob("issues/#{issue.iid}.yml").data)['title']).to eq(issue.title)
+    end
+
+    it 'deletes a drafts.yml left by an earlier version' do
+      service.execute([issue])
+      put('drafts.yml', "_schema: drafts@1\n")
+
+      described_class.new(project).execute_catalogs
+
+      expect(sync_blob('drafts.yml')).to be_nil
+    end
+
+    it 'removes every file of an item that is gone' do
+      service.execute([issue])
+      put("issues/#{issue.iid}.yml")
+      iid = issue.iid
+      OC::WorkItems.suppress_sync { issue.destroy! }
+
+      described_class.new(project).remove('Issue', iid)
+
+      expect(item_files).to be_empty
+    end
+
+    it 'keeps names through a purge of its own history' do
+      project.enable_work_items_sync!(true)
+      service.execute([issue])
+      issue.update!(title: 'Renamed since')
+
+      OC::WorkItems::FullSyncWorker.new.perform(project.id, true)
+
+      expect(item_files).to eq([sync_path("issues/#{issue.iid}-login-fails-after-reset.yml")])
+    end
   end
 
   describe '#execute' do
@@ -135,7 +233,8 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       described_class.new(public_project).execute([public_issue.reload])
 
       sha = public_project.repository.commit(branch).sha
-      expect(public_project.repository.blob_at(sha, sync_path("issues/#{public_issue.iid}.yml"))).to be_nil
+      path = sync_item_path(public_project.repository, :issues, public_issue.iid)
+      expect(public_project.repository.blob_at(sha, path)).to be_nil
     end
   end
 
@@ -197,16 +296,12 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       repository.create_file(owner, sync_path("_incoming/#{name}"), content, message: 'draft', branch_name: branch)
     end
 
-    def drafts_map
-      blob = sync_blob('drafts.yml')
-      blob && YAML.safe_load(blob.data)
-    end
-
     def on_branch?(path)
       repository.blob_at(repository.commit(branch).sha, sync_path(path)).present?
     end
 
-    it 'deletes the draft and updates drafts.yml in the commit that publishes its issue' do
+    it 'publishes the issue named for its draft, in the commit that deletes the draft' do
+      service.execute([create(:issue, project: project)])
       put_draft('fix-login.yml')
       create(:oc_work_item_draft, project: project, issue: issue, key: 'fix-login')
 
@@ -214,10 +309,10 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
 
       commit = repository.commit(branch)
       changed = repository.find_changed_paths([Gitlab::Git::DiffTree.new(commit.parent_id, commit.id)]).map(&:path)
-      expect(changed).to include(sync_path("issues/#{issue.iid}.yml"), sync_path('_incoming/fix-login.yml'),
-        sync_path('drafts.yml'))
+      expect(changed)
+        .to include(sync_path("issues/#{issue.iid}-fix-login.yml"), sync_path('_incoming/fix-login.yml'))
       expect(on_branch?('_incoming/fix-login.yml')).to be(false)
-      expect(drafts_map).to eq('_schema' => 'drafts@1', 'drafts' => { 'fix-login' => issue.iid })
+      expect(on_branch?('drafts.yml')).to be(false)
     end
 
     it 'leaves drafts alone when syncing an issue no draft made' do
@@ -226,7 +321,6 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       service.execute([issue])
 
       expect(on_branch?('_incoming/waiting.yml')).to be(true)
-      expect(drafts_map).to be_nil
     end
 
     it 'removes stale drafts on request' do
@@ -237,7 +331,6 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       described_class.new(project).remove_drafts([sync_path('_incoming/old.yml')])
 
       expect(on_branch?('_incoming/old.yml')).to be(false)
-      expect(drafts_map['drafts']).to eq('old' => issue.iid)
     end
 
     it 'is left alone by orphan collection' do
@@ -249,7 +342,6 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
       described_class.new(project).remove_orphans
 
       expect(on_branch?('_incoming/waiting.yml')).to be(true)
-      expect(on_branch?('drafts.yml')).to be(true)
     end
 
     it 'keeps waiting drafts through a purge, except confidential or unreadable ones' do
@@ -639,7 +731,7 @@ RSpec.describe OC::WorkItems::SyncService, feature_category: :source_code_manage
 
       head = repository.commit(branch).sha
       expect(repository.blob_at(head, sync_path('issues/9999.yml'))).to be_nil
-      expect(repository.blob_at(head, sync_path("issues/#{issue.iid}.yml"))).to be_present
+      expect(repository.blob_at(head, sync_item_path(repository, :issues, issue.iid))).to be_present
     end
 
     # A peer instance's directory looks exactly like an orphan from here --

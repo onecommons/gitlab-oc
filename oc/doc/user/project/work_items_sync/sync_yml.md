@@ -48,7 +48,7 @@ To find an installation's UUID, go to **Settings** > **General** > **Work items 
 | `<name>.sync.<peer>.import` | Peer entry | `all` or `transferred` | None | What this installation copies from the peer's directory. `all` copies everything. `transferred` copies only items the peer transfers. See [Import work items from another installation](import.md) and [Transfer work items to another installation](transfer.md). |
 | `<name>.sync.<peer>.user_mapping` | Peer entry | `none`, `email`, or `username` | `email` | How users on imported items are matched to local users. See [Import work items from another installation](import.md). |
 | `<name>.sync.<peer>.default_user` | Peer entry | A username or `<ghost>` | `<ghost>`, the Ghost User | The user who stands in where `user_mapping` finds no match. See [Import work items from another installation](import.md). |
-| `<name>.sync.<peer>.transfer` | Peer entry | `all`, or a list of `issues/<n>.yml` paths | None | What this installation hands to the peer. See [Transfer work items to another installation](transfer.md). |
+| `<name>.sync.<peer>.transfer` | Peer entry | `all`, or a list of `issues/<n>.yml` paths | None | What this installation hands to the peer. A path names an issue by number, and a name after the number is ignored. See [Transfer work items to another installation](transfer.md). |
 
 `<name>` is the name of an installation block, and `<peer>` is another name the file declares.
 
@@ -98,10 +98,10 @@ These refuse the push:
 - A value outside the list for its key, such as `import: everything`.
 - An alias naming an anchor the file does not define, or the same anchor defined twice.
 - A `default_user` that is not a well-formed username, or a keyword other than `<ghost>`. Only its shape is checked, never whether that account exists here.
-- A transfer path that is not `issues/<number>.yml` relative to the giver's own directory, or that names a merge request.
+- A transfer path that is not `issues/<number>.yml` or `issues/<number>-<name>.yml` relative to the giver's own directory, or that names a merge request.
 - An installation syncing with itself, or with a name the file does not declare.
 - Two installations sharing a `uuid`.
-- The same item promised to two installations.
+- The same issue promised to two installations. Issues are compared by number, so `issues/42.yml` and `issues/42-fix-the-deploy.yml` are the same issue.
 - A `transfer` the receiving installation declares no `import` for.
 - A `sync.yml` larger than 64 KiB.
 

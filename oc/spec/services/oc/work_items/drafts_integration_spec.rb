@@ -76,10 +76,11 @@ RSpec.describe 'work item drafts end to end', feature_category: :source_code_man
 
     expect(on_branch('_incoming/fix-login.yml')).to be_nil
     expect(on_branch('_incoming/session-cache.yml')).to be_nil
-    expect(YAML.safe_load(on_branch("issues/#{login.iid}.yml").data)['description'])
+    # Named for the drafts they came from.
+    expect(YAML.safe_load(on_branch("issues/#{login.iid}-fix-login.yml").data)['description'])
       .to eq("Blocked by ##{cache.iid}.")
-    expect(YAML.safe_load(on_branch('drafts.yml').data)['drafts'])
-      .to eq('fix-login' => login.iid, 'session-cache' => cache.iid)
+    expect(on_branch("issues/#{cache.iid}-session-cache.yml")).to be_present
+    expect(on_branch('drafts.yml')).to be_nil
   end
 
   it 'creates nothing when an old copy of the drafts is pushed again' do

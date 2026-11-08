@@ -108,8 +108,8 @@ module OC
     end
 
     def edited_iids(oldrev, newrev)
-      ::OC::WorkItems::ItemEdit.changed_paths(project.repository, oldrev, newrev).filter_map do |path|
-        edit = ::OC::WorkItems::ItemEdit.diff(path: path, old_yaml: blob_data(oldrev, path),
+      ::OC::WorkItems::ItemEdit.changed_paths(project.repository, oldrev, newrev).filter_map do |old_path, path|
+        edit = ::OC::WorkItems::ItemEdit.diff(path: path, old_yaml: blob_data(oldrev, old_path),
           new_yaml: blob_data(newrev, path))
         edit.iid unless edit.empty?
       end.sort

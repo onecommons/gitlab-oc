@@ -16,7 +16,7 @@ RSpec.describe 'offline issue edits end to end', feature_category: :source_code_
   let(:repository) { project.repository }
   let(:branch) { OC::WorkItems::SYNC_BRANCH }
   let(:issue) { create(:issue, project: project, title: 'Login fails') }
-  let(:path) { sync_path("issues/#{issue.iid}.yml") }
+  let(:path) { sync_item_path(repository, :issues, issue.iid) }
 
   before do
     project.add_developer(developer)
@@ -28,6 +28,14 @@ RSpec.describe 'offline issue edits end to end', feature_category: :source_code_
     YAML.safe_load(repository.blob_at(repository.commit(branch).sha, path).data, permitted_classes: [Date, Time])
   end
 
+  def check(oldrev, newrev)
+    change_access = Gitlab::Checks::SingleChangeAccess.new(
+      { oldrev: oldrev, newrev: newrev, ref: "refs/heads/#{branch}" },
+      project: project, user_access: Gitlab::UserAccess.new(developer, container: project), protocol: 'ssh',
+      logger: Gitlab::Checks::TimedLogger.new(timeout: Gitlab::GitAccess::INTERNAL_TIMEOUT))
+    OC::Gitlab::Checks::ItemEditCheck.new(change_access)
+  end
+
   # Commits the edited file as the developer and runs what the push would:
   # the check before it lands, the worker and the sync after.
   def push_edit
@@ -37,11 +45,7 @@ RSpec.describe 'offline issue edits end to end', feature_category: :source_code_
       actions: [{ action: :update, file_path: path, content: content.to_yaml }])
     newrev = repository.commit(branch).sha
 
-    change_access = Gitlab::Checks::SingleChangeAccess.new(
-      { oldrev: oldrev, newrev: newrev, ref: "refs/heads/#{branch}" },
-      project: project, user_access: Gitlab::UserAccess.new(developer, container: project), protocol: 'ssh',
-      logger: Gitlab::Checks::TimedLogger.new(timeout: Gitlab::GitAccess::INTERNAL_TIMEOUT))
-    OC::Gitlab::Checks::ItemEditCheck.new(change_access).validate!
+    check(oldrev, newrev).validate!
 
     OC::WorkItems::ItemEditsWorker.new.perform(project.id, developer.id, oldrev, newrev)
     OC::WorkItems::SyncWorker.drain
@@ -65,6 +69,25 @@ RSpec.describe 'offline issue edits end to end', feature_category: :source_code_
     push_edit { |doc| doc['notes'].find { |note| !note['system'] }['note'] = 'Fixed by clearing the cache.' }
 
     expect(comment.reload.note).to eq('Fixed by clearing the cache.')
+  end
+
+  # git reports a rename as a file deleted and another added; under one
+  # number they are one edit, and the sync keeps the name the person chose.
+  it 'applies an edit made in a renamed file, and keeps the new name' do
+    oldrev = repository.commit(branch).sha
+    content = on_branch.merge('title' => 'Renamed and edited')
+    new_path = sync_path("issues/#{issue.iid}-my-own-name.yml")
+    repository.commit_files(developer, branch_name: branch, message: 'rename offline', actions: [
+      { action: :move, previous_path: path, file_path: new_path, content: content.to_yaml }
+    ])
+    newrev = repository.commit(branch).sha
+
+    check(oldrev, newrev).validate!
+    OC::WorkItems::ItemEditsWorker.new.perform(project.id, developer.id, oldrev, newrev)
+    OC::WorkItems::SyncWorker.drain
+
+    expect(issue.reload.title).to eq('Renamed and edited')
+    expect(repository.ls_files(branch).grep(%r{/issues/})).to eq([new_path])
   end
 
   it 'refuses an edit to a field that changed on the web, and puts the branch right' do

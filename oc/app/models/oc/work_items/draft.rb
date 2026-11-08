@@ -4,8 +4,8 @@ module OC
   module WorkItems
     # One row per draft file an installation has created an issue from, keyed
     # by the draft's file name. It makes a draft pushed twice a no-op, lets a
-    # later draft say #draft:<key> for an earlier one, and is what drafts.yml is
-    # written from. A key stays spent after its issue is deleted.
+    # later draft say #draft:<key> for an earlier one, and names the issue's
+    # file (`<iid>-<key>.yml`). A key stays spent after its issue is deleted.
     class Draft < ApplicationRecord
       self.table_name = 'oc_work_item_drafts'
 

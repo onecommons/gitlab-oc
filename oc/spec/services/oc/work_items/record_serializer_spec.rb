@@ -374,9 +374,9 @@ RSpec.describe OC::WorkItems::RecordSerializer, feature_category: :source_code_m
       expect(hash['allow_maintainer_to_push']).to be_nil
     end
 
-    it 'stores under <uuid>/merge_requests/<iid>.yml' do
-      expect(serializer.file_path(merge_request))
-        .to eq(sync_path("merge_requests/#{merge_request.iid}.yml"))
+    it 'stores under <uuid>/merge_requests/<iid>-<name>.yml' do
+      expect(described_class.file_path(:merge_requests, merge_request.iid, 'a-name'))
+        .to eq(sync_path("merge_requests/#{merge_request.iid}-a-name.yml"))
     end
 
     it 'names its own relation in the schema header' do

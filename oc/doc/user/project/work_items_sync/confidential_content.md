@@ -73,7 +73,7 @@ content is still in every earlier commit, readable by anyone who can read the
 repository:
 
 ```shell
-git show <older-commit>:<installation-uuid>/issues/42.yml
+git show <older-commit>:<installation-uuid>/issues/42-login-fails.yml
 ```
 
 For this reason, confidential content is left out by default rather than cleaned

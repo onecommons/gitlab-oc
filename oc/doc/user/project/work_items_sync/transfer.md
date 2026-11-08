@@ -67,7 +67,9 @@ To transfer issues:
    are yours to choose. The block with a `transfer` entry is the giver, and the
    block with an `import` entry is the receiver.
 
-   Paths in `transfer` are relative to the giver's own directory. The receiver
+   Paths in `transfer` are relative to the giver's own directory. They name an
+   issue by its number, so `issues/42.yml` and `issues/42-fix-the-deploy.yml`
+   are the same issue. The receiver
    must declare an `import` from the giver, or the push is refused. Without
    one, items would be frozen on one installation and never appear on the
    other. `import: transferred` takes only what the giver transfers, rather

@@ -91,7 +91,7 @@ RSpec.describe 'work items import end to end', feature_category: :source_code_ma
     referrer_iid, referenced_iid, files = publish_source
 
     expect(files.keys).to include(
-      "#{instance_a}/issues/#{referrer_iid}.yml",
+      a_string_matching(%r{\A#{instance_a}/issues/#{referrer_iid}-}),
       "#{instance_a}/ids.yml")
 
     as_instance(instance_b) do
@@ -277,9 +277,9 @@ RSpec.describe 'work items import end to end', feature_category: :source_code_ma
     end
 
     # On the branch, by name rather than by this instance's type id.
-    expect(YAML.safe_load(files["#{instance_a}/issues/#{task_iid}.yml"])['work_item_type'])
+    expect(YAML.safe_load(files["#{instance_a}/issues/#{task_iid}-a-task.yml"])['work_item_type'])
       .to eq('name' => 'Task')
-    expect(YAML.safe_load(files["#{instance_a}/issues/#{incident_iid}.yml"])['work_item_type'])
+    expect(YAML.safe_load(files["#{instance_a}/issues/#{incident_iid}-an-incident.yml"])['work_item_type'])
       .to eq('name' => 'Incident')
 
     as_instance(instance_b) do

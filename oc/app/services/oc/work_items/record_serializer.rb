@@ -26,6 +26,8 @@ module OC
     #     Reporter+, who can see confidential issues anyway)
     class RecordSerializer
       RELATION_KEYS = { 'Issue' => :issues, 'MergeRequest' => :merge_requests }.freeze
+      # The longest name .item_name gives a file, after its number.
+      NAME_LENGTH = 50
       COMMIT_NOTES_KEY = :commit_notes
 
       # Whole-project catalogs rather than one file per record: there are few
@@ -194,8 +196,21 @@ module OC
         branch_path("#{IDENTITIES_KEY}.yml")
       end
 
-      def self.file_path(relation_key, iid)
-        branch_path("#{relation_key}/#{iid}.yml")
+      # name: the part after the number, for people (see .item_name); nil for a
+      # bare `<iid>.yml`.
+      def self.file_path(relation_key, iid, name = nil)
+        branch_path(name.present? ? "#{relation_key}/#{iid}-#{name}.yml" : "#{relation_key}/#{iid}.yml")
+      end
+
+      # The name a new file for an item gets: the draft key it was created from,
+      # else its title made safe for a path. nil when nothing usable is left (a
+      # title of only emoji), which leaves the file bare.
+      def self.item_name(title, draft_key: nil)
+        return draft_key if draft_key.present?
+
+        name = title.to_s.parameterize
+        name = name[0, NAME_LENGTH].sub(/-[^-]*\z/, '') if name.length > NAME_LENGTH
+        name.delete_suffix('-').presence
       end
 
       def self.commit_notes_file_path(commit_id)
@@ -433,10 +448,6 @@ module OC
       def to_yaml_identities(map)
         hash = serialize_identities(map)
         hash && YAML.dump(hash)
-      end
-
-      def file_path(record)
-        self.class.file_path(relation_key(record), record.iid)
       end
 
       def preloads(key)

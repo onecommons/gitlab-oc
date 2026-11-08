@@ -30,7 +30,8 @@ RSpec.describe 'work items sync end to end', feature_category: :source_code_mana
 
     expect(repository.branch_exists?(branch)).to be(true)
     first_sha = repository.commit(branch).sha
-    first_yaml = YAML.safe_load(repository.blob_at(first_sha, sync_path("issues/#{issue.iid}.yml")).data)
+    first_yaml = YAML.safe_load(repository.blob_at(first_sha,
+      sync_item_path(repository, :issues, issue.iid, ref: first_sha)).data)
     expect(first_yaml['title']).to eq('first')
     # Not an equality check: the trailers vary by how the commit was made (a
     # full pass adds a watermark, an incremental one does not).
@@ -49,7 +50,8 @@ RSpec.describe 'work items sync end to end', feature_category: :source_code_mana
 
     second_sha = repository.commit(branch).sha
     expect(second_sha).not_to eq(first_sha)
-    second_yaml = YAML.safe_load(repository.blob_at(second_sha, sync_path("issues/#{issue.iid}.yml")).data)
+    second_yaml = YAML.safe_load(repository.blob_at(second_sha,
+      sync_item_path(repository, :issues, issue.iid, ref: second_sha)).data)
     expect(second_yaml['title']).to eq('second')
   end
 
@@ -68,7 +70,7 @@ RSpec.describe 'work items sync end to end', feature_category: :source_code_mana
     # the removal path.
     OC::WorkItems::FullSyncWorker.new.perform(project.id)
 
-    path = sync_path("issues/#{issue.iid}.yml")
+    path = sync_path("issues/#{issue.iid}-original.yml")
     expect(repository.blob_at(repository.commit(branch).sha, path)).to be_present
 
     # Exactly the state a rebuild leaves the queued job in: the id it carries

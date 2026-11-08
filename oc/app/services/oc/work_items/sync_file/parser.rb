@@ -365,15 +365,17 @@ module OC
                   "#{pair.peer_name.inspect}")
             end
 
+            # By number: issues/42.yml and issues/42-fix.yml are one issue.
             pair.transfer.each do |path|
-              other = seen[path]
+              iid = SyncFile::Pair.transfer_iid(path)
+              other = seen[iid]
 
               if other
                 fail_at!(pair.line, "#{instance.name.inspect} transfers #{path} to both " \
                   "#{other.inspect} and #{pair.peer_name.inspect}")
               end
 
-              seen[path] = pair.peer_name
+              seen[iid] = pair.peer_name
             end
           end
         end

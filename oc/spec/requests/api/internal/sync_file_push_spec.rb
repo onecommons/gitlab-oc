@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../support/helpers/work_item_sync_paths'
 
 # What a push of sync.yml actually says back to the person who pushed it.
 #
@@ -112,7 +113,7 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
 
     describe 'offline edits to issue files' do
       let(:issue) { create(:issue, project: project, title: 'Old') }
-      let(:issue_path) { "#{instance_uuid}/issues/#{issue.iid}.yml" }
+      let(:issue_path) { WorkItemSyncPaths.item_file(project.repository, instance_uuid, issue.iid) }
 
       before do
         project.enable_work_items_sync!(true)
@@ -337,7 +338,7 @@ RSpec.describe 'pushing the work items sync file', feature_category: :source_cod
 
     describe 'offline edits' do
       let(:issue) { create(:issue, project: project) }
-      let(:issue_path) { "#{instance_uuid}/issues/#{issue.iid}.yml" }
+      let(:issue_path) { WorkItemSyncPaths.item_file(project.repository, instance_uuid, issue.iid) }
 
       before do
         project.enable_work_items_sync!(true)

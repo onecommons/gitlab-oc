@@ -28,8 +28,8 @@ module OC
       def execute(oldrev, newrev)
         result = Result.new(applied: [], skipped: {})
 
-        ItemEdit.changed_paths(project.repository, oldrev, newrev).each do |path|
-          edit = ItemEdit.diff(path: path, old_yaml: content_at(oldrev, path), new_yaml: content_at(newrev, path))
+        ItemEdit.changed_paths(project.repository, oldrev, newrev).each do |old_path, path|
+          edit = ItemEdit.diff(path: path, old_yaml: content_at(oldrev, old_path), new_yaml: content_at(newrev, path))
           next if edit.empty?
 
           outcome = apply(edit)

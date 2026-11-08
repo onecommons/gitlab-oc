@@ -23,7 +23,7 @@ module OC
           return true if paths.empty?
 
           check_limits!(paths)
-          paths.each { |path| check_item!(path) }
+          paths.each { |old_path, new_path| check_item!(old_path, new_path) }
 
           true
         rescue ::OC::WorkItems::ItemEdit::Error => error
@@ -42,24 +42,26 @@ module OC
         end
 
         def check_limits!(paths)
+          path = paths.first.last
+
           # The diff is only the pusher's edits when the push builds on the
           # branch. A force push of an older copy would read every field it
           # takes back as an edit, and write the old values into the issues.
           if ::Gitlab::Checks::ForcePush.force_push?(project, oldrev, newrev)
-            fail!(paths.first, 'a force push cannot edit issues; pull, merge, and push again')
+            fail!(path, 'a force push cannot edit issues; pull, merge, and push again')
           end
 
           if paths.size > MAX_ITEMS
-            fail!(paths.first, "this push edits #{paths.size} issues; at most #{MAX_ITEMS} can be edited at once")
+            fail!(path, "this push edits #{paths.size} issues; at most #{MAX_ITEMS} can be edited at once")
           end
 
           return if project.work_items_sync_enabled?(recording: false)
 
-          fail!(paths.first, 'issues are not edited offline while work items sync is off for this project')
+          fail!(path, 'issues are not edited offline while work items sync is off for this project')
         end
 
-        def check_item!(path)
-          edit = ::OC::WorkItems::ItemEdit.diff(path: path, old_yaml: content_at(oldrev, path),
+        def check_item!(old_path, path)
+          edit = ::OC::WorkItems::ItemEdit.diff(path: path, old_yaml: content_at(oldrev, old_path),
             new_yaml: content_at(newrev, path))
           return if edit.empty?
 

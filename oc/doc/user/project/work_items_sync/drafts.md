@@ -44,7 +44,7 @@ To create issues from drafts:
    ```
 
 1. About 10 seconds later, pull the branch and merge the installation's commit.
-   Each issue is in `<uuid>/issues/<number>.yml`, and the draft files are gone.
+   Each issue is in `<uuid>/issues/<number>-<key>.yml`, and the draft files are gone.
 
 If a draft is malformed, the push is refused. For details, see
 [Push errors](#push-errors).
@@ -76,14 +76,8 @@ labels: [auth]
 
 After the push, the installation creates both issues. If they become issues
 `#51` and `#52`, the first description reads `Probably caused by #52.` The
-installation also commits `<uuid>/drafts.yml`:
-
-```yaml
-_schema: drafts@1
-drafts:
-  fix-login: 51
-  session-cache: 52
-```
+installation writes them as `<uuid>/issues/51-fix-login.yml` and
+`<uuid>/issues/52-session-cache.yml`.
 
 ## Draft keys
 
@@ -102,6 +96,8 @@ A key is used once. If a draft with a key that was already used appears again,
 for example an old copy that you merge back, it is deleted and not created
 again. This is true even if the issue was deleted. To create a new issue, use a
 new key.
+
+The nightly job deletes a `drafts.yml` file left by earlier versions.
 
 Only the installation that owns the folder creates the issue. Other
 installations that have the branch ignore the draft.

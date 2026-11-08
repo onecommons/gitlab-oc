@@ -55,7 +55,7 @@ files into your code, or your code into the branch.
 The branch holds one directory of work item files for each installation that
 writes to it, and a `sync.yml` file at the root that you edit by hand. The
 number in an `issues` or `merge_requests` filename is the number shown in the
-interface, so `issues/42.yml` is issue `#42`.
+interface, so `issues/42-login-fails.yml` is issue `#42`.
 
 For the full layout and what each file contains, see
 [Work items sync file format](work_items_sync/file_format.md).
