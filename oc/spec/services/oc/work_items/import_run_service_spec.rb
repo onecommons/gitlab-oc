@@ -143,6 +143,41 @@ RSpec.describe OC::WorkItems::ImportRunService, feature_category: :source_code_m
       expect(project.issues.reload.map(&:title)).to contain_exactly('After')
     end
 
+    # A file's name is for people. A peer renaming one changes nothing here but
+    # the path on the row, recorded once.
+    it 'keeps the same replica when the peer renames its file' do
+      seed_ids
+      seed("#{peer}/issues/1.yml", document(iid: 1))
+      run_all
+      issue_id = replicas.first.issue_id
+
+      project.repository.commit_files(project.first_owner, branch_name: branch, message: 'rename', actions: [
+        { action: :move, previous_path: "#{peer}/issues/1.yml", file_path: "#{peer}/issues/1-imported.yml",
+          content: document(iid: 1) }
+      ])
+      run_all
+
+      expect(replicas.sole).to have_attributes(issue_id: issue_id, state: 'imported',
+        source_path: "#{peer}/issues/1-imported.yml")
+      expect(OC::WorkItems::ImportReconciler.new(project).plan(peer)).to be_empty
+    end
+
+    it 'records the new path of a skipped row once, rather than rebuilding it on every run' do
+      seed_ids
+      seed("#{peer}/issues/1.yml", document(iid: 1).sub('confidential: false', 'confidential: true'))
+      run_all
+      expect(replicas.sole).to be_state_skipped
+
+      project.repository.commit_files(project.first_owner, branch_name: branch, message: 'rename', actions: [
+        { action: :move, previous_path: "#{peer}/issues/1.yml", file_path: "#{peer}/issues/1-secret.yml",
+          content: document(iid: 1).sub('confidential: false', 'confidential: true') }
+      ])
+      run_all
+
+      expect(replicas.sole).to have_attributes(source_path: "#{peer}/issues/1-secret.yml", state: 'skipped')
+      expect(OC::WorkItems::ImportReconciler.new(project).plan(peer)).to be_empty
+    end
+
     it 'destroys a replica whose source file is gone, and its row with it' do
       seed_ids
       seed("#{peer}/issues/1.yml", document(iid: 1))

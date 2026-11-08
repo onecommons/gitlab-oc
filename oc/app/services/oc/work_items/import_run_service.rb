@@ -189,6 +189,8 @@ module OC
           pair.imports_transferred?
 
         actions.each do |action|
+          next action.replica.update!(source_path: action.path) if action.kind == :move
+
           if demote_only
             # Deletes are left alone: an item that was ours, that we handed
             # over, is not something to drop here because the instance holding
@@ -284,7 +286,8 @@ module OC
         return false unless giving
         return path.start_with?("#{directory}/issues/") if giving.transfers_all?
 
-        giving.transfer.any? { |relative| path == "#{directory}/#{relative}" }
+        iid = SyncFile::Pair.transfer_iid(path.delete_prefix("#{directory}/"))
+        iid.present? && giving.transfer.any? { |relative| SyncFile::Pair.transfer_iid(relative) == iid }
       end
 
       # One document is allowed to fail, and only that document.
@@ -369,17 +372,11 @@ module OC
       # number -- `#5` and `!5` are indistinguishable by then. Being generous
       # here costs a rebuild that changes nothing; being strict would miss one
       # that mattered.
-      #
-      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
       def resolvable?(directory, source_iid)
-        %w[issues merge_requests].any? do |relation|
-          OC::WorkItems::ReplicatedWorkItem.find_by(
-            project_id: @project.id,
-            source_instance_uuid: directory,
-            source_path: "#{directory}/#{relation}/#{source_iid}.yml")&.work_item.present?
+        %i[issue merge_request].any? do |kind|
+          OC::WorkItems::ReplicatedWorkItem.for_source(@project, directory, kind, source_iid).first&.work_item.present?
         end
       end
-      # rubocop: enable CodeReuse/ActiveRecord
 
       # The row goes with the record. Leaving it would be worse than either:
       # the reconcile would see a path it has no row for and import the item

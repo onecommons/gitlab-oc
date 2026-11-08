@@ -98,12 +98,24 @@ module OC
         # `all` is standing intent, so it can only be answered against the
         # branch as it is now. Merge requests are excluded rather than
         # rejected; one named explicitly is refused by the parser.
+        #
+        # A listed path names an issue by its number; the file on the branch
+        # may carry a different name, and that file is the one returned.
         def transfer_paths(available)
           case transfer
           when :all then available.select { |path| path.start_with?('issues/') }
-          when ::Array then transfer
+          when ::Array
+            by_iid = available.group_by { |path| self.class.transfer_iid(path) }
+            transfer.map { |path| by_iid[self.class.transfer_iid(path)]&.min || path }
           else []
           end
+        end
+
+        # The issue number in a transfer path, `issues/<iid>[-<name>].yml`,
+        # read the way every other item path is.
+        def self.transfer_iid(path)
+          parsed = RecordSerializer.parse_path("_/#{path}")
+          parsed[:iid] if parsed && parsed[:relation] == :issues
         end
       end
 

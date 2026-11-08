@@ -49389,6 +49389,8 @@ CREATE UNIQUE INDEX index_oc_replicated_work_items_on_merge_request_id ON oc_rep
 
 CREATE UNIQUE INDEX index_oc_replicated_work_items_on_source ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_path);
 
+CREATE INDEX index_oc_replicated_work_items_on_source_iid ON oc_replicated_work_items USING btree (project_id, source_instance_uuid, source_kind, source_iid);
+
 CREATE UNIQUE INDEX index_oc_work_item_drafts_on_issue_id ON oc_work_item_drafts USING btree (issue_id) WHERE (issue_id IS NOT NULL);
 
 CREATE UNIQUE INDEX index_oc_work_item_drafts_on_project_id_and_key ON oc_work_item_drafts USING btree (project_id, key);

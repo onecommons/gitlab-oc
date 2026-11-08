@@ -10,7 +10,6 @@ module OC
     # Anything outside EDITABLE that changed refuses the edit rather than being
     # dropped: an edit that is partly ignored is worse than none.
     class ItemEdit
-      DIRECTORY = 'issues'
       EDITABLE = %w[title description state confidential due_date label_links milestone notes].freeze
       STATES = %w[opened closed].freeze
 
@@ -41,11 +40,12 @@ module OC
         # Whether path is one of the issue files the installation owning
         # `directory` writes.
         def item_path?(path, directory)
-          path.match?(%r{\A#{::Regexp.escape(directory)}/#{DIRECTORY}/[1-9][0-9]*\.yml\z})
+          parsed = RecordSerializer.parse_path(path)
+          parsed.present? && parsed[:directory] == directory && parsed[:relation] == :issues
         end
 
         def iid_for(path)
-          ::File.basename(path, '.yml').to_i
+          RecordSerializer.parse_path(path)&.dig(:iid)
         end
 
         # Our own issue files a push from oldrev to newrev changed. Adding or

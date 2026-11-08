@@ -75,6 +75,15 @@ module OC
       # state but two, so a state added later is read-only until somebody decides
       # otherwise -- the failure that matters here is a copy that can be edited,
       # not an item that cannot.
+      # The rows for one item of a peer, by its number there. Limited to rows
+      # whose path is in that peer's directory: a surrendered row is filed
+      # under the new owner's uuid with our own path and iid, and must not
+      # answer for the new owner's item of the same number.
+      scope :for_source, ->(project, uuid, kind, iid) do
+        where(project_id: project.id, source_instance_uuid: uuid, source_kind: kind, source_iid: iid)
+          .where('source_path LIKE ?', "#{sanitize_sql_like(uuid)}/%")
+      end
+
       def owned_here?
         state_adopted? || state_matched?
       end

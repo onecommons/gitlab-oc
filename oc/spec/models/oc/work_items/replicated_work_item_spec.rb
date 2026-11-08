@@ -53,6 +53,27 @@ RSpec.describe OC::WorkItems::ReplicatedWorkItem, feature_category: :source_code
     end
   end
 
+  describe '.for_source' do
+    let(:peer) { '11111111-2222-3333-4444-555555555555' }
+
+    it 'finds a peer item by its number and kind, whatever its file is named' do
+      row = create(:oc_replicated_work_item, project: project, source_instance_uuid: peer,
+        source_path: "#{peer}/issues/42-login-fails.yml")
+      create(:oc_replicated_work_item, project: project, source_instance_uuid: peer,
+        source_path: "#{peer}/merge_requests/42.yml")
+
+      expect(described_class.for_source(project, peer, :issue, 42)).to contain_exactly(row)
+    end
+
+    # Filed under the new owner's uuid, with our own path and our own iid.
+    it 'never answers with a surrendered row for the same number' do
+      create(:oc_replicated_work_item, :surrendered, project: project, source_instance_uuid: peer,
+        source_iid: 42)
+
+      expect(described_class.for_source(project, peer, :issue, 42)).to be_empty
+    end
+  end
+
   describe 'uniqueness' do
     it 'rejects a second row for the same source file in the same project' do
       first = create(:oc_replicated_work_item, project: project)

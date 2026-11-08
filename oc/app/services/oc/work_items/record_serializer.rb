@@ -155,9 +155,12 @@ module OC
       # built at class load, when CurrentSettings can still be the uuid-less
       # fake, and would freeze whatever it got. Callers compare the directory
       # themselves -- the writer against its own, the importer against a peer's.
+      #
+      # An issue or merge request file is `<iid>.yml` or `<iid>-<name>.yml`.
+      # The name is for people and is ignored: the number is the item.
       DOCUMENT_PATTERN = %r{
         \A(?<dir>[^/]+)/
-        (?:(?<relation>issues|merge_requests)/(?<iid>\d+)|(?<notes>commit_notes)/(?<sha>\h{40}))
+        (?:(?<relation>issues|merge_requests)/(?<iid>\d+)(?:-[^/]*)?|(?<notes>commit_notes)/(?<sha>\h{40}))
         \.yml\z
       }x
       def self.reference_key(relation_key)

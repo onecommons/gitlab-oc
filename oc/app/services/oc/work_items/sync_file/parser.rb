@@ -59,7 +59,7 @@ module OC
         INSTANCE_KEYS = %w[uuid sync].freeze
         PAIR_KEYS = %w[import user_mapping default_user transfer].freeze
 
-        TRANSFER_PATH_PATTERN = %r{\Aissues/\d+\.yml\z}
+        TRANSFER_PATH_PATTERN = %r{\Aissues/\d+(?:-[^/]*)?\.yml\z}
 
         MERGE_KEY = '<<'
         MAX_MERGE_DEPTH = 8

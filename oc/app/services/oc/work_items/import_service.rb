@@ -120,7 +120,10 @@ module OC
           source_instance_uuid: @source_instance_uuid,
           source_path: action.path)
 
+        # The path too: a file renamed is rebuilt like one changed, and a row
+        # left on the old path would be rebuilt again on every run.
         replica.assign_attributes(
+          source_path: action.path,
           source_kind: action.source_kind,
           source_iid: action.source_iid,
           source_blob_oid: action.oid,
@@ -769,6 +772,7 @@ module OC
           source_path: action.path)
 
         replica.assign_attributes(
+          source_path: action.path,
           source_kind: action.source_kind,
           source_iid: action.source_iid,
           source_blob_oid: action.oid,

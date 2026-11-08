@@ -106,6 +106,32 @@ RSpec.describe OC::WorkItems::ImportReconciler, feature_category: :source_code_m
     # The one case where an unchanged file still means work: what blocked a
     # deferred row may have arrived since, and the file will never change again
     # to tell us so.
+    # A file's name is for people; the number is the item.
+    it 'moves a row whose file was renamed, rather than deleting and importing it' do
+      seed("#{peer}/issues/7-login-fails.yml")
+      replica = create(:oc_replicated_work_item, project: project, source_instance_uuid: peer,
+        source_path: "#{peer}/issues/7.yml", source_blob_oid: oid_of("#{peer}/issues/7-login-fails.yml"))
+
+      expect(plan).to contain_exactly(
+        have_attributes(kind: :move, replica: replica, path: "#{peer}/issues/7-login-fails.yml"))
+    end
+
+    it 'rebuilds a row whose file was renamed and changed' do
+      seed("#{peer}/issues/7-login-fails.yml")
+      replica = create(:oc_replicated_work_item, project: project, source_instance_uuid: peer,
+        source_path: "#{peer}/issues/7.yml", source_blob_oid: 'a' * 40)
+
+      expect(plan).to contain_exactly(have_attributes(kind: :rebuild, replica: replica))
+    end
+
+    it 'reads two files for one number as one item, the first by path' do
+      seed("#{peer}/issues/7-b.yml")
+      seed("#{peer}/issues/7-a.yml")
+
+      expect(plan).to contain_exactly(
+        have_attributes(kind: :import, path: "#{peer}/issues/7-a.yml", source_iid: 7))
+    end
+
     it 'rechecks a deferred row even though nothing changed' do
       seed("#{peer}/merge_requests/3.yml", "_schema: merge_requests@1\n")
       path = "#{peer}/merge_requests/3.yml"
@@ -205,6 +231,16 @@ RSpec.describe OC::WorkItems::ImportReconciler, feature_category: :source_code_m
       # names our own directory, so it can never match anything in the
       # directory being scanned. Without the guard it would read as a file that
       # had vanished on every single run, and delete the frozen original.
+      # Filed under the new owner's uuid with our own path and iid: keyed by
+      # number alone it would stand in for their document of the same number.
+      it 'does not let a surrendered row stand in for the new owner item of the same number' do
+        seed("#{peer}/issues/42-moved.yml")
+        create(:oc_replicated_work_item, :surrendered, project: project,
+          source_instance_uuid: peer, source_iid: 42)
+
+        expect(plan).to contain_exactly(have_attributes(kind: :import, source_iid: 42))
+      end
+
       it 'never reads a surrendered row as a deletion' do
         seed("#{peer}/issues/1.yml")
         create(:oc_replicated_work_item, :surrendered, project: project,

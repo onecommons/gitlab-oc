@@ -35,6 +35,7 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
   describe '.item_path?' do
     it 'accepts issue files in the installation directory only' do
       expect(described_class.item_path?("#{uuid}/issues/42.yml", uuid)).to be(true)
+      expect(described_class.item_path?("#{uuid}/issues/42-login-fails.yml", uuid)).to be(true)
       expect(described_class.item_path?("#{uuid}/issues/42.yaml", uuid)).to be(false)
       expect(described_class.item_path?("#{uuid}/issues/x.yml", uuid)).to be(false)
       expect(described_class.item_path?("#{uuid}/merge_requests/1.yml", uuid)).to be(false)

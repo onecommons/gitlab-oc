@@ -14,6 +14,16 @@ FactoryBot.define do
     source_blob_oid { SecureRandom.hex(20) }
     source_web_url { "https://peer.example.com/group/project/-/issues/#{source_iid}" }
 
+    # A real row's iid is the number in its path; a spec that names the path
+    # gets the matching iid, since peers' items are matched by number.
+    after(:build) do |row|
+      parsed = OC::WorkItems::RecordSerializer.parse_path(row.source_path)
+      if parsed&.dig(:iid)
+        row.source_iid = parsed[:iid]
+        row.source_kind = parsed[:relation].to_s.singularize
+      end
+    end
+
     trait :merge_request_kind do
       source_kind { :merge_request }
       source_web_url { "https://peer.example.com/group/project/-/merge_requests/#{source_iid}" }

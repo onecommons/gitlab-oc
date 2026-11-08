@@ -12,6 +12,21 @@ RSpec.describe OC::WorkItems::RecordSerializer, feature_category: :source_code_m
 
   subject(:serializer) { described_class.new }
 
+  describe '.parse_path' do
+    it 'reads the number and ignores the name after it' do
+      expect(described_class.parse_path('d/issues/42-login-fails.yml'))
+        .to eq(directory: 'd', relation: :issues, iid: 42)
+      expect(described_class.parse_path('d/merge_requests/3.yml'))
+        .to eq(directory: 'd', relation: :merge_requests, iid: 3)
+    end
+
+    it 'is nil for anything that is not an item file' do
+      expect(described_class.parse_path('d/issues/login.yml')).to be_nil
+      expect(described_class.parse_path('d/issues/42-a/b.yml')).to be_nil
+      expect(described_class.parse_path('d/labels.yml')).to be_nil
+    end
+  end
+
   describe '#serialize' do
     let_it_be(:issue) do
       create(:labeled_issue, project: project, author: user, labels: [label]).tap do |issue|

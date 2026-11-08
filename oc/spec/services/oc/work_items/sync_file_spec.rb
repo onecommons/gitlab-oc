@@ -114,6 +114,31 @@ RSpec.describe OC::WorkItems::SyncFile, feature_category: :source_code_managemen
         expect(pair).not_to be_transfers_all
         expect(pair.transfer_paths(available)).to eq(['issues/42.yml'])
       end
+
+      # The number is the item; the name in either path is for people.
+      it 'finds a listed issue by its number, whatever its file is named' do
+        file = parse(<<~YAML)
+          ---
+          _schema: sync@1
+          staging:
+            uuid: #{staging_uuid}
+            sync:
+              prod:
+                transfer:
+                  - issues/42.yml
+                  - issues/7-old-name.yml
+          prod:
+            uuid: #{prod_uuid}
+            sync:
+              staging:
+                import: transferred
+        YAML
+
+        pair = file.transfers_from(staging_uuid)[prod_uuid]
+
+        expect(pair.transfer_paths(['issues/42-login-fails.yml', 'issues/7.yml', 'issues/8.yml']))
+          .to eq(['issues/42-login-fails.yml', 'issues/7.yml'])
+      end
     end
 
     describe 'user_mapping and default_user' do

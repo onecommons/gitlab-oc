@@ -145,18 +145,12 @@ module OC
         link(original, replica&.source_web_url || same_project_url(relation, source_iid))
       end
 
-      # Looked up by path, not by source_iid: the unique index is on
-      # (project_id, source_instance_uuid, source_path), and an iid is one
-      # string away from being a path. There is no index on source_iid.
-      #
-      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
+      # By number, not by path: a file's name is for people and is not part of
+      # the item.
       def replica_for(relation, source_iid)
-        OC::WorkItems::ReplicatedWorkItem.find_by(
-          project_id: @project.id,
-          source_instance_uuid: @source_instance_uuid,
-          source_path: "#{@source_instance_uuid}/#{relation}/#{source_iid}.yml")
+        kind = relation == :issues ? :issue : :merge_request
+        OC::WorkItems::ReplicatedWorkItem.for_source(@project, @source_instance_uuid, kind, source_iid.to_i).first
       end
-      # rubocop: enable CodeReuse/ActiveRecord
 
       def prefix(relation)
         relation == :issues ? '#' : '!'

@@ -29,4 +29,16 @@ module WorkItemSyncPaths
   def sync_path(suffix)
     "#{OC::WorkItems.instance_directory}/#{suffix}"
   end
+
+  # Our own file for an item, found by its number: the rest of a file's name
+  # is for people and depends on the title or draft key it was written with.
+  # The bare `<iid>.yml` path when the branch has none.
+  def sync_item_path(repository, relation, iid, ref: OC::WorkItems::SYNC_BRANCH)
+    directory = sync_path(relation.to_s)
+    found = repository.tree(ref, directory).blobs.map(&:path).sort.find do |path|
+      OC::WorkItems::RecordSerializer.parse_path(path)&.dig(:iid) == iid
+    end
+
+    found || "#{directory}/#{iid}.yml"
+  end
 end

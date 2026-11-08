@@ -29,6 +29,7 @@ module OC
       #   :import  -- a path with no row of its own
       #   :rebuild -- the source file changed under a row we already have
       #   :recheck -- unchanged, but the row is deferred and may now be buildable
+      #   :move    -- unchanged, but renamed: only the row's path is out of date
       #   :delete  -- a row whose source file is no longer on the branch
       Action = Struct.new(:kind, :path, :oid, :replica, :source_kind, :source_iid,
         keyword_init: true)
@@ -83,22 +84,32 @@ module OC
       # for context during an import rather than replicated as records.
       # commit_notes is excluded for now as well: a note on a sha we do not
       # have has nowhere sensible to live.
+      #
+      # Keyed by item, [kind, iid], not by path: a file's name is for people
+      # and can differ from one run to the next. Two files for one item (a
+      # copy someone left) are one item, the first in path order.
       def document_oids(directory, sha)
         return {} unless sha
 
-        blob_oids_at(@repository, sha, directory).filter_map do |path, oid|
+        blob_oids_at(@repository, sha, directory).sort.each_with_object({}) do |(path, oid), found|
           parsed = RecordSerializer.parse_path(path)
           next unless parsed && KIND_BY_RELATION.key?(parsed[:relation])
 
-          [path, [oid, parsed]]
-        end.to_h
+          found[[KIND_BY_RELATION.fetch(parsed[:relation]), parsed[:iid]]] ||= [path, oid]
+        end
       end
 
+      # Only rows whose path is in this directory. A surrendered row is filed
+      # under the new owner's uuid but names our own old path, and its iid is
+      # ours: keyed by number, it could stand in for the new owner's document
+      # of the same number and keep the transfer from ever completing.
+      #
       # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
       def replica_rows(directory)
         OC::WorkItems::ReplicatedWorkItem
           .where(project_id: @project.id, source_instance_uuid: directory)
-          .index_by(&:source_path)
+          .select { |row| row.source_path.start_with?("#{directory}/") }
+          .index_by { |row| [row.source_kind.to_sym, row.source_iid] }
       end
       # rubocop: enable CodeReuse/ActiveRecord
 
@@ -109,23 +120,24 @@ module OC
       # without a row there it reads as a file nobody has imported, and the run
       # would import the new owner's own document back as a copy of itself.
       def present_actions(oids, rows)
-        oids.filter_map do |path, (oid, parsed)|
-          replica = rows[path]
+        oids.filter_map do |(source_kind, source_iid), (path, oid)|
+          replica = rows[[source_kind, source_iid]]
           next if replica && !replica.reconcilable?
 
-          kind = kind_for(replica, oid)
+          kind = kind_for(replica, path, oid)
           next unless kind
 
-          Action.new(
-            kind: kind, path: path, oid: oid, replica: replica,
-            source_kind: KIND_BY_RELATION.fetch(parsed[:relation]),
-            source_iid: parsed[:iid])
+          Action.new(kind: kind, path: path, oid: oid, replica: replica, source_kind: source_kind,
+            source_iid: source_iid)
         end
       end
 
-      def kind_for(replica, oid)
+      # A file renamed and changed is rebuilt, which records the new path too.
+      # Renamed alone, only the path changes: nothing is read or rebuilt.
+      def kind_for(replica, path, oid)
         return :import if replica.nil?
         return :rebuild if replica.source_blob_oid != oid
+        return :move if replica.source_path != path
 
         # The one case where "nothing changed on the branch" does not mean
         # "nothing to do": a deferred row's source file is identical, but what
@@ -139,11 +151,11 @@ module OC
       # that went because the item became confidential: both mean the same
       # thing here, and deleting the replica is the right answer to each.
       def missing_actions(oids, rows)
-        rows.filter_map do |path, replica|
-          next if oids.key?(path)
+        rows.filter_map do |key, replica|
+          next if oids.key?(key)
           next unless replica.reconcilable?
 
-          Action.new(kind: :delete, path: path, replica: replica,
+          Action.new(kind: :delete, path: replica.source_path, replica: replica,
             source_kind: replica.source_kind.to_sym, source_iid: replica.source_iid)
         end
       end
