@@ -84,6 +84,16 @@ module OC
           .where('source_path LIKE ?', "#{sanitize_sql_like(uuid)}/%")
       end
 
+      # The surrendered row a new owner's transferred_from stamp names, or nil.
+      # By our issue number, not the path: a file can be renamed after the
+      # freeze, and the new owner stamps the name it read.
+      def self.surrendered_for(project, stamp)
+        parsed = RecordSerializer.parse_path(stamp)
+        return unless parsed && parsed[:relation] == :issues && parsed[:directory] == OC::WorkItems.instance_directory
+
+        find_by(project_id: project.id, state: :surrendered, source_kind: :issue, source_iid: parsed[:iid])
+      end
+
       def owned_here?
         state_adopted? || state_matched?
       end

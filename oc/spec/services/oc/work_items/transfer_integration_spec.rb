@@ -229,6 +229,35 @@ RSpec.describe 'work items ownership transfer', feature_category: :source_code_m
     end
   end
 
+  # File names are people's to change, frozen items included, so the new owner
+  # may stamp a name the freeze never saw.
+  describe 'a promised file renamed before the new owner takes it' do
+    let!(:issue) { start_with('Renamed in flight') }
+
+    it 'still lets go' do
+      push_to(staging, migration_file)
+      receive_push(staging, staging_uuid)
+
+      old_path = "#{staging_uuid}/issues/#{issue.iid}-renamed-in-flight.yml"
+      new_path = "#{staging_uuid}/issues/#{issue.iid}-chosen-offline.yml"
+      staging.repository.commit_files(
+        staging.first_owner, branch_name: branch, message: 'rename it',
+        actions: [{ action: :move, previous_path: old_path, file_path: new_path, content: contents(staging)[old_path] }])
+      as_instance(staging_uuid) { OC::WorkItems::FullSyncWorker.new.perform(staging.id) }
+
+      push_to(prod, contents(staging))
+      receive_push(prod, prod_uuid)
+      expect(YAML.safe_load(contents(prod).values.find { |doc| doc.include?('transferred_from') }))
+        .to include('transferred_from' => new_path)
+
+      push_to(staging, contents(prod))
+      receive_push(staging, staging_uuid)
+
+      expect(rows(staging).first).to be_state_imported
+      expect(staging.issues.reload.first.iid).to eq(issue.iid)
+    end
+  end
+
   describe 'a run that dies between freezing and finishing' do
     let!(:issue) { start_with('Interrupted') }
 

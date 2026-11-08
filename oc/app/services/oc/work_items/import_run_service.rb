@@ -212,18 +212,13 @@ module OC
       # Both halves matter. The mark alone is peer-written and proves nothing;
       # the promise and the copy are ours, and one of them has to be there or
       # this is an instance claiming something we never agreed to.
-      #
-      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
       def ours_to_finish?(action, document)
         stamp = document['transferred_from']
         return false unless stamp.present?
         return false unless stamp.start_with?("#{OC::WorkItems.instance_directory}/")
 
-        action.replica.present? ||
-          OC::WorkItems::ReplicatedWorkItem.exists?(
-            project_id: @project.id, source_path: stamp, state: :surrendered)
+        action.replica.present? || OC::WorkItems::ReplicatedWorkItem.surrendered_for(@project, stamp).present?
       end
-      # rubocop: enable CodeReuse/ActiveRecord
 
       # Who an unmapped user on the peer becomes here.
       #

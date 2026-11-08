@@ -266,12 +266,9 @@ module OC
         demote(action, document, row)
       end
 
-      # rubocop: disable CodeReuse/ActiveRecord -- the query belongs to the sync and has no finder
-      def surrendered_row(path)
-        OC::WorkItems::ReplicatedWorkItem.find_by(
-          project_id: @project.id, source_path: path, state: :surrendered)
+      def surrendered_row(stamp)
+        OC::WorkItems::ReplicatedWorkItem.surrendered_for(@project, stamp)
       end
-      # rubocop: enable CodeReuse/ActiveRecord
 
       # The end of a transfer, from the giving side: the item we froze comes
       # back as an ordinary copy of the new owner's document, and goes on
