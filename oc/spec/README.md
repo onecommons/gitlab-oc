@@ -247,4 +247,11 @@ Jest discovers `oc/spec/frontend/**/*_spec.js` automatically
 yarn jest oc/spec/frontend
 ```
 
-In CI these run in the existing `jest` job; there is no separate OC Jest job.
+The upstream Jest specs covering frontend files the fork edits in place are
+derived from the `OC Change` markers:
+
+```bash
+yarn jest $(ruby oc/scripts/upstream_jest_specs.rb)
+```
+
+Both run in the `jest` job of `.github/workflows/ci.yml`.

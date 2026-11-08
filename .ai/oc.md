@@ -814,7 +814,7 @@ Where tests belong:
 - `oc/spec/**` — RSpec for `oc/` code, mirroring the source layout. Runs in
   the `oc` stage of `.github/workflows/spec.yml` (see [CI](#ci)).
 - `oc/spec/frontend/**` — Jest, discovered automatically
-  (`jest.config.base.js`); no GitHub workflow runs Jest yet.
+  (`jest.config.base.js`). Runs in the `jest` job of `.github/workflows/ci.yml`.
 - Root `spec/**` — only when OneCommons behavior needs coverage beside the
   upstream implementation. Tag those examples `:onecommons`. The job that ran
   them in the 15.11 fork (`rspec-oc upstream specs`, an explicit file list in
@@ -836,7 +836,10 @@ Where tests belong:
 **`spec.yml` runs the upstream examples the fork affects.**
 `oc/scripts/upstream_specs.rb` derives the list of upstream spec files from the
 `# OC Change` markers, so the list follows the fork's edits. The `upstream`
-stage runs them per push, and four slow files (`--heavy`) run nightly. A fork
+stage runs them per push, and four slow files (`--heavy`) run nightly.
+`oc/scripts/upstream_jest_specs.rb` does the same for Jest, for `ci.yml`'s
+`jest` job; specs that import generated fixtures (`test_fixtures/`) need
+`bin/rake frontend:fixtures` and are listed by `--unmapped` instead. A fork
 change that breaks an upstream example therefore fails CI; fix the example with
 an `# OC Change` comment explaining the fork's behaviour, as was done for the
 reserved `gitlab` group path and the zero project-limit message in
@@ -874,7 +877,9 @@ CI is GitHub Actions on [`onecommons/gitlab-oc`](https://github.com/onecommons/g
   fast-forward and push `main` once green. `git push -o ci.skip` is GitLab-only
   and GitHub ignores it.
 - **`ci.yml`** runs RuboCop on the Ruby files the push or PR changed, matching
-  lefthook's rule that an offense is yours if you touched the file. A
+  lefthook's rule that an offense is yours if you touched the file. Its
+  `jest` job runs `oc/spec/frontend` and the upstream Jest specs for files
+  the fork edits, on a plain runner with no GDK. A
   `yarn.lock changed?` job handles the frontend: when `yarn.lock` changed, it
   reads the `unfurl-gui` commit pinned for `oc-pages` and calls `e2e.yml` with
   that commit and the commit under test. Other pushes skip e2e.
