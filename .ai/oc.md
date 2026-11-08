@@ -152,29 +152,39 @@ not have. Instead the GDK runs the server with CORS for the GitLab origin, and
 `http://localhost:8081`. `oc/config/initializers/unfurl_server.rb` appends its
 origin to the CSP's `connect-src`, so a GDK needs no `gitlab.yml` edits.
 
-A GDK service supervises the server, so it starts with everything else and its
-log is where every other service's is. Install it once:
+Two GDK services run the server as production does
+(`docker/aux/server-entrypoint.sh` in unfurl): `unfurl`, the Rust
+`unfurl-server` on 8081, in front of `unfurl-backend`, the Python app under
+gunicorn on 8082. Not `unfurl serve`: it sets `UNFURL_SERVE_PATH`, which puts
+`unfurl-server` in dev mode, and dev mode never pushes the cloudmap. Install
+them once:
 
 ```bash
 sh oc/scripts/install_gdk_unfurl.sh   # --skip-cloudmap for the server alone
-gdk start unfurl
-gdk tail unfurl          # or $GDK_ROOT/log/unfurl/current
+gdk start unfurl unfurl-backend
+gdk tail unfurl unfurl-backend   # or $GDK_ROOT/log/unfurl*/current
 ```
 
-The script copies `oc/scripts/unfurl.rb` into `$GDK_ROOT/lib/gdk/services/`,
-clones `onecommons/cloudmap` to `$GDK_ROOT/tmp/cloudmap` and creates the
-`unfurl_cloudmap` database; re-running it is safe, and each step is skipped
+The script copies `oc/scripts/unfurl.rb` and `unfurl_backend.rb` into
+`$GDK_ROOT/lib/gdk/services/`, puts unfurl's Python and its `unfurl-server`
+build in `$GDK_ROOT/tmp/unfurl_bin/` (a wrapper script and a link, so a rebuild
+needs only a restart), creates the `unfurl_cloudmap` database and writes a
+grant key to `$GDK_ROOT/tmp/unfurl_grant_key`; re-running it is safe, and each step is skipped
 when it is already done. The definition lives in this repo because the GDK
 checkout is upstream's, where the file would be untracked and a `gdk update`
 would eventually lose it. GDK finds services by reflection over
 `GDK::Services`, so the copy is the whole registration, and `gdk start` renders
 the run script itself, so none of this needs `gdk reconfigure`.
 
-The cloudmap half is optional. `--skip-cloudmap` leaves it out, and without a
-clone the service omits both cloudmap variables, so `/cloudmap` is proxied to
-Python as it was before. A GDK that is not answering is not a reason to stop
-either: the script clones the public copy instead and points `origin` back at
-the GDK, so one `git pull` later it is the seeded repository.
+The cloudmap half is optional. `--skip-cloudmap` leaves it out, and without the
+grant key the service sets neither `UNFURL_CLOUDMAP_DB_URL` nor
+`UNFURL_GRANT_KEY_FILE`, so `/cloudmap` is proxied to Python. With them, and no
+`UNFURL_CLOUDMAP_REPO`, the server clones `onecommons/cloudmap`'s `main` from
+the GDK under `tmp/repos/public/` at startup, pulls it, and pushes its commits
+there with the credentials `OC::Projects::CloudmapRefreshWorker` sends (the
+cloudmap's project bot). A commit request with nothing new to commit pushes
+nothing, so commits left unpushed wait for the next one that commits. The grant key encrypts the credentials it keeps for
+pushes retried later; replacing it makes those unreadable.
 
 `unfurl-git-sync` migrates its own tables on first start but never issues
 `CREATE DATABASE`, which is what the `createdb` step is for, and `createdb`
@@ -182,14 +192,11 @@ fails outright on a database that already exists. To point the index somewhere
 else, set `UNFURL_CLOUDMAP_DB_URL` in `$GDK_ROOT/env.runit` — the run script
 sources it after the service's own exports, so it wins — and give `createdb`
 the matching name, because the wrong database is not an error, just an empty
-index. `UNFURL_CLOUDMAP_REPO` is a
-working tree, not a URL — the server exits non-zero when the path is not one —
-and the clone is a snapshot, so a push to `onecommons/cloudmap` reaches the
-index only after a pull and a restart.
+index.
 
-What the service sets, and why:
+What the services set, and why:
 
-- **`unfurl --home <gdk>/tmp/unfurl_home`** — a home of the GDK's own,
+- **`UNFURL_HOME=<gdk>/tmp/unfurl_home`** — a home of the GDK's own,
   written by the install script, rather than `~/.unfurl_home`: a repository
   redirect in a personal home's `local/unfurl.yaml`
   (`unfurl.cloud/onecommons/std` pointing somewhere else, say) makes every
@@ -202,12 +209,11 @@ What the service sets, and why:
   `gitlab.com/onecommons/*` and `unfurl.cloud/onecommons/*` to this GDK.
 - **`CACHE_REDIS_URL`** — GDK's redis on its socket, since the redis component
   (`components/redis/GDK.rb`) exposes no port, at db 6 because 0-5 are
-  GitLab's in development. Setting it at all also puts the Rust proxy in front
-  of waitress: the proxy takes 8081 and the Python backend moves to 8082.
-- **`UNFURL_CLOUDMAP_REPO` and `UNFURL_CLOUDMAP_DB_URL`** — set only when the
-  clone is there, so the pair is never half-given: with one of them the server
-  says which is missing and serves neither. With both, `GET /cloudmap` comes
-  from the index rather than being proxied to Python.
+  GitLab's in development. Both processes need the same one.
+- **`UNFURL_PACKAGE_DIGEST`** — computed at each start of `unfurl`; it is part
+  of the ETags both processes compute, and the backend computes its own.
+- **No `UNFURL_LOCAL_CLOUDMAP_URL`** — as in production with only a clone
+  root: Python reads the cloudmap from the same checkouts under it.
 
 unfurl-gui's own harness runs the server directly — see its README's
 `UNFURL_DEFAULT_ENV`.

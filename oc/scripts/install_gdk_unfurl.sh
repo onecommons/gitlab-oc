@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installs the GDK service that runs the Unfurl server, its home project, plus
-# the cloudmap clone and database the service uses when they are there. Safe to
-# re-run.
+# the cloudmap database and grant key the service uses when they are there.
+# Safe to re-run.
 #
 #   sh oc/scripts/install_gdk_unfurl.sh [--skip-cloudmap]
 #
@@ -18,13 +18,7 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 if [ -z "${GITLAB_URL:-}" ]; then
   GITLAB_URL=http://$(cd "$GDK" && gdk config get hostname):$(cd "$GDK" && gdk config get gitlab.rails.port)
 fi
-gitlab_host=${GITLAB_URL#*://}
-gitlab_host=${gitlab_host%%[:/]*}
-UPSTREAM_CLOUDMAP=${UPSTREAM_CLOUDMAP:-https://unfurl.cloud/onecommons/cloudmap.git}
-CLOUDMAP=$GDK/tmp/cloudmap
-# The server commits to and pushes whatever branch the clone is on, so this
-# instance's records stay off upstream's main.
-CLOUDMAP_BRANCH=${CLOUDMAP_BRANCH:-hosts/$gitlab_host}
+GRANT_KEY=$GDK/tmp/unfurl_grant_key
 HOME_PROJECT=$GDK/tmp/unfurl_home
 
 case "${1:-}" in
@@ -37,8 +31,28 @@ esac
 # here is the whole registration -- no list to edit, and `gdk start` renders
 # the run script itself.
 mkdir -p "$GDK/lib/gdk/services"
-cp "$REPO/oc/scripts/unfurl.rb" "$GDK/lib/gdk/services/unfurl.rb"
-echo "installed  $GDK/lib/gdk/services/unfurl.rb"
+for service in unfurl unfurl_backend; do
+  cp "$REPO/oc/scripts/$service.rb" "$GDK/lib/gdk/services/$service.rb"
+  echo "installed  $GDK/lib/gdk/services/$service.rb"
+done
+
+# The services run unfurl's Python and unfurl-server through these links, so
+# a rebuild of either needs only a restart.
+unfurl_python=$(sed -n '1s/^#!//p' "$(command -v unfurl)")
+unfurl_server=$("$unfurl_python" -c \
+  'from unfurl.server.serve import _find_rust_server_bin as f; print(f() or "")')
+if [ -z "$unfurl_server" ]; then
+  echo "no unfurl-server binary; build it with cargo build -p unfurl-server" >&2
+  exit 1
+fi
+mkdir -p "$GDK/tmp/unfurl_bin"
+# A script, not a link: a venv's python finds its venv next to the path it
+# was run by.
+rm -f "$GDK/tmp/unfurl_bin/python"
+printf '#!/bin/sh\nexec "%s" "$@"\n' "$unfurl_python" > "$GDK/tmp/unfurl_bin/python"
+chmod +x "$GDK/tmp/unfurl_bin/python"
+ln -sf "$unfurl_server" "$GDK/tmp/unfurl_bin/unfurl-server"
+echo "linked     $GDK/tmp/unfurl_bin -> $unfurl_server"
 
 # The server's home project (`unfurl --home`, see unfurl.rb). Written only when
 # missing, so an edit made there survives a re-run.
@@ -68,46 +82,27 @@ YAML
 fi
 
 if [ "$skip_cloudmap" = 1 ]; then
-  echo "skipped    cloudmap clone and database"
+  echo "skipped    cloudmap database and grant key"
 else
-  # UNFURL_CLOUDMAP_REPO is a working tree, not a URL: the server exits
-  # non-zero when the path is not one. ls-remote rather than a health check --
-  # it tests the one thing the clone needs.
-  if [ -d "$CLOUDMAP/.git" ]; then
-    echo "present    $CLOUDMAP"
-  elif git ls-remote --exit-code "$GITLAB_URL/onecommons/cloudmap.git" HEAD >/dev/null 2>&1; then
-    git clone "$GITLAB_URL/onecommons/cloudmap.git" "$CLOUDMAP"
-  else
-    echo "$GITLAB_URL is not answering; cloning the public copy instead"
-    git clone "$UPSTREAM_CLOUDMAP" "$CLOUDMAP"
-    git -C "$CLOUDMAP" remote set-url origin "$GITLAB_URL/onecommons/cloudmap.git"
-    echo "origin now points at $GITLAB_URL -- pull once the GDK is up"
-  fi
-
-  # The server reads the branch when it opens the clone, so a switch needs
-  # `gdk restart unfurl`. Plain `git switch` tracks the remote's branch if
-  # one was pushed. Not `switch -C`: that resets an existing branch.
-  git -C "$CLOUDMAP" switch -q "$CLOUDMAP_BRANCH" 2>/dev/null ||
-    git -C "$CLOUDMAP" switch -q -c "$CLOUDMAP_BRANCH"
-  echo "on branch  $CLOUDMAP_BRANCH"
-
   # The server migrates its own tables on first start, as the role this
   # creates; GDK's postgres trusts the socket, so neither needs a password.
   # The URL has to match cloudmap_db_url in unfurl.rb -- the server does not
   # complain about the wrong database, it just indexes nothing into it. A
   # database left from before the role existed is owned by another role, which
   # create-database warns about; drop it and re-run.
-  unfurl_python=$(sed -n '1s/^#!//p' "$(command -v unfurl)")
-  unfurl_server=$("$unfurl_python" -c \
-    'from unfurl.server.serve import _find_rust_server_bin as f; print(f() or "")')
-  if [ -z "$unfurl_server" ]; then
-    echo "no unfurl-server binary; build it with cargo build -p unfurl-server" >&2
-    exit 1
-  fi
   UNFURL_CLOUDMAP_DB_URL="postgres://unfurl_cloudmap@localhost/unfurl_cloudmap?host=$GDK/postgresql" \
     "$unfurl_server" create-database
   echo "ensured    database unfurl_cloudmap"
+
+  # Last, as unfurl.rb offers the database only once this exists. Replacing
+  # it would make the grants already stored unreadable.
+  if [ -f "$GRANT_KEY" ]; then
+    echo "present    $GRANT_KEY"
+  else
+    (umask 077 && head -c 32 /dev/urandom > "$GRANT_KEY")
+    echo "created    $GRANT_KEY"
+  fi
 fi
 
 echo
-echo "Next: gdk start unfurl   (log: gdk tail unfurl)"
+echo "Next: gdk start unfurl unfurl-backend   (log: gdk tail unfurl unfurl-backend)"
