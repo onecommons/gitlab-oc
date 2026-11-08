@@ -55,6 +55,46 @@ RSpec.describe OC::Projects::CloudmapRefreshWorker, :clean_gitlab_redis_shared_s
     Gitlab::RepositoryUrlBuilder.build(path, protocol: :http)
   end
 
+  describe 'push credentials' do
+    let(:cloudmap) { create(:project) }
+
+    before do
+      row(blueprint)
+      allow(Project).to receive(:find_by_full_path).and_call_original
+      allow(Project).to receive(:find_by_full_path).with(OC::UNFURL_CLOUDMAP_PROJECT).and_return(cloudmap)
+      stub_request(:post, analyze_url)
+    end
+
+    def credential_service(response)
+      allow_next_instance_of(OC::Authn::UnfurlGitTokenService) do |service|
+        allow(service).to receive(:execute).and_return(response)
+      end
+    end
+
+    # The server pushes a commit with the credentials of the request that made
+    # it; nobody else's request names the cloudmap.
+    it "sends the cloudmap bot's token on every request, in headers" do
+      credential_service(ServiceResponse.success(payload: { id: 1, token: 'glpat-bot', username: 'bot' }))
+      headers = { 'X-Git-Credentials' => Base64.strict_encode64('bot:glpat-bot'), 'X-Unfurl-Username' => 'bot' }
+
+      perform
+
+      expect(WebMock).to have_requested(:post, analyze_url).with(headers: headers)
+      expect(WebMock).to have_requested(:post, commit_url).with(headers: headers)
+    end
+
+    it 'still stages and commits without one, and says why' do
+      credential_service(ServiceResponse.error(message: 'no bot'))
+
+      expect(Gitlab::AppLogger).to receive(:warn).with(hash_including(error_message: 'no bot'))
+
+      perform
+
+      expect(WebMock).to have_requested(:post, commit_url)
+        .with { |request| request.headers.exclude?('X-Git-Credentials') }
+    end
+  end
+
   describe 'add' do
     it 'sends only public blueprints and dashboards, in one request' do
       bodies = sent_bodies

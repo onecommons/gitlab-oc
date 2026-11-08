@@ -18,8 +18,10 @@ module OC
     #
     # These are events, not instructions: what each means for a cloudmap
     # record is the server's decision. Visibility and type are judged when
-    # sent, not when the row was written. The server writes to the cloudmap
-    # with a credential of its own, so none is sent.
+    # sent, not when the row was written. Every request carries the cloudmap
+    # project bot's token (OC::Authn::UnfurlGitTokenService.for_project_bot):
+    # the server pushes a commit with the credentials of the request that made
+    # it, and nobody else's request names the cloudmap.
     #
     # One commit per run, however many requests it takes: each request only
     # stages, and an empty POST /cloudmap at the end commits what they
@@ -185,7 +187,7 @@ module OC
         response = ::Gitlab::HTTP.post(
           "#{unfurl_server_url}#{path}",
           query: { auth_project: ::OC::UNFURL_CLOUDMAP_PROJECT },
-          headers: { 'Content-Type' => 'application/json' },
+          headers: request_headers,
           body: ::Gitlab::Json.dump(body),
           allow_local_requests: true
         )
@@ -196,6 +198,30 @@ module OC
       rescue *::Gitlab::HTTP::HTTP_ERRORS => error
         log_failure(path: path, error_class: error.class.name, error_message: error.message)
         false
+      end
+
+      # Headers, not the body or query, so the token stays out of URLs and
+      # request logs.
+      def request_headers
+        headers = { 'Content-Type' => 'application/json' }
+        return headers unless push_credential
+
+        username = push_credential[:username]
+        headers.merge(
+          'X-Git-Credentials' => ::Base64.strict_encode64("#{username}:#{push_credential[:token]}"),
+          'X-Unfurl-Username' => username)
+      end
+
+      # Once per run. Without one the run still stages and commits; the server
+      # just cannot push it until a later run brings a token.
+      def push_credential
+        return @push_credential if defined?(@push_credential)
+
+        project = ::Project.find_by_full_path(::OC::UNFURL_CLOUDMAP_PROJECT)
+        response = ::OC::Authn::UnfurlGitTokenService.for_project_bot(project).execute if project
+        log_failure(path: 'push credential', error_message: response.message) if response&.error?
+
+        @push_credential = response&.success? ? response.payload : nil
       end
 
       def log_failure(**details)
