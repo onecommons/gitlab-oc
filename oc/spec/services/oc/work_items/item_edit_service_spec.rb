@@ -55,6 +55,16 @@ RSpec.describe OC::WorkItems::ItemEditService, feature_category: :source_code_ma
     expect(issue.notes.system.last.author).to eq(user)
   end
 
+  it 'adds and removes labels on their own, keeping one added on the web since' do
+    issue.update!(labels: [create(:label, project: project, title: 'bug')])
+    create(:label, project: project, title: 'ux')
+    revisions = push_edit { |doc| doc['label_links'] = [{ 'label' => { 'title' => 'ux' } }] }
+    issue.labels << create(:label, project: project, title: 'security')
+
+    expect(apply(revisions).applied).to eq([issue.iid])
+    expect(issue.reload.labels.map(&:title)).to contain_exactly('security', 'ux')
+  end
+
   it 'removes labels and the milestone' do
     issue.update!(labels: [create(:label, project: project, title: 'bug')],
       milestone: create(:milestone, project: project))

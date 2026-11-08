@@ -105,13 +105,18 @@ module OC
       # How each change stands against the item now, given a fresh
       # serialization of it: :pending while it still has the value the push
       # started from, :done once it has the pushed value, :conflict if it has
-      # anything else. Keyed by field name, EditedNote or NewNote. A new
-      # comment never conflicts; it is :done once `author_id` has a comment
-      # with its text that the push did not start from.
+      # anything else. Keyed by field name, EditedNote or NewNote.
+      #
+      # Labels and new comments never conflict. Labels are the labels added
+      # and removed, each on its own, so a label someone else added on the web
+      # does not stand in the way. A new comment is :done once `author_id` has
+      # a comment with its text that the push did not start from.
       def statuses(current_yaml, author_id: nil)
         current = self.class.values(current_yaml)
 
         statuses = fields.to_h do |field, (old_value, new_value)|
+          next [field, label_status(current[field], old_value, new_value)] if field == 'label_links'
+
           [field, status(current[field], old_value, new_value)]
         end
 
@@ -134,6 +139,14 @@ module OC
       end
 
       private
+
+      def label_status(current, old_titles, new_titles)
+        added = new_titles - old_titles
+        removed = old_titles - new_titles
+        done = (added - current).empty? && !current.intersect?(removed)
+
+        done ? :done : :pending
+      end
 
       def status(current, old_value, new_value)
         return :done if current == new_value

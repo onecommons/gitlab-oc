@@ -143,9 +143,31 @@ RSpec.describe OC::WorkItems::ItemEdit, feature_category: :source_code_managemen
 
     it 'is a conflict for anything else, ignoring fields the push left alone' do
       statuses = statuses_with('title' => 'Other', 'description' => 'Other',
-        'label_links' => [{ 'label' => { 'title' => 'ux' } }], 'notes' => [comment.merge('note' => 'Web')])
+        'notes' => [comment.merge('note' => 'Web')])
 
-      expect(statuses).to eq('title' => :conflict, 'label_links' => :conflict, :comment => :conflict)
+      expect(statuses).to eq('title' => :conflict, 'label_links' => :pending, :comment => :conflict)
+    end
+
+    describe 'labels' do
+      let(:edit) do
+        diff(original.merge('label_links' => [{ 'label' => { 'title' => 'ux' } }]))
+      end
+
+      def label_status(titles)
+        links = titles.map { |title| { 'label' => { 'title' => title } } }
+        edit.statuses(original.merge('label_links' => links).to_yaml)['label_links']
+      end
+
+      it 'never conflicts: each label added or removed stands on its own' do
+        expect(label_status(%w[bug security])).to eq(:pending)
+        expect(label_status(%w[security])).to eq(:pending)
+      end
+
+      it 'is done once every label added is there and every label removed is gone' do
+        expect(label_status(%w[ux])).to eq(:done)
+        expect(label_status(%w[security ux])).to eq(:done)
+        expect(label_status(%w[bug ux])).to eq(:pending)
+      end
     end
 
     it 'is done for a new comment once its author has posted one with its text' do

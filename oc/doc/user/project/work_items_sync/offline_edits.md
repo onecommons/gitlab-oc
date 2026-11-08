@@ -100,7 +100,9 @@ Work items sync: <uuid>/issues/42.yml: issue #42: "title" changed since your cop
 ```
 
 Only the fields you edited are compared. A change to another field, or a new
-comment on the web, does not refuse your push. An edited comment conflicts if
+comment on the web, does not refuse your push. Labels never conflict: each label
+you add or remove is applied on its own, so a label someone else added or
+removed on the web stays as they left it. An edited comment conflicts if
 its text changed in Unfurl Cloud or if it was deleted.
 
 To resolve a conflict:
