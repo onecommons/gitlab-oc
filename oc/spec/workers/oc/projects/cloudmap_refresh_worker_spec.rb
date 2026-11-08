@@ -86,12 +86,25 @@ RSpec.describe OC::Projects::CloudmapRefreshWorker, :clean_gitlab_redis_shared_s
     it 'still stages and commits without one, and says why' do
       credential_service(ServiceResponse.error(message: 'no bot'))
 
-      expect(Gitlab::AppLogger).to receive(:warn).with(hash_including(error_message: 'no bot'))
+      expect(Gitlab::AppLogger).to receive(:warn)
+        .with(hash_including(message: 'cloudmap refresh has no push credential', error_message: 'no bot'))
 
       perform
 
       expect(WebMock).to have_requested(:post, commit_url)
         .with { |request| request.headers.exclude?('X-Git-Credentials') }
+    end
+
+    it 'still stages and commits when getting one fails outright' do
+      allow_next_instance_of(OC::Authn::UnfurlGitTokenService) do |service|
+        allow(service).to receive(:execute).and_raise(ActiveRecord::RecordInvalid)
+      end
+
+      expect(Gitlab::ErrorTracking).to receive(:track_exception)
+
+      perform
+
+      expect(WebMock).to have_requested(:post, commit_url)
     end
   end
 

@@ -26,7 +26,9 @@ module API
           .for_user(current_user, organization_id: Current.organization.id).execute
 
         if response.error?
-          render_api_error!(response.message, response.reason || response.http_status || :unprocessable_entity)
+          # A reason is only a status when it names one.
+          reason = response.reason if ::Rack::Utils::SYMBOL_TO_STATUS_CODE.key?(response.reason)
+          render_api_error!(response.message, reason || response.http_status || :unprocessable_entity)
         end
 
         present id: response[:id], token: response[:token]

@@ -217,11 +217,21 @@ module OC
       def push_credential
         return @push_credential if defined?(@push_credential)
 
-        project = ::Project.find_by_full_path(::OC::UNFURL_CLOUDMAP_PROJECT)
-        response = ::OC::Authn::UnfurlGitTokenService.for_project_bot(project).execute if project
-        log_failure(path: 'push credential', error_message: response.message) if response&.error?
+        @push_credential = fetch_push_credential
+      end
 
-        @push_credential = response&.success? ? response.payload : nil
+      def fetch_push_credential
+        project = ::Project.find_by_full_path(::OC::UNFURL_CLOUDMAP_PROJECT)
+        return unless project
+
+        response = ::OC::Authn::UnfurlGitTokenService.for_project_bot(project).execute
+        return response.payload if response.success?
+
+        ::Gitlab::AppLogger.warn(message: 'cloudmap refresh has no push credential', error_message: response.message)
+        nil
+      rescue StandardError => error
+        ::Gitlab::ErrorTracking.track_exception(error, project: ::OC::UNFURL_CLOUDMAP_PROJECT)
+        nil
       end
 
       def log_failure(**details)

@@ -99,6 +99,13 @@ RSpec.describe OC::Authn::UnfurlGitTokenService, feature_category: :system_acces
       expect(bot_token.user).to eq(first.user)
     end
 
+    it 'reuses a token with no expiry' do
+      first = PersonalAccessToken.find(bot_service.execute[:id])
+      first.update_column(:expires_at, nil)
+
+      expect(described_class.for_project_bot(project).execute[:id]).to eq(first.id)
+    end
+
     it 'makes a new bot when the token was revoked' do
       first = PersonalAccessToken.find(bot_service.execute[:id])
       first.revoke!

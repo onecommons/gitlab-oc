@@ -41,7 +41,8 @@ module OC
       # ServiceResponse with id, token and username.
       def execute
         # Two requests at once would otherwise both mint a token.
-        in_lock(lock_key, ttl: 30.seconds, retries: 20, sleep_sec: 0.1.seconds) do
+        # Up to 5 seconds' wait: minting can take a while on a cold instance.
+        in_lock(lock_key, ttl: 30.seconds, retries: 50, sleep_sec: 0.1.seconds) do
           @project ? execute_for_bot : execute_for_user
         end
       rescue FailedToObtainLockError
@@ -75,7 +76,7 @@ module OC
       def execute_for_bot
         stored = UnfurlGitToken.find_by(user_id: @project.bots.pluck(:id))
         token = stored&.personal_access_token
-        return success(stored) if token&.active? && token.expires_at > BOT_REFRESH_WINDOW.from_now.to_date
+        return success(stored) if token&.active? && !refresh_due?(token)
 
         as_admin_bot do
           rotated = rotate(token) if token && !token.revoked?
@@ -85,6 +86,11 @@ module OC
         end
       end
       # rubocop:enable CodeReuse/ActiveRecord
+
+      # A token with no expiry needs no refresh.
+      def refresh_due?(token)
+        token.expires_at.present? && token.expires_at <= BOT_REFRESH_WINDOW.from_now.to_date
+      end
 
       # Same bot, a new token; the old one is revoked by the rotation and kept
       # for the audit trail. nil when the rotation is refused (for example a

@@ -54,6 +54,17 @@ RSpec.describe API::UnfurlAccessToken, feature_category: :system_access do
     expect(stored).to have_attributes(personal_access_token_id: json_response['id'], token: json_response['token'])
   end
 
+  it 'answers with the reason a token could not be made' do
+    allow_next_instance_of(OC::Authn::UnfurlGitTokenService) do |service|
+      allow(service).to receive(:execute).and_return(ServiceResponse.error(message: 'nope', reason: :not_a_status))
+    end
+
+    request_token
+
+    expect(response).to have_gitlab_http_status(:unprocessable_entity)
+    expect(json_response['message']).to eq('nope')
+  end
+
   it 'does not expose a token to an unauthenticated request' do
     expect { get api('/unfurl_access_token') }.not_to change { PersonalAccessToken.count }
 
