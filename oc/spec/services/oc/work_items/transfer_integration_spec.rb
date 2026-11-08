@@ -242,7 +242,8 @@ RSpec.describe 'work items ownership transfer', feature_category: :source_code_m
       new_path = "#{staging_uuid}/issues/#{issue.iid}-chosen-offline.yml"
       staging.repository.commit_files(
         staging.first_owner, branch_name: branch, message: 'rename it',
-        actions: [{ action: :move, previous_path: old_path, file_path: new_path, content: contents(staging)[old_path] }])
+        actions: [{ action: :move, previous_path: old_path, file_path: new_path,
+                    content: contents(staging)[old_path] }])
       as_instance(staging_uuid) { OC::WorkItems::FullSyncWorker.new.perform(staging.id) }
 
       push_to(prod, contents(staging))

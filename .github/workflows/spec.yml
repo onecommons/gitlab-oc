@@ -78,7 +78,7 @@ jobs:
             echo "Nothing new since the last passing nightly; skipping."
             stages=
           fi
-          case " $stages " in *" qa "*) echo "qa=true" >> "$GITHUB_OUTPUT" ;; esac
+          for s in $stages; do if [ "$s" = qa ]; then echo "qa=true" >> "$GITHUB_OUTPUT"; fi; done
           stages=$(for s in $stages; do [ "$s" = qa ] || echo "$s"; done)
           echo "stages=$(printf '%s\n' $stages | jq -R . | jq -sc 'map(select(length > 0))')" >> "$GITHUB_OUTPUT"
 
