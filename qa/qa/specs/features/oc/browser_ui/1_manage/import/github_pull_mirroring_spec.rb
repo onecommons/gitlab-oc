@@ -24,7 +24,10 @@ module QA
       QA::Support::Helpers::ImportSource.enable('github')
 
       Flow::Login.sign_in(as: user)
-      Page::Main::Menu.perform(&:go_to_create_project)
+      # Not the topbar's create menu: new users are external on this instance
+      # (user_default_external), so it has no items and is not rendered. The
+      # user can still create projects in the group it maintains.
+      Capybara.current_session.visit("#{Runtime::Scenario.gitlab_address}/projects/new")
       Page::Project::New.perform do |project_page|
         project_page.click_import_project
         project_page.click_github_link
