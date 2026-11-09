@@ -219,6 +219,9 @@ jobs:
             eval "$(~/.local/bin/mise activate bash)"
             cd /gitlab-gdk/gitlab-development-kit
             echo "export OC_WORK_ITEMS_SYNC_DELAY=1" >> env.runit
+            # as e2e.yml: no dev-server reloads mid-spec
+            echo "export DEV_SERVER_LIVERELOAD=false" >> env.runit
+            echo "export DEV_SERVER_LAZY_COMPILATION=false" >> env.runit
             cd gitlab
             git fetch --depth=1 origin "$REF"
             git checkout --force FETCH_HEAD

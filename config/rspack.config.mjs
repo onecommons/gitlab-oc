@@ -181,11 +181,17 @@ export default {
     __dirname: 'mock',
     __filename: 'mock',
   },
-  lazyCompilation: {
-    imports: true,
-    entries: false,
-    prefix: `${WEBPACK_PUBLIC_PATH}_rspack/lazy/trigger`,
-  },
+  // OC Change: switchable for CI, where a lazy compile mid-spec makes the dev
+  // server reload the page under the test. Lazy modules arrive as hot updates,
+  // so turning off DEV_SERVER_LIVERELOAD needs this off too.
+  lazyCompilation:
+    process.env.DEV_SERVER_LAZY_COMPILATION === 'false'
+      ? false
+      : {
+          imports: true,
+          entries: false,
+          prefix: `${WEBPACK_PUBLIC_PATH}_rspack/lazy/trigger`,
+        },
   // OC Change: rspack watches the symlink, not what it points at, so edits in a
   // linked oc-pages checkout never reach the build. Costs nothing when oc-pages
   // is the pinned real directory.

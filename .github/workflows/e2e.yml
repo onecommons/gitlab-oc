@@ -123,6 +123,14 @@ jobs:
               RAILS_ENV=development mise x -- bin/rake db:migrate
               mise x -- gdk stop'
           fi
+          # Nothing is edited during a run, so the dev server has nothing to
+          # push to the page: with live reload on, a lazy compile or a write
+          # under public/ reloaded it mid-spec. Lazy modules arrive as hot
+          # updates, so lazy compilation goes off with it.
+          docker exec -u gdk gdk bash -c 'printf "%s\n" \
+            "export DEV_SERVER_LIVERELOAD=false" \
+            "export DEV_SERVER_LAZY_COMPILATION=false" \
+            >> /gitlab-gdk/gitlab-development-kit/env.runit'
           docker exec -d gdk /home/gdk/gdk-container-startup.sh
           SECONDS=0
           # A hung request reports 000 rather than stalling the loop.
