@@ -478,6 +478,20 @@ describe('infection scanner', () => {
         expect(typesOnly.graph[ts('entry_types.js')].infected).toBe(false);
         expect(typesOnly.graph[ts('typed.ts')]).toBeDefined();
       });
+
+      // defineComponent is the identity in Vue 2.7 and Vue 3 alike, so a
+      // component wrapped in it for its types says nothing about which Vue it
+      // needs. Counting the import moved typed components into the Vue 3 lane.
+      it('ignores an import of defineComponent alone from vue', async () => {
+        const scan = (entry) =>
+          analyze({ rootPath: ts(), entrypoints: { main: ts(entry) }, infectionSpecifiers: ['vue'] });
+        const only = await scan('entry_define_only.js');
+        expect(only.graph[ts('define_only.vue')].infected).toBe(false);
+        expect(only.graph[ts('entry_define_only.js')].infected).toBe(false);
+
+        const plus = await scan('entry_define_plus.js');
+        expect(plus.graph[ts('define_plus.vue')].infected).toBe(true);
+      });
     });
 
     describe('app root as infection barrier', () => {

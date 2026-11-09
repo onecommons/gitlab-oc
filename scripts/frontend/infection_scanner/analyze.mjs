@@ -16,6 +16,9 @@ const EXTENSIONS = ['.mjs', '.js', '.ts'];
 const CONCURRENCY = 64;
 // `import type X`, `import type {X}`, `import type * as X` -- not a default import named `type`
 const TYPE_ONLY_IMPORT = /^import\s+type(?:\s*[{*]|\s+(?!from\b)[\w$])/;
+// OC Change: `import { defineComponent } from 'vue'` and nothing else.
+const DEFINE_COMPONENT_ONLY_IMPORT =
+  /^import\s*\{\s*defineComponent(?:\s+as\s+[\w$]+)?\s*,?\s*\}\s*from\s*['"]vue['"]/;
 
 /**
  * Create a module resolver that handles aliases, file extensions, index files,
@@ -359,6 +362,14 @@ async function parseFile(filePath) {
       // a module that only uses vue's types in the Vue 3 lane. (`import {type X}`
       // stays an edge: under verbatimModuleSyntax the import itself survives.)
       .filter((imp) => !(imp.d === -1 && TYPE_ONLY_IMPORT.test(code.slice(imp.ss, imp.ss + 32))))
+      // OC Change: defineComponent is the identity in Vue 2.7 and Vue 3 alike,
+      // so importing only it says nothing about which Vue a module needs. Each
+      // oc-pages component imports it for its types; counting that would move
+      // every one of them into the Vue 3 lane.
+      .filter(
+        (imp) =>
+          !(imp.d === -1 && imp.n === 'vue' && DEFINE_COMPONENT_ONLY_IMPORT.test(code.slice(imp.ss, imp.se))),
+      )
       .map((imp) => ({
         source: imp.n,
         dynamic: imp.d >= 0,
