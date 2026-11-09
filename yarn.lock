@@ -17716,7 +17716,7 @@ __metadata:
 
 "oc-pages@https://github.com/onecommons/unfurl-gui#head=vue3&workspace=oc-pages":
   version: 0.1.0
-  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=6063630af00eac987676bd669e7c8aac46c835b0"
+  resolution: "oc-pages@https://github.com/onecommons/unfurl-gui.git#workspace=oc-pages&commit=6ccf51efad891926fa89ccffa914d2e931719f9d"
   dependencies:
     "@formily/core": ~2.2.0
     "@formily/reactive-vue": ~2.3.0
@@ -17744,7 +17744,7 @@ __metadata:
   peerDependenciesMeta:
     vue:
       optional: false
-  checksum: 7ad9f3b406a1da561a845ed8471c6c6520be41d719ee12c4cf669ffb0ee27e42d562d6e87d9e528b5407ca0a0d15668b648733ee5db5d6c9d45ee1195790d038
+  checksum: dc9c736de4f079b6bee2c28140e28a93c90a135e604991ef047a734380e572d623922c8540079bcbd167333962f93c70d716b90f4cb0a95223f7b0a2c23b7373
   languageName: node
   linkType: hard
 
