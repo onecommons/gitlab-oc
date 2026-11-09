@@ -198,6 +198,10 @@ export default {
     },
     host: DEV_SERVER_HOST || 'localhost',
     port: DEV_SERVER_PORT || 3808,
+    // OC Change: the default also watches public/, so with live reload any
+    // write there -- GitLab saving a bot user's avatar to public/uploads --
+    // reloads every open page
+    static: { directory: path.join(ROOT_PATH, 'public'), watch: false },
     webSocketServer: DEV_SERVER_LIVERELOAD ? 'ws' : false,
     hot: DEV_SERVER_LIVERELOAD,
     liveReload: DEV_SERVER_LIVERELOAD,
